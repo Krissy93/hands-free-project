@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/Debian) (preloaded format=pdflatex 2019.4.15)  10 JAN 2020 19:11
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/Debian) (preloaded format=pdflatex 2019.4.15)  10 JAN 2020 19:35
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -138,7 +138,22 @@ Missing character: There is no ï in font ptmb7t!
 Missing character: There is no ¿ in font ptmb7t!
 Missing character: There is no ½ in font ptmb7t!
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <7> on input line 68.
+(Font)              <7> on input line 69.
+
+Underfull \hbox (badness 1838) in paragraph at lines 77--78
+\OT1/ptm/m/n/10 re-al-ity tele-op-er-a-tion sys-tem which ex-ploits a com-mon
+ []
+
+
+Underfull \hbox (badness 1360) in paragraph at lines 77--78
+\OT1/ptm/m/n/10 com-pared with the LM. A ROS-based frame-work has
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 77--78
+
+ []
+
 Missing character: There is no Ã in font ptmr7t!
 Missing character: There is no   in font ptmr7t!
 Missing character: There is no Ã in font ptmr7t!
@@ -147,7 +162,6 @@ Missing character: There is no Ã in font ptmr7t!
 Missing character: There is no ¨ in font ptmr7t!
 Missing character: There is no Ã in font ptmr7t!
 Missing character: There is no ¨ in font ptmr7t!
-
 [1{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}
 
 
@@ -235,11 +249,11 @@ Before submitting the final camera ready copy, remember to:
 Here is how much of TeX's memory you used:
  879 strings out of 492982
  14333 string characters out of 6134896
- 76501 words of memory out of 5000000
+ 75501 words of memory out of 5000000
  4503 multiletter control sequences out of 15000+600000
  39873 words of font info for 78 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 26i,9n,20p,1692b,283s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 26i,9n,20p,1690b,283s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc}<
 /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/s
 hare/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/share/te
@@ -248,7 +262,7 @@ exmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></usr/share/texlive/texmf-dist/fon
 ts/type1/urw/times/utmb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/ti
 mes/utmbi8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmr8a.pfb
 ></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on bozza.pdf (2 pages, 92281 bytes).
+Output written on bozza.pdf (2 pages, 92500 bytes).
 PDF statistics:
  44 PDF objects out of 1000 (max. 8388607)
  31 compressed objects within 1 object stream
