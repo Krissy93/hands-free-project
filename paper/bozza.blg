@@ -5,45 +5,45 @@ The style file: ieeetr.bst
 Database file #1: /home/abel/Documenti/Mendeley_References/Hands-free.bib
 Warning--empty publisher in VERTUTJean;COEFFET
 Warning--empty journal in Vogel2011
-You've used 13 entries,
+You've used 14 entries,
             1876 wiz_defined-function locations,
-            572 strings with 6309 characters,
-and the built_in function-call counts, 4045 in all, are:
-= -- 405
-> -- 170
+            579 strings with 6415 characters,
+and the built_in function-call counts, 4228 in all, are:
+= -- 421
+> -- 178
 < -- 0
-+ -- 61
-- -- 48
-* -- 298
-:= -- 571
-add.period$ -- 14
-call.type$ -- 13
-change.case$ -- 12
++ -- 64
+- -- 50
+* -- 309
+:= -- 600
+add.period$ -- 15
+call.type$ -- 14
+change.case$ -- 13
 chr.to.int$ -- 0
-cite$ -- 15
-duplicate$ -- 199
-empty$ -- 359
-format.name$ -- 48
-if$ -- 975
+cite$ -- 16
+duplicate$ -- 210
+empty$ -- 378
+format.name$ -- 50
+if$ -- 1021
 int.to.chr$ -- 0
-int.to.str$ -- 13
-missing$ -- 14
-newline$ -- 43
-num.names$ -- 13
-pop$ -- 39
+int.to.str$ -- 14
+missing$ -- 15
+newline$ -- 46
+num.names$ -- 14
+pop$ -- 43
 preamble$ -- 1
 purify$ -- 0
 quote$ -- 0
-skip$ -- 142
+skip$ -- 147
 stack$ -- 0
-substring$ -- 315
-swap$ -- 90
+substring$ -- 317
+swap$ -- 93
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
 type$ -- 0
 warning$ -- 2
-while$ -- 43
-width$ -- 15
-write$ -- 127
+while$ -- 45
+width$ -- 16
+write$ -- 136
 (There were 2 warnings)
