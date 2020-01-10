@@ -1,0 +1,49 @@
+This is BibTeX, Version 0.99d (TeX Live 2017/Debian)
+Capacity: max_strings=100000, hash_size=100000, hash_prime=85009
+The top-level auxiliary file: bozza.aux
+The style file: ieeetr.bst
+Database file #1: /home/abel/Documenti/Mendeley_References/Hands-free.bib
+Warning--empty publisher in VERTUTJean;COEFFET
+Warning--empty journal in Vogel2011
+You've used 13 entries,
+            1876 wiz_defined-function locations,
+            572 strings with 6309 characters,
+and the built_in function-call counts, 4045 in all, are:
+= -- 405
+> -- 170
+< -- 0
++ -- 61
+- -- 48
+* -- 298
+:= -- 571
+add.period$ -- 14
+call.type$ -- 13
+change.case$ -- 12
+chr.to.int$ -- 0
+cite$ -- 15
+duplicate$ -- 199
+empty$ -- 359
+format.name$ -- 48
+if$ -- 975
+int.to.chr$ -- 0
+int.to.str$ -- 13
+missing$ -- 14
+newline$ -- 43
+num.names$ -- 13
+pop$ -- 39
+preamble$ -- 1
+purify$ -- 0
+quote$ -- 0
+skip$ -- 142
+stack$ -- 0
+substring$ -- 315
+swap$ -- 90
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 0
+warning$ -- 2
+while$ -- 43
+width$ -- 15
+write$ -- 127
+(There were 2 warnings)
