@@ -29,6 +29,7 @@
 %\usepackage{times} % assumes new font selection scheme installed
 \usepackage{amsmath} % assumes amsmath package installed
 %\usepackage{amssymb}  % assumes amsmath package installed
+\usepackage{amssymb}
 
 \title{\LARGE \bf
 Hands-Free: a robot augmented reality teleoperation system
@@ -108,8 +109,7 @@ s
   \end{bmatrix}
 \label{eq1}
 \end{equation}
-
-In the equation above, the scalar $s$ is the scale factor of the image, matrix $K\in R^32$ is the camera matrix containing the intrinsic parameters of the camera such as focal length and optical center, and the \textbf{[R$|$t]} matrix is the rigid transformation matrix containing the exstrinsic parameters rotation \textbf{R} ($3$x$3$ matrix) and translation \textbf{t} ($3$x$1$ matrix) of the camera reference system $C$ with respect to the calibration master reference system $H$.
+In the equation above, the scalar $s\in\mathbb{R}$ is the scale factor of the image, $\mathbf{K}\in\mathbb{R}^{3\times3}$ is the camera matrix containing the intrinsic parameters of the camera such as focal length and optical center, $\mathbf{[R|t]}\in\mathbb{R}^{4\times3}$ is the rigid transformation matrix containing the exstrinsic parameters for rotation ($\mathbf{R}\in\mathbb{R}^{3\times3}$) and translation ($\mathbf{t}\in\mathbb{R}^3$) of the camera reference frame $C$ with respect to the calibration master reference frame $H$.
 
 To obtain matrix \textbf{K} it is necessary to perform a calibration procedure. A well-performed calibration procedure allows to obtain a satisfactory estimation of the camera parameters. To correctly map image points to the corresponding real world coordinates, the rigid transformation matrix must be estimated with respect to the user-defined reference system of the calibration master. Thus, if reference system $H$ changes or the camera $C$ moves, it is necessary to estimate again the correct rigid transformation matrix. % this procedure has been automatized by our software.
 
