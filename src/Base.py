@@ -170,7 +170,7 @@ class Kinect():
         self.device.close()
 #######
 
-# FARLO CON CAFFE
+# ok
 def init_network():
     ''' Function to initialize network parameters.
     Be sure to place the network and the weights in the correct folder. '''
@@ -200,7 +200,7 @@ def px2meters():
 
 # ok
 def hand_keypoints(net, frame, threshold, nPoints):
-    ''' Chiama openpose per tirare fuori le coordinate del joint dell'indice,
+    ''' Chiama la rete per tirare fuori le coordinate del joint dell'indice,
     sia dx sia sx a seconda della mano utilizzata. Lo printa sull'immagine RGB
     mostrata a video come pallino a cui e' collegata la terna relativa (x,y,z).
     Quando e' presente anche il pollice, avvia l'acquisizione del punto reale dove
@@ -246,7 +246,7 @@ def hand_keypoints(net, frame, threshold, nPoints):
     return points, inference_time
 
 # cambia colori ma ok
-def draw_skeleton(frame, points, draw, inference_time, G):
+def draw_skeleton(frame, points, draw, inference_time, G, H):
     ''' Function to draw the skeleton of one hand according to
     a pre-defined pose pair scheme to the frame. Does not return anything. '''
 
@@ -265,7 +265,7 @@ def draw_skeleton(frame, points, draw, inference_time, G):
                 cv2.circle(A, points[partB], 8, (0, 0, 255), thickness=-1, lineType=cv2.FILLED)
     # the structure is: image, string of text, position from the top-left angle, font, size, BGR value of txt color, thickness, graphic
     cv2.putText(A, 'INFERENCE TIME: ' + str(inference_time) + ' SEC', (20,50), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (80, 65, 242), 3, cv2.LINE_AA)
-    cv2.putText(A, 'LAST RESPONSE SENT: ' + str(G), (20,980), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (35, 227, 25), 3, cv2.LINE_AA)
+    cv2.putText(A, 'LAST RESPONSE SENT: ' + str(G) + ' || HANDMAP: ' + str(H), (20,980), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (35, 227, 25), 3, cv2.LINE_AA)
     # finally we display the image on a new window
     cv2.imshow('hand detection', A)
 
@@ -286,6 +286,7 @@ def closed_finger(points):
 
     # scorre tutte le coppie
     handmap = []
+    print('points: ' + str(points))
 
     # check per definire il valore dei riferimenti se qualche keypoint manca
     if points[17] is not None:
@@ -353,6 +354,7 @@ def closed_finger(points):
     for k in range(1, 5): # per le 4 dita pollice escluso
         finger = []
         for i in range(j,j+4): # legge i keypoints delle dita
+            print('keypoint: ' + str(points[i]))
             if points[i]:
                 # se non e' None
                 finger.append(points[i])
@@ -378,16 +380,20 @@ def closed_finger(points):
         dy = np.array([x[1] for x in finger])
         print(np.amax(dx) - np.amin(dx))
         print(np.amax(dy) - np.amin(dy))'''
-
+        print(distances)
         # WARNING: quanto e' robusto rispetto allo zoom?
         if (distances[-1] > 0):
-            if ((distances[-1] - distances[0])/distances[-1]) < 0.20:
+            if sum(distances) == 0:
+                # se sono tutti assenti lo ipotizzo chiuso
+                handmap.append(0)
+            elif ((distances[-1] - distances[0])/distances[-1]) < 0.20:
                 # closed
                 handmap.append(0)
             else:
                 handmap.append(1)
         else:
-            handmap.append(1)
+            # se manca proprio l'ultimo keypoint lo metto nullo
+            handmap.append(0)
 
         j = j + 4
 
@@ -409,7 +415,7 @@ def gesture(points, chain, acquire, chvalue):
         G = 'HAND OPEN'
         acquire = True
         chain = []
-    elif handmap[1] == 1 and sum(handmap[2:-1]) == 0:
+    elif handmap[1] == 1 and sum(handmap[2:4]) == 0:
         # index
         rospy.loginfo(color.BOLD + color.CYAN + 'INDEX' + color.END)
         G = 'INDEX'
@@ -422,7 +428,7 @@ def gesture(points, chain, acquire, chvalue):
         # non svuoto perche' accetto il disturbo durante il riempimento della coda
         # che verra' svuotata quando raggiunge il chvalue
 
-    return chain, acquire, G
+    return chain, acquire, G, str(handmap)
 
 
     # da pylibfreenect2
@@ -465,6 +471,7 @@ def main():
     draw = True
     chvalue = 7
     G = 'INIT'
+    H = 'INIT'
     image = cv2.imread('/home/optolab/ur2020_workspace/src/telemove/src/HandPose/hand.jpg')
 
     while not rospy.is_shutdown():
@@ -475,12 +482,13 @@ def main():
         #points, inference_time = hand_keypoints(net, image, threshold, nPoints)
 
 
-        if all(x == 'None' for x in points) or points[0] == None:
+        if all(x == None for x in points[1:]) or points[0] == None:
             rospy.loginfo(color.BOLD + color.RED + 'NO GESTURE FOUND IN IMAGE' + color.END)
             draw = False
             G = 'NO GESTURE'
+            H = 'NONE'
         else:
-            chain, acquire, G = gesture(points, chain, acquire, chvalue)
+            chain, acquire, G, H = gesture(points, chain, acquire, chvalue)
             draw = True
             if len(chain) == chvalue:
                 # ho riempito la coda
@@ -492,7 +500,7 @@ def main():
                 rospy.loginfo(color.BOLD + color.YELLOW + 'CHAIN VALUE REACHED. MEAN IS: ' + str(mean) + color.END)
                 # svuoto la coda
                 chain = []
-        draw_skeleton(kinect.color_new, points, draw, inference_time, G)
+        draw_skeleton(kinect.color_new, points, draw, inference_time, G, H)
         #draw_skeleton(image, points, draw, inference_time, G)
 
 
