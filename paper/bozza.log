@@ -1,8 +1,8 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/W32TeX) (preloaded format=pdflatex 2018.2.16)  25 JAN 2020 16:31
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/Debian) (preloaded format=pdflatex 2019.4.15)  27 JAN 2020 19:42
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
-**./bozza.tex
+**bozza.tex
 (./bozza.tex
 LaTeX2e <2017-04-15>
 Babel <3.18> and hyphenation patterns for 84 language(s) loaded.
@@ -15,7 +15,7 @@ Document Class: ieeeconf 2016/4/23 revision V1.6b by Pradeep Misra
 \@IEEEtrantmptoksA=\toks14
 LaTeX Font Info:    Try loading font information for OT1+ptm on input line 794.
 
-(d:/texlive/2017/texmf-dist/tex/latex/psnfss/ot1ptm.fd
+(/usr/share/texlive/texmf-dist/tex/latex/psnfss/ot1ptm.fd
 File: ot1ptm.fd 2001/06/04 font definitions for OT1/ptm.
 )
 \@IEEEnormalsizefontbaselineskip=\skip41
@@ -99,48 +99,48 @@ LaTeX Font Info:    Font shape `OT1/ptm/bx/it' in size <24> not available
 )
 ** ATTENTION: Overriding command lockouts (line 9).
 ** ATTENTION: Overriding IEEE standard margins (line 12).
-(d:/texlive/2017/texmf-dist/tex/latex/graphics/graphicx.sty
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/graphicx.sty
 Package: graphicx 2017/06/01 v1.1a Enhanced LaTeX Graphics (DPC,SPQR)
 
-(d:/texlive/2017/texmf-dist/tex/latex/graphics/keyval.sty
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty
 Package: keyval 2014/10/28 v1.15 key=value parser (DPC)
 \KV@toks@=\toks15
 )
-(d:/texlive/2017/texmf-dist/tex/latex/graphics/graphics.sty
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/graphics.sty
 Package: graphics 2017/06/25 v1.2c Standard LaTeX Graphics (DPC,SPQR)
 
-(d:/texlive/2017/texmf-dist/tex/latex/graphics/trig.sty
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/trig.sty
 Package: trig 2016/01/03 v1.10 sin cos tan (DPC)
 )
-(d:/texlive/2017/texmf-dist/tex/latex/graphics-cfg/graphics.cfg
+(/usr/share/texlive/texmf-dist/tex/latex/graphics-cfg/graphics.cfg
 File: graphics.cfg 2016/06/04 v1.11 sample graphics configuration
 )
 Package graphics Info: Driver file: pdftex.def on input line 99.
 
-(d:/texlive/2017/texmf-dist/tex/latex/graphics-def/pdftex.def
+(/usr/share/texlive/texmf-dist/tex/latex/graphics-def/pdftex.def
 File: pdftex.def 2018/01/08 v1.0l Graphics/color driver for pdftex
 ))
 \Gin@req@height=\dimen113
 \Gin@req@width=\dimen114
 )
-(d:/texlive/2017/texmf-dist/tex/latex/amsmath/amsmath.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
 Package: amsmath 2017/09/02 v2.17a AMS math features
 \@mathmargin=\skip47
 
 For additional information on amsmath, use the `?' option.
-(d:/texlive/2017/texmf-dist/tex/latex/amsmath/amstext.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
 Package: amstext 2000/06/29 v2.01 AMS text
 
-(d:/texlive/2017/texmf-dist/tex/latex/amsmath/amsgen.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty
 File: amsgen.sty 1999/11/30 v2.0 generic functions
 \@emptytoks=\toks16
 \ex@=\dimen115
 ))
-(d:/texlive/2017/texmf-dist/tex/latex/amsmath/amsbsy.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty
 Package: amsbsy 1999/11/29 v1.2d Bold Symbols
 \pmbraise@=\dimen116
 )
-(d:/texlive/2017/texmf-dist/tex/latex/amsmath/amsopn.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty
 Package: amsopn 2016/03/08 v2.02 operator names
 )
 \inf@bad=\count91
@@ -196,7 +196,7 @@ LaTeX Font Info:    ... okay on input line 51.
 LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 51.
 LaTeX Font Info:    ... okay on input line 51.
 
-(d:/texlive/2017/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
+(/usr/share/texlive/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
 \scratchcounter=\count103
 \scratchdimen=\dimen124
@@ -209,31 +209,31 @@ LaTeX Font Info:    ... okay on input line 51.
 \MPnumerator=\count107
 \makeMPintoPDFobject=\count108
 \everyMPtoPDFconversion=\toks22
-) (d:/texlive/2017/texmf-dist/tex/latex/oberdiek/epstopdf-base.sty
+) (/usr/share/texlive/texmf-dist/tex/latex/oberdiek/epstopdf-base.sty
 Package: epstopdf-base 2016/05/15 v2.6 Base part for package epstopdf
 
-(d:/texlive/2017/texmf-dist/tex/generic/oberdiek/infwarerr.sty
+(/usr/share/texlive/texmf-dist/tex/generic/oberdiek/infwarerr.sty
 Package: infwarerr 2016/05/16 v1.4 Providing info/warning/error messages (HO)
 )
-(d:/texlive/2017/texmf-dist/tex/latex/oberdiek/grfext.sty
+(/usr/share/texlive/texmf-dist/tex/latex/oberdiek/grfext.sty
 Package: grfext 2016/05/16 v1.2 Manage graphics extensions (HO)
 
-(d:/texlive/2017/texmf-dist/tex/generic/oberdiek/kvdefinekeys.sty
+(/usr/share/texlive/texmf-dist/tex/generic/oberdiek/kvdefinekeys.sty
 Package: kvdefinekeys 2016/05/16 v1.4 Define keys (HO)
 
-(d:/texlive/2017/texmf-dist/tex/generic/oberdiek/ltxcmds.sty
+(/usr/share/texlive/texmf-dist/tex/generic/oberdiek/ltxcmds.sty
 Package: ltxcmds 2016/05/16 v1.23 LaTeX kernel commands for general use (HO)
 )))
-(d:/texlive/2017/texmf-dist/tex/latex/oberdiek/kvoptions.sty
+(/usr/share/texlive/texmf-dist/tex/latex/oberdiek/kvoptions.sty
 Package: kvoptions 2016/05/16 v3.12 Key value format for package options (HO)
 
-(d:/texlive/2017/texmf-dist/tex/generic/oberdiek/kvsetkeys.sty
+(/usr/share/texlive/texmf-dist/tex/generic/oberdiek/kvsetkeys.sty
 Package: kvsetkeys 2016/05/16 v1.17 Key value parser (HO)
 
-(d:/texlive/2017/texmf-dist/tex/generic/oberdiek/etexcmds.sty
+(/usr/share/texlive/texmf-dist/tex/generic/oberdiek/etexcmds.sty
 Package: etexcmds 2016/05/16 v1.6 Avoid name clashes with e-TeX commands (HO)
 
-(d:/texlive/2017/texmf-dist/tex/generic/oberdiek/ifluatex.sty
+(/usr/share/texlive/texmf-dist/tex/generic/oberdiek/ifluatex.sty
 Package: ifluatex 2016/05/16 v1.4 Provides the ifluatex switch (HO)
 Package ifluatex Info: LuaTeX not detected.
 )
@@ -242,11 +242,11 @@ Package etexcmds Info: Could not find \expanded.
 (etexcmds)             that some package has redefined \expanded.
 (etexcmds)             In the latter case, load this package earlier.
 )))
-(d:/texlive/2017/texmf-dist/tex/generic/oberdiek/pdftexcmds.sty
+(/usr/share/texlive/texmf-dist/tex/generic/oberdiek/pdftexcmds.sty
 Package: pdftexcmds 2018/01/21 v0.26 Utility functions of pdfTeX for LuaTeX (HO
 )
 
-(d:/texlive/2017/texmf-dist/tex/generic/oberdiek/ifpdf.sty
+(/usr/share/texlive/texmf-dist/tex/generic/oberdiek/ifpdf.sty
 Package: ifpdf 2017/03/15 v3.2 Provides the ifpdf switch
 )
 Package pdftexcmds Info: LuaTeX not detected.
@@ -261,54 +261,26 @@ Package grfext Info: Graphics extension search list:
 G,.JBIG2,.JB2,.eps]
 (grfext)             \AppendGraphicsExtensions on input line 456.
 
-(d:/texlive/2017/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg
+(/usr/share/texlive/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg
 File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
 e
 ))
 LaTeX Font Info:    Calculating math sizes for size <11> on input line 53.
 LaTeX Font Info:    Try loading font information for OT1+pcr on input line 53.
 
-(d:/texlive/2017/texmf-dist/tex/latex/psnfss/ot1pcr.fd
+(/usr/share/texlive/texmf-dist/tex/latex/psnfss/ot1pcr.fd
 File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
-)
-
-LaTeX Warning: Citation `jia2014caffe' on page 1 undefined on input line 75.
-
-[1{d:/texlive/2017/texmf-var/fonts/map/pdftex/updmap/pdftex.map}
+) [1{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}
 
 
 ]
 
-LaTeX Warning: Citation `MatlabCameraCalib' on page 2 undefined on input line 8
-9.
-
-<figures/w1.png, id=14, 800.9925pt x 913.4125pt>
-File: figures/w1.png Graphic file (type png)
-<use figures/w1.png>
-Package pdftex.def Info: figures/w1.png  used on input line 119.
-(pdftex.def)             Requested size: 147.43236pt x 168.11453pt.
-
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
-<figures/w2.png, id=16, 818.05624pt x 1050.92625pt>
-File: figures/w2.png Graphic file (type png)
-<use figures/w2.png>
-Package pdftex.def Info: figures/w2.png  used on input line 132.
-(pdftex.def)             Requested size: 147.43236pt x 189.3991pt.
-
-LaTeX Warning: `!h' float specifier changed to `!ht'.
-
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [2 <./figures/w1.png> <./figures/w2.png>]
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-[3] (./bozza.bbl
+[2] (./bozza.bbl
 Missing character: There is no Ä in font ptmr7t!
 Missing character: There is no ‚ in font ptmr7t!
-
+ [3]
 Underfull \hbox (badness 1490) in paragraph at lines 48--53
 []\OT1/ptm/m/n/8 L. Roveda, S. Haghshenas, A. Prini, T. Di-non, N. Pe-droc-chi,
 
@@ -328,39 +300,34 @@ Before submitting the final camera ready copy, remember to:
 
 [4
 
-] (./bozza.aux)
-
-LaTeX Warning: There were undefined references.
-
-
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
-
- ) 
+] (./bozza.aux) ) 
 Here is how much of TeX's memory you used:
- 2723 strings out of 492982
- 39513 string characters out of 6136225
+ 2720 strings out of 492982
+ 39601 string characters out of 6134896
  110355 words of memory out of 5000000
- 6259 multiletter control sequences out of 15000+600000
- 42562 words of font info for 86 fonts, out of 8000000 for 9000
+ 6255 multiletter control sequences out of 15000+600000
+ 44110 words of font info for 91 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 41i,9n,25p,1679b,285s stack positions out of 5000i,500n,10000p,200000b,80000s
-{d:/texlive/2017/texmf-dist/fonts/enc/dvips/base/8r.enc}<d:/texlive/2017/texm
-f-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb><d:/texlive/2017/texmf-dist/fo
-nts/type1/public/amsfonts/cm/cmmi10.pfb><d:/texlive/2017/texmf-dist/fonts/type1
-/public/amsfonts/cm/cmmi7.pfb><d:/texlive/2017/texmf-dist/fonts/type1/public/am
-sfonts/cm/cmmi8.pfb><d:/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/
-cmr10.pfb><d:/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb><
-d:/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb><d:/texliv
-e/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb><d:/texlive/2017/tex
-mf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb><d:/texlive/2017/texmf-dist/fo
-nts/type1/urw/courier/ucrr8a.pfb><d:/texlive/2017/texmf-dist/fonts/type1/urw/ti
-mes/utmb8a.pfb><d:/texlive/2017/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb><d
-:/texlive/2017/texmf-dist/fonts/type1/urw/times/utmr8a.pfb><d:/texlive/2017/tex
-mf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on bozza.pdf (4 pages, 224197 bytes).
+ 41i,9n,25p,1630b,285s stack positions out of 5000i,500n,10000p,200000b,80000s
+{/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc}</u
+sr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/sha
+re/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/tex
+live/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/t
+exmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texlive/texmf-di
+st/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/share/texlive/texmf-dist/font
+s/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1
+/public/amsfonts/cm/cmr7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/
+amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfon
+ts/cm/cmsy6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/c
+msy8.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></us
+r/share/texlive/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/share/texlive
+/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb></usr/share/texlive/texmf-dist/fo
+nts/type1/urw/times/utmr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/t
+imes/utmri8a.pfb>
+Output written on bozza.pdf (4 pages, 164440 bytes).
 PDF statistics:
- 79 PDF objects out of 1000 (max. 8388607)
- 54 compressed objects within 1 object stream
+ 78 PDF objects out of 1000 (max. 8388607)
+ 56 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
- 11 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 1 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -1,49 +1,50 @@
-This is BibTeX, Version 0.99d (TeX Live 2017/W32TeX)
+This is BibTeX, Version 0.99d (TeX Live 2017/Debian)
 Capacity: max_strings=100000, hash_size=100000, hash_prime=85009
 The top-level auxiliary file: bozza.aux
 The style file: ieeetr.bst
 Database file #1: bibliography.bib
 Warning--empty publisher in VERTUTJean
 Warning--empty journal in Vogel2011
-You've used 16 entries,
+Warning--empty booktitle in MatlabCameraCalib
+You've used 18 entries,
             1876 wiz_defined-function locations,
-            588 strings with 6720 characters,
-and the built_in function-call counts, 4639 in all, are:
-= -- 445
-> -- 209
+            597 strings with 7066 characters,
+and the built_in function-call counts, 5012 in all, are:
+= -- 467
+> -- 239
 < -- 0
-+ -- 75
-- -- 59
-* -- 341
-:= -- 665
-add.period$ -- 17
-call.type$ -- 16
-change.case$ -- 15
++ -- 86
+- -- 68
+* -- 370
+:= -- 729
+add.period$ -- 19
+call.type$ -- 18
+change.case$ -- 17
 chr.to.int$ -- 0
-cite$ -- 18
-duplicate$ -- 236
-empty$ -- 426
-format.name$ -- 59
-if$ -- 1115
+cite$ -- 21
+duplicate$ -- 257
+empty$ -- 465
+format.name$ -- 68
+if$ -- 1197
 int.to.chr$ -- 0
-int.to.str$ -- 16
-missing$ -- 17
-newline$ -- 52
-num.names$ -- 16
-pop$ -- 59
+int.to.str$ -- 18
+missing$ -- 19
+newline$ -- 58
+num.names$ -- 18
+pop$ -- 72
 preamble$ -- 1
 purify$ -- 0
 quote$ -- 0
-skip$ -- 151
+skip$ -- 153
 stack$ -- 0
 substring$ -- 317
-swap$ -- 95
+swap$ -- 96
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
 type$ -- 0
-warning$ -- 2
-while$ -- 47
-width$ -- 18
-write$ -- 152
-(There were 2 warnings)
+warning$ -- 3
+while$ -- 49
+width$ -- 20
+write$ -- 167
+(There were 3 warnings)

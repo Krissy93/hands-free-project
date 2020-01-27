@@ -66,9 +66,9 @@ This electronic document is a live template. The various components of your pape
 \section{INTRODUCTION}
 Despite advances in robotic perception are increasing autonomous capabilities, the human intelligence is still considered a necessity in unstructured or not predictable environments. Typical scenarios concern the detection of random shape objects, manipulation, or custom robot motion. In such context, human and robots must achieve mutual human-robot interaction (HRI) \cite{Yanco2002}.
 
-HRI can be both physical (pHRI) or not, depending on the assigned task. For example, when the robot is constrained in a dangerous environment or must handle hazardous materials, pHRI is not recommended. In this cases, robot teleoperation may be necessary. A teloperation system concerns with the exploration and exploitation of spaces which do not allow user presence, thus, the operator acts by remotely move the robot \cite{VERTUTJean}. A plenty of human-machine interfaces for teleoperation have been developed considering a mechanical interface, this includes exoskeleton \cite{Rebelo2014} or gloves \cite{Lv2006}. Such systems are particularly helpful to achieve bilateral teleoperation \cite{Hokayem2006}, where they can transmit or reflect back to the user reaction forces from the task being performed. In this case, a high perception with complete haptic feedback \cite{Glover2009} is achieved. Other controllers includes mouse, switchbox, keyboard, touch-screen and joystick, which is usually a better control device than others because the operators can identify better with the task \cite{Boboc2012}. Among the systems where bilateral teleoperation is not required, a teleoperation system is defined by mean of electromyography (EMG) signals of the muscular activity \cite{Vogel2011, Hassan2019}. However, as reminded recently in \cite{Roveda2018a}, EMG could be affected by difficulties in processing EMG signals for amplitude and spectral analysis, reducing their efficiency for many applications. Moreover, all this interfaces still act by contact, hindering the movement of the operator or cause him to act through unnatural movements.
+HRI can be both physical (pHRI) or not, depending on the assigned task. For example, when the robot is constrained in a dangerous environment or must handle hazardous materials, pHRI is not recommended. In this cases, robot teleoperation may be necessary. A teleoperation system concerns with the exploration and exploitation of spaces which do not allow user presence, thus, the operator acts by remotely move the robot \cite{VERTUTJean}. A plenty of human-machine interfaces for teleoperation have been developed considering a mechanical interface, this includes exoskeleton \cite{Rebelo2014} or gloves \cite{Lv2006}. Such systems are particularly helpful to achieve bilateral teleoperation \cite{Hokayem2006}, where they can transmit or reflect back to the user reaction forces from the task being performed. In this case, a high perception with complete haptic feedback \cite{Glover2009} is required. Other interfaces includes mouse, switchbox, keyboard, touch-screen and joystick, which is usually a better control device than others because the operators can identify better with the task \cite{Boboc2012}. Electromyography (EMG) is widely used to implement teleoperation systems by mean of muscular activity signals \cite{Vogel2011, Hassan2019}. However, as reminded recently in \cite{Roveda2018a}, EMG could be affected by difficulties in processing EMG signals for amplitude and spectral analysis, reducing their efficiency for many applications. Moreover, all the interfaces described still act by contact, hindering the movement of the operator or cause him to act through unnatural movements.
 
-On the other side, if bilater interaction is not required, a vision-based interface is preferable. A vision-based interface does not require physical contact with external devices such as cables, connectors and objects outside of the user working area. This grants a more natural and intuitive interaction, which is reflected on the task performance: as shown in \cite{Kofman2005}, the accuracy of object gripping tasks is improved by mean of a contactless vision-based robot teleoperation method, while in \cite{Livatino2009} a stereo vision system improved the performance of a mobile robot teleoperation application.
+Therefore, if bilater interaction is not required, a vision-based interface is preferable. A vision-based interface does not require physical contact with external devices such as cables, connectors and objects outside of the user working area. This grants a more natural and intuitive interaction, which is reflected on the task performance: as shown in \cite{Kofman2005}, the accuracy of object gripping tasks is improved by mean of a contactless vision-based robot teleoperation method, while in \cite{Livatino2009} a stereo vision system improved the performance of a mobile robot teleoperation application.
 
 Furthermore, if a vision-interface is integrated with virtual and augmented reality techniques, it translates in a greater level of immersion for the user. Such techniques are used to enhance the feedback information; in fact, the operator feels like being physically present in the remote environment, enhancing the immersion level. The notion of immersion is one of the most important reasons for using virtual and augmented reality \cite{Boboc2012}. An augmented reality system for teleoperation based on the Leap Motion (LM) controller is presented in \cite{Peppoloni2015}. For its application domain, the LM controller is considered an accurate sensor \cite{Hedayati2018}, however it is limited to a relatively small measuring distance if compared with other sensors. In this sense, the LM controller introduces spatial constraints that clash with the previously stated concept of the high level user immersion.
 
@@ -83,40 +83,41 @@ Different experiments were performed on a \textit{Sawyer (Rethink Robotics)} ind
 %Immagini che rappresentano questa procedura.
 %Procedura di calibrazione automatica?
 
-Our set-up is composed of two workspaces: the \textit{user workspace} and the \textit{robot workspace}. Cartesian points in the user workspace that can be reached by the user hand and are correctly viewed by the camera correspond to precise robot end-effector Cartesian points in the robot workspace. To obtain the mapping between the hand positions and the robot end-effector positions, it is necessary to perform a set of calibration procedures described in detail in the following sections.
+Our set-up is composed of two workspaces: the \textit{user workspace} and the \textit{robot workspace}. Cartesian points in the user workspace, which can be reached by the user hand and are correctly viewed by the camera, correspond to precise robot end-effector Cartesian points in the robot workspace. To obtain a mapping between the hand positions and the robot end-effector positions, it is necessary to perform a set of calibration procedures described in the following sections.
 
 \subsection{User Workspace Calibration}
 In the user workspace an RGB camera is used to recognize the hand skeleton in real-time. Therefore, it is necessary to properly calibrate the camera with respect to the user-defined reference system. This procedure is called \textit{camera calibration}, and can be easily realized following standard procedures, such as the one detailed in \cite{MatlabCameraCalib}.
-To correctly map a point $S = (U, V)$ in the image to its corresponding real world coordinate $P = (X, Y, Z)$ it is necessary to apply the following formula:
+To correctly map a point $\mathbf{S} = (u,v)$ in the image to its corresponding real world coordinate point $\mathbf{P} = (x,y,z)$ it is necessary to use homogeneous coordinates and apply the following Equation:
 \begin{equation}
 s 
   \begin{bmatrix}
-    U \\
-    V \\
+    u \\
+    v \\
     1
   \end{bmatrix}
  =
-K
+\mathbf{K}
   \begin{bmatrix}
-    R | t
+    \mathbf{R} | \mathbf{t}
   \end{bmatrix}
   \begin{bmatrix}
-    X \\
-    Y \\
-    Z \\
+    x \\
+    y \\
+    z \\
     1
   \end{bmatrix}
 \label{eq1}
 \end{equation}
 
-In the formula, the scalar \textbf{s} is the scale factor of the image, matrix \textbf{K} is the camera matrix containing the intrinsic parameters of the camera such as focal length and optical center, and the \textbf{[R$|$t]} matrix is the rigid transformation matrix containing the exstrinsic parameters rotation \textbf{R} ($3$x$3$ matrix) and translation \textbf{t} ($3$x$1$ matrix) of the camera reference system $C$ with respect to the calibration master reference system $H$.
+In the equation above, the scalar $s$ is the scale factor of the image, matrix $K\in R^32$ is the camera matrix containing the intrinsic parameters of the camera such as focal length and optical center, and the \textbf{[R$|$t]} matrix is the rigid transformation matrix containing the exstrinsic parameters rotation \textbf{R} ($3$x$3$ matrix) and translation \textbf{t} ($3$x$1$ matrix) of the camera reference system $C$ with respect to the calibration master reference system $H$.
+
 To obtain matrix \textbf{K} it is necessary to perform a calibration procedure. A well-performed calibration procedure allows to obtain a satisfactory estimation of the camera parameters. To correctly map image points to the corresponding real world coordinates, the rigid transformation matrix must be estimated with respect to the user-defined reference system of the calibration master. Thus, if reference system $H$ changes or the camera $C$ moves, it is necessary to estimate again the correct rigid transformation matrix. % this procedure has been automatized by our software.
 
-Images acquired by the camera are processed and the hand skeleton joints coordinates are calculated. By using the abovementioned formula, for each frame it is possible to obtain the real world coordinates of the hand skeleton joints in real time (Fig. \ref{fig:w1}).
+Images acquired by the camera are processed, then the hand skeleton joints coordinates are calculated. By using Equation \ref{eq1} for each frame, it is possible to obtain the real world coordinates of the hand skeleton joints in real time (Fig. \ref{fig:w1}).
 
 \begin{figure} [h!]
   \centering
-  \includegraphics[width=0.6\columnwidth]{figures/w1.png}
+%  \includegraphics[width=0.6\columnwidth]{figures/w1.png}
   \caption{Scheme of the user workspace, where the camera reference system $C$ and the user-defined reference system $H$ are calibrated to find the correspondence between image points and real world coordinates.}
   \label{fig:w1}
 \end{figure}
@@ -129,13 +130,13 @@ The robot workspace refers to the space in which the robot moves (purple square 
 
 \begin{figure} [h!]
   \centering
-  \includegraphics[width=0.6\columnwidth]{figures/w2.png}
+%  \includegraphics[width=0.6\columnwidth]{figures/w2.png}
   \caption{Scheme of the robot workspace, where the second user-defined reference system $W$ and the robot reference system $R$ are calibrated to find the correspondence between the workspace positions and the end-effector joint coordinates.}
   \label{fig:w2}
 \end{figure}
 
 To correctly move the robot in a cartesian position of reference system $W$, it is necessary to perform a calibration between reference system $W$ and the robot reference system $R$. This procedure has been carried out experimentally by moving the robot (using its manual guidance mode) in a set of $13$ Cartesian positions of reference system $W$ (Fig. xx). % check fig master
-The robot correct positioning on top of each calibration position has been assured by using a 3D-printed centering tool (Fig. xx): the tool must be centered manually on each calibration marker and secured in place, then the robot end effector can be moved on it and carefully positioned inside the purposely made circular cavity of the tool. When the positioning is complete, the robot coordinates (both in the Cartesian space and in the Joints space) corresponding to that particular marker (of which the positioning is known with respect to reference system $W$) can be extracted using ROS or the robot proprietary software.
+The robot correct positioning on top of each calibration position has been assured by using a 3D-printed centering tool (Fig. xx). The tool must be centered manually on each calibration marker and secured in place, then the robot end effector can be moved on it and carefully positioned inside the purposely made circular cavity of the tool. When the positioning is complete, the robot coordinates (both in the Cartesian space and in the Joints space) corresponding to that particular marker (of which the positioning is known with respect to reference system $W$) can be extracted using ROS or the robot proprietary software.
 
 When a satisfactory number of calibration positions (in our case, $13$) has been acquired, it is possible to estimate the rigid transformation matrix between workspaces $W$ and $R$, following the formula: %% formula simo
 

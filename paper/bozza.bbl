@@ -80,4 +80,12 @@ Z.~Cao, G.~Hidalgo, T.~Simon, S.-E. Wei, and Y.~Sheikh, ``Open{P}ose: realtime
   multi-person 2{D} pose estimation using {P}art {A}ffinity {F}ields,'' in {\em
   arXiv preprint arXiv:1812.08008}, 2018.
 
+\bibitem{jia2014caffe}
+Y.~Jia, E.~Shelhamer, J.~Donahue, S.~Karayev, J.~Long, R.~Girshick,
+  S.~Guadarrama, and T.~Darrell, ``Caffe: Convolutional architecture for fast
+  feature embedding,'' {\em arXiv preprint arXiv:1408.5093}, 2014.
+
+\bibitem{MatlabCameraCalib}
+J.-Y. Bouguet, ``Camera calibration toolbox for matlab,'' 2001.
+
 \end{thebibliography}
