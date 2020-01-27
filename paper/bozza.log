@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/W32TeX) (preloaded format=pdflatex 2018.2.16)  25 JAN 2020 16:31
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/W32TeX) (preloaded format=pdflatex 2018.2.16)  27 JAN 2020 19:35
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -270,42 +270,27 @@ LaTeX Font Info:    Try loading font information for OT1+pcr on input line 53.
 
 (d:/texlive/2017/texmf-dist/tex/latex/psnfss/ot1pcr.fd
 File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
-)
-
-LaTeX Warning: Citation `jia2014caffe' on page 1 undefined on input line 75.
-
-[1{d:/texlive/2017/texmf-var/fonts/map/pdftex/updmap/pdftex.map}
+) [1{d:/texlive/2017/texmf-var/fonts/map/pdftex/updmap/pdftex.map}
 
 
 ]
-
-LaTeX Warning: Citation `MatlabCameraCalib' on page 2 undefined on input line 8
-9.
-
 <figures/w1.png, id=14, 800.9925pt x 913.4125pt>
 File: figures/w1.png Graphic file (type png)
 <use figures/w1.png>
-Package pdftex.def Info: figures/w1.png  used on input line 119.
-(pdftex.def)             Requested size: 147.43236pt x 168.11453pt.
-
-LaTeX Warning: `!h' float specifier changed to `!ht'.
-
+Package pdftex.def Info: figures/w1.png  used on input line 113.
+(pdftex.def)             Requested size: 122.85905pt x 140.1001pt.
 <figures/w2.png, id=16, 818.05624pt x 1050.92625pt>
 File: figures/w2.png Graphic file (type png)
 <use figures/w2.png>
-Package pdftex.def Info: figures/w2.png  used on input line 132.
-(pdftex.def)             Requested size: 147.43236pt x 189.3991pt.
-
-LaTeX Warning: `!h' float specifier changed to `!ht'.
-
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
+Package pdftex.def Info: figures/w2.png  used on input line 126.
+(pdftex.def)             Requested size: 122.85905pt x 157.82457pt.
  [2 <./figures/w1.png> <./figures/w2.png>]
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-[3] (./bozza.bbl
+<figures/hand.png, id=26, 254.45062pt x 270.25969pt>
+File: figures/hand.png Graphic file (type png)
+<use figures/hand.png>
+Package pdftex.def Info: figures/hand.png  used on input line 149.
+(pdftex.def)             Requested size: 172.00192pt x 182.69371pt.
+ [3 <./figures/hand.png>] (./bozza.bbl
 Missing character: There is no Ä in font ptmr7t!
 Missing character: There is no ‚ in font ptmr7t!
 
@@ -326,41 +311,39 @@ Before submitting the final camera ready copy, remember to:
  uses only Type 1 fonts and that every step in the generation
  process uses the US letter (8.5in X 11in) paper size.
 
-[4
-
-] (./bozza.aux)
-
-LaTeX Warning: There were undefined references.
-
+[4] (./bozza.aux)
 
 LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
 
  ) 
 Here is how much of TeX's memory you used:
- 2723 strings out of 492982
- 39513 string characters out of 6136225
- 110355 words of memory out of 5000000
- 6259 multiletter control sequences out of 15000+600000
+ 2728 strings out of 492982
+ 39606 string characters out of 6136225
+ 108363 words of memory out of 5000000
+ 6263 multiletter control sequences out of 15000+600000
  42562 words of font info for 86 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  41i,9n,25p,1679b,285s stack positions out of 5000i,500n,10000p,200000b,80000s
 {d:/texlive/2017/texmf-dist/fonts/enc/dvips/base/8r.enc}<d:/texlive/2017/texm
 f-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb><d:/texlive/2017/texmf-dist/fo
-nts/type1/public/amsfonts/cm/cmmi10.pfb><d:/texlive/2017/texmf-dist/fonts/type1
-/public/amsfonts/cm/cmmi7.pfb><d:/texlive/2017/texmf-dist/fonts/type1/public/am
-sfonts/cm/cmmi8.pfb><d:/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/
-cmr10.pfb><d:/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb><
-d:/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb><d:/texliv
-e/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb><d:/texlive/2017/tex
-mf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb><d:/texlive/2017/texmf-dist/fo
-nts/type1/urw/courier/ucrr8a.pfb><d:/texlive/2017/texmf-dist/fonts/type1/urw/ti
-mes/utmb8a.pfb><d:/texlive/2017/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb><d
-:/texlive/2017/texmf-dist/fonts/type1/urw/times/utmr8a.pfb><d:/texlive/2017/tex
-mf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on bozza.pdf (4 pages, 224197 bytes).
+nts/type1/public/amsfonts/cmextra/cmex7.pfb><d:/texlive/2017/texmf-dist/fonts/t
+ype1/public/amsfonts/cm/cmmi10.pfb><d:/texlive/2017/texmf-dist/fonts/type1/publ
+ic/amsfonts/cm/cmmi5.pfb><d:/texlive/2017/texmf-dist/fonts/type1/public/amsfont
+s/cm/cmmi7.pfb><d:/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8
+.pfb><d:/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb><d:/t
+exlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb><d:/texlive/2017
+/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb><d:/texlive/2017/texmf-dist
+/fonts/type1/public/amsfonts/cm/cmsy10.pfb><d:/texlive/2017/texmf-dist/fonts/ty
+pe1/public/amsfonts/cm/cmsy6.pfb><d:/texlive/2017/texmf-dist/fonts/type1/public
+/amsfonts/cm/cmsy8.pfb><d:/texlive/2017/texmf-dist/fonts/type1/urw/courier/ucrr
+8a.pfb><d:/texlive/2017/texmf-dist/fonts/type1/urw/times/utmb8a.pfb><d:/texlive
+/2017/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb><d:/texlive/2017/texmf-dist/
+fonts/type1/urw/times/utmr8a.pfb><d:/texlive/2017/texmf-dist/fonts/type1/urw/ti
+mes/utmri8a.pfb>
+Output written on bozza.pdf (4 pages, 399536 bytes).
 PDF statistics:
- 79 PDF objects out of 1000 (max. 8388607)
- 54 compressed objects within 1 object stream
+ 93 PDF objects out of 1000 (max. 8388607)
+ 63 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
- 11 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 16 words of extra memory for PDF output out of 10000 (max. 10000000)
 

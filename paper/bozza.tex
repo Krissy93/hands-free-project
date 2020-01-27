@@ -77,12 +77,6 @@ This, in combination with the ease of availability of an RGB camera, lead the fr
 Different experiments were performed on a \textit{Sawyer (Rethink Robotics)} industrial collaborative robot to evaluate repeatability and accuracy of the proposed system. Section \ref{sec:experiments} reports the results.
 
 \section{Workspace Calibration and Mapping} \label{sec:calib}
-
-%Qui spiego il problema del dover riferire i keypoints della mano ricavati nel primo workspace verde al workspace del robot per poterlo correttamente movimentare. I passi per questa procedura sono due: prima calibro il primo workspace verde rispetto a come la kinect lo inquadra, e questo sarà il workspace di riferimento. Ottengo una trasformazione pixel to realeper sapere in metri dove è posizionata la mano (i keypoints) nel workspace verde.
-%Poi devo riferire questo workspace verde a quello in cui si muove il robot. Per farlo devo sapere il rapporto di mapping tra il w1 e il w2, cioè a cosa corrisponde il punto 1 di w1 in w2 ecc. Poi devo fare la stessa cosa per capire qual è il riferimento del robot rispetto a w2. Per farlo devo muovere sperimentalmente il robot in diverse posizioni del master e ricavare a cosa corrispondono nel master rispetto al robot per ottenere questo mapping.
-%Immagini che rappresentano questa procedura.
-%Procedura di calibrazione automatica?
-
 Our set-up is composed of two workspaces: the \textit{user workspace} and the \textit{robot workspace}. Cartesian points in the user workspace that can be reached by the user hand and are correctly viewed by the camera correspond to precise robot end-effector Cartesian points in the robot workspace. To obtain the mapping between the hand positions and the robot end-effector positions, it is necessary to perform a set of calibration procedures described in detail in the following sections.
 
 \subsection{User Workspace Calibration}
@@ -116,7 +110,7 @@ Images acquired by the camera are processed and the hand skeleton joints coordin
 
 \begin{figure} [h!]
   \centering
-  \includegraphics[width=0.6\columnwidth]{figures/w1.png}
+  \includegraphics[width=0.5\columnwidth]{figures/w1.png}
   \caption{Scheme of the user workspace, where the camera reference system $C$ and the user-defined reference system $H$ are calibrated to find the correspondence between image points and real world coordinates.}
   \label{fig:w1}
 \end{figure}
@@ -129,7 +123,7 @@ The robot workspace refers to the space in which the robot moves (purple square 
 
 \begin{figure} [h!]
   \centering
-  \includegraphics[width=0.6\columnwidth]{figures/w2.png}
+  \includegraphics[width=0.5\columnwidth]{figures/w2.png}
   \caption{Scheme of the robot workspace, where the second user-defined reference system $W$ and the robot reference system $R$ are calibrated to find the correspondence between the workspace positions and the end-effector joint coordinates.}
   \label{fig:w2}
 \end{figure}
@@ -145,12 +139,19 @@ When a satisfactory number of calibration positions (in our case, $13$) has been
 The proposed teleoperation method is based on the recognition of the user hands skeleton.
 
 Each frame acquired by the RGB camera (in our set-up, a Kinect v2 camera) is processed by the software, which leverages the OpenPose hand skeleton recognition network to predict the hand skeleton, following the details of \cite{simon2017hand}.
-The gesture recognition procedure is based on the position of the reference keypoint (red keypoint $0$ in Fig. xx) and on the position of the four knuckles keypoints (yellow keypoints $5, 9, 13, 17$ in Fig. xx). According to the knuckles and the thumb $(x, y)$ keypoints positions (from keypoint $1$ to $4$), the orientation of the hand can be hypotized as upright, left oriented, right oriented, or upside down (Fig. xx). This allows the software to recognize the gestures regardless of the orientation of the hand. %% prendere img di una mano e fare gli esempi di posizionamento, cambiare i colori dei marker
+The gesture recognition procedure is based on the position of the reference keypoint (red keypoint $0$ in Fig. \ref{fig:keypoints}) and on the position of the four knuckles keypoints (blue keypoints $5, 9, 13, 17$ in Fig. \ref{fig:keypoints}). According to the knuckles and the thumb $(x, y)$ keypoints positions (from keypoint $1$ to $4$), the hand orientation can be hypotized as upright, left oriented, right oriented, or upside down. This allows the software to recognize the gestures regardless of the hand orientation. %% prendere img di una mano e fare gli esempi di posizionamento, cambiare i colori dei marker
 
-Using the fingers keypoints Euclidean distances, it is possible to recognize if a certain finger is opened or closed: for example, if keypoints from $6$ to $8$ are detected both (i) close to each other and (ii) close to their corresponding knuckle keypoint $5$, the index finger is detected as closed. 
-Using this logic, we defined two gestures used to carry out basic teleoperation tasks: the \textbf{open hand} gesture and the \textbf{index} gesture.
+To recognize if a certain finger is opened or closed, we consider the Euclidean distance between the reference keypoint $0$ and the last keypoint of each finger (pink keypoints $8, 12, 16, 20$ in Fig. \ref{fig:keypoints}). If the last keypoint of a finger is not recognized by the network, we consider the corresponding Euclidean distance equal to $0$. 
+Using this logic, we defined two gestures used to carry out basic teleoperation tasks: the \textbf{open hand} gesture, where all the fingers are detected as opened, and the \textbf{index} gesture, where the index finger is detected as open and with a corresponding Euclidean distance much greater than the Euclidean distances of the other fingers. This requirement has been proved useful to reduce the recognition error of the index gesture due to a wrong prediction of the fingers keypoints.
 
-Considering the calibration procedure detailed in Section \ref{sec:calib}, a certain position $P_H$ of user workspace H corresponds to a certain robot end-effector position $P_W$ in workspace W. Hence, to move the robot end-effector in position $P_W$, users must: %img
+\begin{figure} [h!]
+  \centering
+  \includegraphics[width=0.7\columnwidth]{figures/hand.png}
+  \caption{Example of an open hand gesture correctly recognized skeleton. The red keypoint is the reference keypoint, the blue keypoints are the knuckles keypoints and the pink keypoints are the fingertips keypoints.}
+  \label{fig:keypoints}
+\end{figure}
+
+Considering the calibration procedure detailed in Section \ref{sec:calib}, a certain position $P_H$ of user workspace H corresponds to a certain robot end-effector position $P_W$ in workspace W. Hence, to move the robot end-effector in position $P_W$  using the software, users must: %img
 \begin{enumerate}
 \item place their hand in position $P_H$ (corresponding to position $P_W$), using the real-time visualization of the software as guidance (Fig. xx a);
 \item perform the open hand gesture to allow the coordinate extraction (Fig. xx b);
@@ -162,17 +163,19 @@ After a position $P_H$ is obtained, the corresponding robot position $P_R$ is ca
 To perform a new robot movement, the procedure in Fig. xx must be repeated from the start.
 
 \section{EXPERIMENTAL EVALUATION}\label{sec:experiments}
-A reliable teleoperation system is obtained if the robot correctly moves to the desired position with a low positioning error. In the case of our set-up, the positioning error is obtained considering the whole procedure carried out to move the robot end-effector to a certain position corresponding to the real world position of the index finger:
+A reliable teleoperation system is obtained if the robot correctly moves to the desired position with a low positioning error. In the case of the proposed set-up, the positioning error is obtained as a sum of different positioning errors, obtained as follows:
 \begin{enumerate}
-\item place the index finger to a certain position $P_1$;
-\item calculate the average of the consecutive index finger positions estimated by the neural network. The obtained position is $P_2$, which corresponds to $P_1 + E_1$, where $E_1$ is the positioning error between the two positions;
-\item transform $P_2$ to $P_3$ according to the mapping between the user horizontal workspace $H$ and the vertical workspace $W$. If the two workspaces have the same dimension except for a scale factor, no errors are introduced in this step, otherwise an error $E_S$ is added;
-\item transform $P_3$ to $P_4$ according to the rigid transformation between the vertical workspace $W$ and the robot workspace $R$. $P_4$ corresponds to $P_3 + E_2$, where $E_2$ is the positioning error due to the rigid transformation;
-\item move the robot to $P_4$.
+\item thanks to the camera calibration procedure, a certain index finger position $P_C$ [px] in the acquired image frame corresponds to a certain Cartesian point $P_H$ [mm] in workspace $H$. Since the camera calibration procedure introduces an estimation error $E_1$, we obtain $P_H = P_C + E_1$;
+\item our software extracts $N$ consecutive finger positions estimated by OpenPose neural network and calculates the average of them. The resulting point is $P_O = \frac{\sum_{n=1}^{N}(P_{Hn} + E_{2n})}{N}$, where $E_2$ is the error between the real position of the index finger in the image and the index keypoint estimation made by OpenPose;
+\item the extracted index finger position $P_O$ corresponds to a certain Cartesian point in workspace $W$. According to the mapping between workspace $H$ and $W$, we obtain $P_W = P_O + E_3$, where $E_3$ is the positioning error caused by this mapping;
+\item the robot end-effector will move in cartesian point $P_R$, obtained considering the rigid transformation between workspaces $W$ and $R$. This transformation introduces the positioning error $E_4$, thus we obtain $P_R = P_W + E_4$.
 \end{enumerate}
 
-Hence, we obtained that $P_4 = P_1 + E_1 + E_S + E_2$.
-Considering this formula, and that in our set-up $E_S$ can be assumed equal to zero (because we kept workspace $H$ and workspace $W$ dimensions except for the scaling factor), we designed two experiments to assess if the positioning error obtained depends (i) on the estimation of the hand skeleton ($E_1$), or (ii) on the robot calibration ($E_2$).
+Hence, we obtain the final end-effector position $P_R$ as: 
+\begin{equation}
+P_R =\frac{\sum_{n=1}^{N}(P_{Cn} +  E_{1n} +  E_{2n})}{N} + E_3 + E_4
+\end{equation}
+Considering this formula, and that in our set-up $E_3$ can be assumed equal to zero (because we kept workspace $H$ and workspace $W$ dimensions except for the scaling factor), we designed two experiments to assess if the positioning error obtained depends (i) on the camera calibration ($E_1$), (ii) on the estimation of the hand skeleton ($E_2$), or (iii) on the robot calibration ($E_4$).
 
 \subsection{Evaluation of the skeleton estimation error}
 The positioning error due to the estimation of the hand skeleton joints made by OpenPose neural network has been evaluated considering the theoretical position of the index in the image $T$ and the index joint position in the image $A$ calculated by the software (Fig. xx).
