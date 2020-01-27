@@ -3,7 +3,7 @@
 ## Dependencies
 
 1) **CUDA 10.0 and CuDNN 7.5:** install them following [this](https://gist.github.com/Mahedi-61/2a2f1579d4271717d421065168ce6a73#file-cuda_10-0_installation_on_ubuntu_18-04) tutorial
-2) **Caffe:** follow [this](https://caffe.berkeleyvision.org/install_apt.html) tutorial
+2) **Caffe:** follow [this](https://medium.com/@atinesh/caffe-installation-on-ubuntu-18-04-lts-python-2-7-8e8c388ce51f) tutorial
 3) **ROS:** Ubuntu 16 uses kinetic, Ubuntu 18 uses [melodic](http://wiki.ros.org/melodic/Installation/Ubuntu)
 4) **OpenCV3:** this may take a while (like 40mins to 1h). Note that we only use python2 (because of ROS), so everything must be installed for python2 not python3!<br>
 Open a new terminal and type:
