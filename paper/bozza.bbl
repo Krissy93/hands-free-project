@@ -4,7 +4,7 @@
 H.~A. Yanco and J.~L. Drury, ``{A Taxonomy for Human-Robot Interaction},'' {\em
   Engineering}, p.~9, 2002.
 
-\bibitem{VERTUTJean;COEFFET}
+\bibitem{VERTUTJean}
 J.~Vertut and P.~C. Coeffet, {\em {Robot Technology; vol. 3A Teleoperation and
   Robotics Evolution and Development}}.
 \newblock 1986.
@@ -70,5 +70,14 @@ L.~Peppoloni, F.~Brizzi, C.~A. Avizzano, and E.~Ruffaldi, ``{Immersive
 H.~Hedayati, M.~Walker, and D.~Szafir, ``{Improving Collocated Robot
   Teleoperation with Augmented Reality},'' {\em ACM/IEEE Int. Conf. Human-Robot
   Interact.}, pp.~78--86, 2018.
+
+\bibitem{simon2017hand}
+T.~Simon, H.~Joo, I.~Matthews, and Y.~Sheikh, ``Hand keypoint detection in
+  single images using multiview bootstrapping,'' in {\em CVPR}, 2017.
+
+\bibitem{cao2018openpose}
+Z.~Cao, G.~Hidalgo, T.~Simon, S.-E. Wei, and Y.~Sheikh, ``Open{P}ose: realtime
+  multi-person 2{D} pose estimation using {P}art {A}ffinity {F}ields,'' in {\em
+  arXiv preprint arXiv:1812.08008}, 2018.
 
 \end{thebibliography}
