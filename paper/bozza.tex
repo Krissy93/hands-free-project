@@ -117,7 +117,7 @@ Images acquired by the camera are processed, then the hand skeleton joints coord
 
 \begin{figure} [h!]
   \centering
-%  \includegraphics[width=0.6\columnwidth]{figures/w1.png}
+  \includegraphics[width=0.6\columnwidth]{figures/w1.png}
   \caption{Scheme of the user workspace, where the camera reference system $C$ and the user-defined reference system $H$ are calibrated to find the correspondence between image points and real world coordinates.}
   \label{fig:w1}
 \end{figure}
@@ -130,15 +130,78 @@ The robot workspace refers to the space in which the robot moves (purple square 
 
 \begin{figure} [h!]
   \centering
-%  \includegraphics[width=0.6\columnwidth]{figures/w2.png}
+  \includegraphics[width=0.6\columnwidth]{figures/w2.png}
   \caption{Scheme of the robot workspace, where the second user-defined reference system $W$ and the robot reference system $R$ are calibrated to find the correspondence between the workspace positions and the end-effector joint coordinates.}
   \label{fig:w2}
 \end{figure}
 
-To correctly move the robot in a cartesian position of reference system $W$, it is necessary to perform a calibration between reference system $W$ and the robot reference system $R$. This procedure has been carried out experimentally by moving the robot (using its manual guidance mode) in a set of $13$ Cartesian positions of reference system $W$ (Fig. xx). % check fig master
-The robot correct positioning on top of each calibration position has been assured by using a 3D-printed centering tool (Fig. xx). The tool must be centered manually on each calibration marker and secured in place, then the robot end effector can be moved on it and carefully positioned inside the purposely made circular cavity of the tool. When the positioning is complete, the robot coordinates (both in the Cartesian space and in the Joints space) corresponding to that particular marker (of which the positioning is known with respect to reference system $W$) can be extracted using ROS or the robot proprietary software.
+To correctly move the robot in a cartesian position of reference system $W$, it is necessary to perform a calibration between reference system $W$ and the robot reference system $R$. This procedure has been carried out experimentally by moving the robot (using its manual guidance mode) in different Cartesian positions of reference system $W$ (Fig. xx). % check fig master
+The robot correct positioning on top of each calibration position has been assured by using a 3D-printed centering tool (Fig. xx). The tool must be centered manually on each calibration marker and secured in place, then the robot end effector can be moved on it and carefully positioned inside the purposely made circular cavity of the tool. When the positioning is complete, the robot coordinates (both in the Cartesian space and in the Joints space) corresponding to that particular marker (of which the positioning is known with respect to reference system $W$) can be extracted using ROS or the robot proprietary software. When a satisfactory number of calibration positions has been acquired, it is possible to estimate the rigid transformation matrix between workspaces $W$ and $R$ as follow.
 
-When a satisfactory number of calibration positions (in our case, $13$) has been acquired, it is possible to estimate the rigid transformation matrix between workspaces $W$ and $R$, following the formula: %% formula simo
+Considering a generic point $\mathbf{P}_1\in\mathbb{R}^2$ calculate respect the frame $W$ ($P_{1,w}$) and the frame $R$ ($P_{1,R}$) as shown in Figure \ref{fig:master_robot}.
+\begin{figure}[]
+	\centering
+	\includegraphics[width=1\columnwidth]{figures/calibration_master2.pdf}
+	\caption{Master used to calibrate the second user-defined reference system $W$ with the robot reference frame $R$. The Figure illustrate the position of the point $\mathbf{P_1}$ in both reference frames. To properly calibrate the system, the position of each point is required, both for frame $W$ and $R$. In the context, 13 calibration points have been used.}
+	\label{fig:master_robot}
+\end{figure}
+\begin{figure}[]
+	\centering
+	\includegraphics[width=1\columnwidth]{figures/calibration_pose3.pdf}
+	\caption{Master used to calibrate the second user-defined reference system $W$ with the robot reference frame $R$. The Figure illustrate the position of the point $\mathbf{P_1}$ in both reference frames. To properly calibrate the system, the position of each point is required, both for frame $W$ and $R$. In the context, 13 calibration points have been used.}
+	\label{fig:master_robot}
+\end{figure}
+Consider $\mathbf{T}_R\in\mathbb{R}^2$ as the distance between the two frame, it is possible to affirm:
+\begin{equation}
+\mathbf{P}_{0,R} = \mathbf{P}_{0,W} + \mathbf{T}_R
+\end{equation}
+Using homogeneous coordinates it is possible to rewrite the previous equation as matrix products:
+\begin{equation}\label{eq:matrix_M}
+\mathbf{P}_{0,R} = \mathbf{M}^W_{R}\mathbf{P}_{0,W}
+\end{equation}
+Where $\mathbf{M}^W_{R}\in\mathbb{R}^{3\times3}$ is the rigid transformation matrix composed both by translational and rotational coordinate from frame $R$ to frame $W$. By evidencing equations from Equation \ref{eq:matrix_M}, it is possible to write:
+\begin{equation}\label{eq:linear_sys1}
+\begin{gathered}
+x_{P_{0,W}}=x_{P_{0,R}}\cos\theta+y_{P_{0,R}}\sin\theta+x_{T_R}\\
+y_{P_{0,W}}=-x_{P_{0,R}}\sin\theta+y_{P_{0,R}}\cos\theta+y_{T_R}
+\end{gathered}
+\end{equation}
+The aim of the calibration procedure is to identify the terms of $\mathbf{M}^W_{R}$ in order to find the correct position and orientation of frame $W$ respect the frame $R$. However, considering only one calibration position point $\mathbf{P_1}$, the system in Equation \ref{eq:linear_sys1} results underdetermined, hence, a minimum of $n>2$ calibration position points is required to solve the system. To minimize the calibration error $n=13$ points have been considered. Thus, the system in Equation \ref{eq:linear_sys1} becomes an overdetermined system $\mathbf{A}\mathbf{x}=\mathbf{b}$ that will be solved by mean of the least square method. Such that:
+
+\begin{equation}\label{eq:linear_sys2}
+\resizebox{\columnwidth}{!}{$%
+	\begin{gathered}
+	\mathbf{A} =   \begin{bmatrix}
+	x_{P_{0,R}} & y_{P_{0,R}} & 1 & 0\\
+	-y_{P_{0,R}} & x_{P_{0,R}} & 0 & 1 \\
+	\vdots & \vdots & \vdots & \vdots\\
+	x_{P_{n-1,R}} & y_{P_{n-1,R}} & 1 & 0\\
+	-y_{P_{n-1,R}} & x_{P_{n-1,R}} & 0 & 1 
+	\end{bmatrix}
+	\mathbf{x} =   \begin{bmatrix}
+	\cos\theta\\
+	\sin\theta\\
+	x_{T_R}\\
+	y_{T_R}
+	\end{bmatrix}
+	\mathbf{b} =   \begin{bmatrix}
+	x_{P_{0,W}}\\
+	y_{P_{0,W}}\\
+	\vdots\\
+	x_{P_{n-1,W}}\\
+	y_{P_{n-1,W}}\\
+	\end{bmatrix}
+	\end{gathered}
+	$%
+}%
+\end{equation}
+Eventually, the rigid transformation matrix $\mathbf{M}^W_{R}$ used to identify the frame $W$ from frame $R$ is calculated using the terms of $\mathbf{x}$ in the previous Equation.
+
+
+
+
+
+
 
 \section{Hand-Gesture Recognition}\label{sec:HG_recon}
 %Che rete uso, come ho impostato i gesti, lo scheletro con openpose citato, funzione per ricavare il gesto basata sull'assenza del finger, invariante dall'orientamento e dallo zoom. Immagini di esempio.
@@ -153,7 +216,7 @@ Using this logic, we defined two gestures used to carry out basic teleoperation 
 
 \begin{figure} [h!]
   \centering
-%  \includegraphics[width=0.7\columnwidth]{figures/hand.png}
+  \includegraphics[width=0.7\columnwidth]{figures/hand.png}
   \caption{Example of an open hand gesture correctly recognized skeleton. The red keypoint is the reference keypoint, the blue keypoints are the knuckles keypoints and the pink keypoints are the fingertips keypoints.}
   \label{fig:keypoints}
 \end{figure}
