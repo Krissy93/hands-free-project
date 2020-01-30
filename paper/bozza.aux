@@ -27,7 +27,6 @@
 \newlabel{eq1}{{1}{2}}
 \newlabel{eq2}{{2}{2}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {II-B}Robot Workspace Calibration}{2}}
-\citation{simon2017hand}
 \@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Example of the robot calibration procedure. The calibration pose tool (top-right) is placed in correspondence of a calibration marker, then the robot end-effector is carefully placed inside the tool (bottom-left). The calibration pose tool cavity has been purposely made to fit the robot end-effector.}}{3}}
 \newlabel{fig:robotcalib}{{2}{3}}
 \@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Master used to calibrate the second user-defined reference system $W$ with the robot reference frame $R$. The Figure illustrate the position of point $\mathbf  {P_1}$ in both reference frames. To properly calibrate the system, the position of each point is required, both for frame $W$ and $R$. In the procedure, 13 calibration points have been acquired.}}{3}}
@@ -37,28 +36,23 @@
 \newlabel{eq:linear_sys2}{{6}{3}}
 \newlabel{eq:roto1}{{7}{3}}
 \newlabel{eq:roto2}{{8}{3}}
+\citation{simon2017hand}
 \@writefile{toc}{\contentsline {section}{\numberline {III}Hand-Gesture Recognition}{4}}
 \newlabel{sec:HG_recon}{{III}{4}}
-\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Example of an open hand gesture correctly recognized skeleton. The red keypoint is the reference keypoint, the blue keypoints are the knuckles keypoints and the pink keypoints are the fingertips keypoints.}}{4}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Scheme of the hand skeleton predicted by OpenPose neural network. The red keypoint is the reference keypoint, the blue keypoints are the knuckles keypoints and the pink keypoints are the fingertips keypoints. Examples of correclty recognized gestures: open hand gesture (top-right) and index gesture (bottom-right).}}{4}}
 \newlabel{fig:keypoints}{{4}{4}}
 \@writefile{toc}{\contentsline {section}{\numberline {IV}EXPERIMENTAL EVALUATION}{4}}
 \newlabel{sec:experiments}{{IV}{4}}
+\newlabel{eq:error_final}{{17}{5}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {IV-A}Evaluation of the skeleton estimation error}{5}}
+\@writefile{lot}{\contentsline {table}{\numberline {I}{\ignorespaces Test Locations Average pixel deviations}}{5}}
+\newlabel{tab:dev}{{I}{5}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {IV-B}Evaluation of the robot positioning error}{5}}
 \bibstyle{ieeetr}
 \bibdata{bibliography}
 \bibcite{Yanco2002}{1}
 \bibcite{VERTUTJean}{2}
 \bibcite{Rebelo2014}{3}
-\newlabel{eq:error_final}{{17}{5}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {IV-A}Evaluation of the skeleton estimation error}{5}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {IV-B}Evaluation of the robot positioning error}{5}}
-\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Example of a robot positioning evaluation. The image shows a close-up of the 3D printed laser carrier used (bottom-right) and the corresponding view of the measuring software developed (top-left).}}{5}}
-\newlabel{fig:laser}{{5}{5}}
-\@writefile{lot}{\contentsline {table}{\numberline {I}{\ignorespaces Robot positioning errors}}{5}}
-\newlabel{tab:laser}{{I}{5}}
-\@writefile{lot}{\contentsline {table}{\numberline {II}{\ignorespaces Mean and standard deviation}}{5}}
-\newlabel{tab:mean}{{II}{5}}
-\@writefile{toc}{\contentsline {section}{\numberline {V}CONCLUSIONS}{5}}
-\@writefile{toc}{\contentsline {section}{References}{5}}
 \bibcite{Lv2006}{4}
 \bibcite{Hokayem2006}{5}
 \bibcite{Glover2009}{6}
@@ -72,5 +66,15 @@
 \bibcite{Hedayati2018}{14}
 \bibcite{simon2017hand}{15}
 \bibcite{cao2018openpose}{16}
+\@writefile{lot}{\contentsline {table}{\numberline {II}{\ignorespaces Test Locations Standard Deviations}}{6}}
+\newlabel{tab:firm}{{II}{6}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Example of a robot positioning evaluation. The image shows a close-up of the 3D printed laser carrier used (bottom-right) and the corresponding view of the measuring software developed (top-left).}}{6}}
+\newlabel{fig:laser}{{5}{6}}
+\@writefile{lot}{\contentsline {table}{\numberline {III}{\ignorespaces Robot positioning errors}}{6}}
+\newlabel{tab:laser}{{III}{6}}
+\@writefile{lot}{\contentsline {table}{\numberline {IV}{\ignorespaces Mean and standard deviation}}{6}}
+\newlabel{tab:mean}{{IV}{6}}
+\@writefile{toc}{\contentsline {section}{\numberline {V}CONCLUSIONS}{6}}
+\@writefile{toc}{\contentsline {section}{References}{6}}
 \bibcite{jia2014caffe}{17}
 \bibcite{MatlabCameraCalib}{18}
