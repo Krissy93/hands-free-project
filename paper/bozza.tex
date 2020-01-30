@@ -87,8 +87,8 @@ Different experiments were performed on a \textit{Sawyer (Rethink Robotics)} ind
 Our set-up is composed of two workspaces: the \textit{user workspace} and the \textit{robot workspace}. Cartesian points in the user workspace, which can be reached by the user hand and are correctly viewed by the camera, correspond to precise robot end-effector Cartesian points in the robot workspace. To obtain a mapping between the hand positions and the robot end-effector positions, it is necessary to perform a set of calibration procedures described in the following sections.
 
 \subsection{User Workspace Calibration}
-In the user workspace an RGB camera is used to recognize the hand skeleton in real-time. Therefore, it is necessary to properly calibrate the camera with respect to the user-defined reference system. This procedure is called \textit{camera calibration}, and can be easily realized following standard procedures, such as the one detailed in \cite{MatlabCameraCalib}.
-To correctly map a point $\mathbf{S} = (u,v)$ in the image to its corresponding real world coordinate point $\mathbf{P} = (x,y,z)$ it is necessary to use homogeneous coordinates and apply the following Equation:
+In the user workspace an RGB camera is used to recognize the hand skeleton in real-time. Therefore, it is necessary to properly calibrate the camera relative to the user-defined reference system. This procedure is called \textit{camera calibration}, and can be easily realized following standard procedures, such as the one detailed in \cite{MatlabCameraCalib}.
+The projection mapping for a generic point $\mathbf{P}_{0,C} = (u,v)$ in the camera image plane with reference frame $C$ to its corresponding real world coordinate point $\mathbf{P}_{0,H} = (x,y,z)$ in reference frame $H$ is defined by the following Equation. Homogeneous coordinates are required:
 \begin{equation}
 s 
   \begin{bmatrix}
@@ -109,8 +109,23 @@ s
   \end{bmatrix}
 \label{eq1}
 \end{equation}
-In the equation above, the scalar $s\in\mathbb{R}$ is the scale factor of the image, $\mathbf{K}\in\mathbb{R}^{3\times3}$ is the camera matrix containing the intrinsic parameters of the camera such as focal length and optical center, $\mathbf{[R|t]}\in\mathbb{R}^{4\times3}$ is the rigid transformation matrix containing the exstrinsic parameters for rotation ($\mathbf{R}\in\mathbb{R}^{3\times3}$) and translation ($\mathbf{t}\in\mathbb{R}^3$) of the camera reference frame $C$ with respect to the calibration master reference frame $H$.
-
+However, since we are looking for the point position $\mathbf{P}_H$ in the frame $H$ by back-projecting a 2D point to 3D it is necessary to invert Equation \ref{eq1}:
+\begin{equation}
+\mathbf{P}_{0,H} = \begin{bmatrix}
+x \\
+y \\
+z
+\end{bmatrix}=
+\left(s 
+\begin{bmatrix}
+u \\
+v \\
+1
+\end{bmatrix}
+\mathbf{K}^{-1}-\mathbf{t}\right)\mathbf{R}^{-1}
+\label{eq2}
+\end{equation}
+In the equations above, the scalar $s\in\mathbb{R}$ is the scale factor of the image, $\mathbf{K}\in\mathbb{R}^{3\times3}$ is the camera matrix containing the intrinsic parameters of the camera such as focal length and optical center obtained through the calibration procedure, $\mathbf{[R|t]}\in\mathbb{R}^{4\times3}$ is the rigid transformation matrix containing the exstrinsic parameters for rotation ($\mathbf{R}\in\mathbb{R}^{3\times3}$) and translation ($\mathbf{t}\in\mathbb{R}^3$) of the camera reference frame $C$ relative to the calibration master reference frame $H$. 
 To obtain matrix \textbf{K} it is necessary to perform a calibration procedure. A well-performed calibration procedure allows to obtain a satisfactory estimation of the camera parameters. To correctly map image points to the corresponding real world coordinates, the rigid transformation matrix must be estimated with respect to the user-defined reference system of the calibration master. Thus, if reference frame $H$ changes or the camera frame $C$ moves, it is necessary to estimate again the correct rigid transformation matrix. % this procedure has been automatized by our software.
 
 Images acquired by the camera are processed, then the hand skeleton joints coordinates are calculated. By using Equation \ref{eq1} for each frame, it is possible to obtain the real world coordinates of the hand skeleton joints in real time (Fig. \ref{fig:w1}).
@@ -138,7 +153,7 @@ The robot workspace refers to the space in which the robot moves (purple square 
 To correctly move the robot in a cartesian position of reference system $W$, it is necessary to perform a calibration between reference system $W$ and the robot reference system $R$. This procedure has been carried out experimentally by moving the robot (using its manual guidance mode) in different Cartesian positions of reference system $W$ (Fig. xx). % check fig master
 The robot correct positioning on top of each calibration position has been assured by using a 3D-printed centering tool (Fig. xx). The tool must be centered manually on each calibration marker and secured in place, then the robot end effector can be moved on it and carefully positioned inside the purposely made circular cavity of the tool. When the positioning is complete, the robot coordinates (both in the Cartesian space and in the Joints space) corresponding to that particular marker (of which the positioning is known with respect to reference system $W$) can be extracted using ROS or the robot proprietary software. When a satisfactory number of calibration positions has been acquired, it is possible to estimate the rigid transformation matrix between workspaces $W$ and $R$ as follow.
 
-Considering a generic point $\mathbf{P}_1\in\mathbb{R}^2$ calculate respect the frame $W$ ($P_{1,w}$) and the frame $R$ ($P_{1,R}$) as shown in Figure \ref{fig:master_robot}.
+Considering a generic point $\mathbf{P}_1\in\mathbb{R}^2$ relative to the frame $W$ ($P_{1,w}$) and the frame $R$ ($P_{1,R}$) as shown in Figure \ref{fig:master_robot}.
 \begin{figure}[]
 	\centering
 	\includegraphics[width=1\columnwidth]{figures/calibration_master2.pdf}
@@ -166,7 +181,7 @@ x_{P_{0,W}}=x_{P_{0,R}}\cos\theta+y_{P_{0,R}}\sin\theta+x_{T_R}\\
 y_{P_{0,W}}=-x_{P_{0,R}}\sin\theta+y_{P_{0,R}}\cos\theta+y_{T_R}
 \end{gathered}
 \end{equation}
-The aim of the calibration procedure is to identify the terms of $\mathbf{M}^W_{R}$ in order to find the correct position and orientation of frame $W$ respect the frame $R$. However, considering only one calibration position point $\mathbf{P_1}$, the system in Equation \ref{eq:linear_sys1} results underdetermined, hence, a minimum of $n>2$ calibration position points is required to solve the system. To minimize the calibration error $n=13$ points have been considered. Thus, the system in Equation \ref{eq:linear_sys1} becomes an overdetermined system $\mathbf{A}\mathbf{x}=\mathbf{b}$ that will be solved by mean of the least square method. Such that:
+The aim of the calibration procedure is to identify the terms of $\mathbf{M}^W_{R}$ in order to find the correct position and orientation of frame $W$ with respect to the frame $R$. However, considering only one calibration position point $\mathbf{P_1}$, the system in Equation \ref{eq:linear_sys1} results underdetermined, hence, a minimum of $n>2$ calibration position points is required to solve the system. To minimize the calibration error $n=13$ points have been considered. Thus, the system in Equation \ref{eq:linear_sys1} becomes an overdetermined system $\mathbf{A}\mathbf{x}=\mathbf{b}$ that will be solved by mean of the least square method. Such that:
 
 \begin{equation}\label{eq:linear_sys2}
 \resizebox{\columnwidth}{!}{$%
@@ -195,9 +210,32 @@ The aim of the calibration procedure is to identify the terms of $\mathbf{M}^W_{
 	$%
 }%
 \end{equation}
-Eventually, the rigid transformation matrix $\mathbf{M}^W_{R}$ used to identify the frame $W$ from frame $R$ is calculated using the terms of $\mathbf{x}$ from the previous Equation.
+The rigid transformation matrix $\mathbf{M}^W_{R}$ used to identify the reference frame $W$ from $R$ is defined by the components of $\mathbf{x}$.
 
-
+Now, considering the schema in Figure (FIGURA COMPLESSIVA RIFERIMENTI), the generic point $\mathbf{P}_{0}$ in the robot reference frame $R$ with respect to the camera frame $C$ is calculated as follow:
+\begin{equation}\label{eq:roto1}
+\mathbf{P}_{0,R} = \mathbf{M}^W_{R}\mathbf{P}_{0,W}
+\end{equation}
+\begin{equation}\label{eq:roto2}
+\mathbf{P}_{0,W} = K_s\mathbf{P}_{0,H}
+\end{equation}
+Where $K_s\in \mathbb{R}$ is the a scaling factor between the robot and user's workspace. At the end, considering Equations (\ref{eq:roto1},\ref{eq:roto2}) and Equation \ref{eq2}, the point $\mathbf{P}_{0}$ in the robot reference frame using the camera coordinates results:
+\begin{equation}
+\mathbf{P}_{0,R} = \begin{bmatrix}
+x \\
+y \\
+z
+\end{bmatrix}=
+K_s\mathbf{M}^W_{R}
+\left(s 
+\begin{bmatrix}
+u \\
+v \\
+1
+\end{bmatrix}
+\mathbf{K}^{-1}-\mathbf{t}\right)\mathbf{R}^{-1}
+\end{equation}
+The space coordinates $(u,v)$ will be the output of the hand-gesture recognition algorithm, while the coordinates $(x,y,z)$ are the position set-points for the robot.
 
 \section{Hand-Gesture Recognition}\label{sec:HG_recon}
 %Che rete uso, come ho impostato i gesti, lo scheletro con openpose citato, funzione per ricavare il gesto basata sull'assenza del finger, invariante dall'orientamento e dallo zoom. Immagini di esempio.
