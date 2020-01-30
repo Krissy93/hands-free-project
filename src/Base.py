@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 from __future__ import division
 import os
+# ONLY PRINTS WARNINGS AND ERRORS
+os.environ['GLOG_minloglevel'] = '2'
 import rospy
 import time
 import math
@@ -9,8 +11,6 @@ import numpy as np
 from scipy.spatial import distance
 import cv2
 import sys
-# ONLY PRINTS WARNINGS AND ERRORS
-os.environ['GLOG_minloglevel'] = '2'
 import caffe
 from pylibfreenect2 import Freenect2, SyncMultiFrameListener
 from pylibfreenect2 import FrameType, Registration, Frame
@@ -18,8 +18,22 @@ from pylibfreenect2 import FrameType, Registration, Frame
 #######
 
 # defines keypoint pairs
-global POSE_PAIRS
+global POSE_PAIRS, K, R, D, t, reference
 POSE_PAIRS = [ [0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[0,9],[9,10],[10,11],[11,12],[0,13],[13,14],[14,15],[15,16],[0,17],[17,18],[18,19],[19,20] ]
+
+K = np.array([[1.06314129e+03, 0.00000000e+00, 9.62163539e+02],
+          [0.00000000e+00, 1.06450150e+03, 5.38537956e+02],
+          [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]])
+D = np.array([[ 0.04147518, -0.0393437,   0.00013869, -0.00071462, -0.00889844]])
+R = np.array([[0.99916424, -0.01386533, -0.03845227],
+             [0.01251816,  0.99930691, -0.03505704],
+             [0.0389117,   0.03454639,  0.9986453]])
+t = np.array([[-35.12119381], [-19.63899217], [41.9282398]])
+reference, _ = cv2.projectPoints(np.array([[0.0, 0.0, 0.0]]), R, t, K, D)
+reference = reference.flatten()
+reference = np.array([[reference[0], reference[1], 1.0]])
+
+################
 
 class color:
    PURPLE = '\033[95m' #loginfo and commands
@@ -38,7 +52,7 @@ class Kinect():
     The original example was taken from the pylibfreenect2 github repository, at:
     https://github.com/r9y9/pylibfreenect2/blob/master/examples/selective_streams.py  '''
 
-    def __init__(self, enable_rgb, enable_depth, need_bigdepth, need_color_depth_map):
+    def __init__(self, enable_rgb, enable_depth, need_bigdepth, need_color_depth_map, K, D):
         ''' Init method called upon creation of Kinect object '''
 
         # according to the system, it loads the correct pipeline
@@ -58,6 +72,8 @@ class Kinect():
 
         self.enable_rgb = enable_rgb
         self.enable_depth = enable_depth
+        self.K = K
+        self.D = D
 
         # creates the freenect2 device
         self.fn = Freenect2()
@@ -126,40 +142,48 @@ class Kinect():
             # thus we have to remove it and take only the first three
             self.color_new = self.color_new[:,:,0:3]
             # the kinect sensor mirrors the images, so we have to flip them back
-            self.color_new = cv2.flip(self.color_new, 1)
+            #self.color_new = cv2.flip(self.color_new, 0)
+            #self.color_new = cv2.flip(self.color_new, 1)
+            #self.color_new = self.color_new[230:830, 540:1450]
+            self.correct_distortion()
         if self.enable_depth:
             # these only have one dimension, we just need to convert them to arrays
             # if we want to perform detection on them
             self.depth = frames["depth"]
             #rospy.loginfo(self.depth.asarray() / 4500.)
             self.depth_new = cv2.resize(self.depth.asarray() / 4500., (int(512 / 1), int(424 / 1)))
-            self.depth_new = cv2.flip(self.depth_new, 1)
+            #self.depth_new = cv2.flip(self.depth_new, 1)
 
             self.registration.undistortDepth(self.depth, self.undistorted)
             self.undistorted_new = cv2.resize(self.undistorted.asarray(np.float32) / 4500., (int(512 / 1), int(424 / 1)))
-            self.undistorted_new = cv2.flip(self.undistorted_new, 1)
+            #self.undistorted_new = cv2.flip(self.undistorted_new, 0)
+            #self.undistorted_new = cv2.flip(self.undistorted_new, 1)
 
             self.ir = frames["ir"]
             self.ir_new = cv2.resize(self.ir.asarray() / 65535., (int(512 / 1), int(424 / 1)))
-            self.ir_new = cv2.flip(self.ir_new, 1)
+            #self.ir_new = cv2.flip(self.ir_new, 0)
+            #self.ir_new = cv2.flip(self.ir_new, 1)
 
         if self.enable_rgb and self.enable_depth:
             self.registration.apply(self.color, self.depth, self.undistorted, self.registered,
                                     bigdepth=self.bigdepth, color_depth_map=self.color_depth_map)
             # RGB + D
             self.registered_new = self.registered.asarray(np.uint8)
-            self.registered_new = cv2.flip(self.registered_new, 1)
+            #self.registered_new = cv2.flip(self.registered_new, 0)
+            #self.registered_new = cv2.flip(self.registered_new, 1)
 
             if self.need_bigdepth:
                 self.bigdepth_new = cv2.resize(self.bigdepth.asarray(np.float32), (int(1920 / 1), int(1082 / 1)))
-                self.bigdepth_new = cv2.flip(self.bigdepth_new, 1)
+                #self.bigdepth_new = cv2.flip(self.bigdepth_new, 0)
+                #self.bigdepth_new = cv2.flip(self.bigdepth_new, 1)
                 #rospy.loginfo(self.bigdepth_new[0])
                 #rospy.loginfo(self.color_new[0])
                 #cv2.imshow("bigdepth", cv2.resize(self.bigdepth.asarray(np.float32), (int(1920 / 1), int(1082 / 1))))
             if self.need_color_depth_map:
                 #cv2.imshow("color_depth_map", self.color_depth_map.reshape(424, 512))
                 self.color_depth_map_new = self.color_depth_map.reshape(424, 512)
-                self.color_depth_map_new = cv2.flip(self.color_depth_map, 1)
+                #self.color_depth_map_new = cv2.flip(self.color_depth_map, 0)
+                #self.color_depth_map_new = cv2.flip(self.color_depth_map, 1)
 
         # do this anyway to release every acquired frame
         self.listener.release(frames)
@@ -168,7 +192,47 @@ class Kinect():
         rospy.loginfo(color.BOLD + color.RED + '\n -- CLOSING DEVICE... --' + color.END)
         self.device.stop()
         self.device.close()
+
+    def correct_distortion(self):
+        h,  w = self.color_new.shape[:2]
+        newcameramtx, roi=cv2.getOptimalNewCameraMatrix(self.K,self.D,(w,h),1,(w,h))
+        # undistort
+        self.RGBundistorted = cv2.undistort(self.color_new, self.K, self.D, None, newcameramtx)
+        # crop the image
+        x,y,w,h = roi
+        self.RGBundistorted = self.RGBundistorted[y:y+h, x:x+w]
+        self.RGBundistorted = cv2.flip(self.RGBundistorted, 0)
+        self.RGBundistorted = self.RGBundistorted[230:830, 540:1450]
 #######
+
+def init_workspace(kinect):
+    ''' takes a snapshot of the workspace, finds the green rectangle and cuts the workspace
+    according to the green dimension and the reference system '''
+
+    kinect.acquire()
+    frame = kinect.color_new
+    # ## convert to hsv
+    # hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    # # detect green mask
+    # #mask = cv2.inRange(hsv, (36, 25, 25), (70, 255,255))
+    # mask = cv2.inRange(hsv, (45, 100, 100), (70, 255,255))
+    #
+    # ## slice the green
+    # imask = mask>0
+    # green = np.zeros_like(frame, np.uint8)
+    # green[imask] = frame[imask]
+    # imgray = cv2.cvtColor(green, cv2.COLOR_BGR2GRAY)
+    # thresh, imgray = cv2.threshold(imgray, 127, 255, 0)
+    #
+    # _, contours, _ = cv2.findContours(imgray, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+    # y, x
+    #cut = frame[50:900, 200:1400]
+
+    # saves
+    cv2.imwrite("big3.png", frame)
+    #cv2.imwrite("big2.png", frame)
+    return frame
 
 # ok
 def init_network():
@@ -191,12 +255,53 @@ def init_network():
     return net
 
 #nok
-def px2meters():
+def px2meters(pt, reference, K, R, t):
     ''' Funzione di conversione tra pixel e metri per ottenere la posizione
     corretta in metri della posizione rilevata nell'immagine RGB-D. La Kinect
     prende (x,y) dall'RGB e (z) dal sensore di profondita', quindi deve essere
-    calibrato per forza '''
-    print('Pippo')
+    calibrato per forza. Calibrazione fatta in MATLAB! Riporto qui le matrici '''
+
+    K2 = np.linalg.inv(K)
+    R2 = np.linalg.inv(R)
+    pt = pt.T
+
+    S = K2.dot(pt)
+    N = S - t
+    PT = R2.dot(N)
+    XYZ = (PT - reference)*100 # in cm
+
+    return XYZ
+
+def H2R(Ph):
+    ''' conversione e movimentazione del robot
+    gli viene passato il punto gia' convertito da px a m '''
+
+    RW = np.array([[-0.0001, 0.0100], [-0.0100, -0.0001]])
+    tW = np.array([[-0.0457],[0.3835]])
+    Pr = RW.dot(Ph.T)
+    Pr = Pr + tW
+
+    #pr ha prima la z poi la y, quindi per muoverlo devo lanciare
+    x = 0.7 # distanza fissa dal vetro
+    y = Pr[0][1]
+    z = Pr[0][0]
+
+    
+
+    return Pr
+
+def error(point, frame):
+    '''funzione per trovare l'errore tra il punto dell'indice estratto
+    e il punto calcolato da openpose. mi salva la coordinata dell'indice
+    e fa una foto al ws '''
+
+    files = next(os.walk('/home/optolab/ur2020_workspace/src/telemove/src/saved/'))[2]
+    n = len(files)
+    cv2.imwrite('/home/optolab/ur2020_workspace/src/telemove/src/saved/img_'+str(n+1)+'.png', frame)
+
+    with open('/home/optolab/ur2020_workspace/src/telemove/src/points.txt', 'a') as file_object:
+    # Append 'hello' at the end of file
+        file_object.write('img_'+str(n+1)+'\t'+str(point)+'\n')
 
 # ok
 def hand_keypoints(net, frame, threshold, nPoints):
@@ -207,7 +312,6 @@ def hand_keypoints(net, frame, threshold, nPoints):
     deve muoversi il robot. Per ovviare al tremolio, prende 10 pti index e fa una media '''
 
     before = time.time()
-
     aspect_ratio = frame.shape[1]/frame.shape[0]
     inHeight = 368
     inWidth = int(((aspect_ratio*inHeight)*8)//8)
@@ -264,8 +368,8 @@ def draw_skeleton(frame, points, draw, inference_time, G, H):
                 cv2.circle(A, points[partA], 8, (0, 0, 255), thickness=-1, lineType=cv2.FILLED)
                 cv2.circle(A, points[partB], 8, (0, 0, 255), thickness=-1, lineType=cv2.FILLED)
     # the structure is: image, string of text, position from the top-left angle, font, size, BGR value of txt color, thickness, graphic
-    cv2.putText(A, 'INFERENCE TIME: ' + str(inference_time) + ' SEC', (20,50), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (80, 65, 242), 3, cv2.LINE_AA)
-    cv2.putText(A, 'LAST RESPONSE SENT: ' + str(G) + ' || HANDMAP: ' + str(H), (20,980), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (35, 227, 25), 3, cv2.LINE_AA)
+    cv2.putText(A, 'INFERENCE TIME: ' + str(inference_time) + ' SEC', (20,50), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (80, 65, 242), 3, cv2.LINE_AA)
+    cv2.putText(A, str(G) + ' || HANDMAP: ' + str(H), (20,A.shape[0] - 30), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (80, 65, 242), 3, cv2.LINE_AA) #(20,980)
     # finally we display the image on a new window
     cv2.imshow('hand detection', A)
 
@@ -286,75 +390,77 @@ def closed_finger(points):
 
     # scorre tutte le coppie
     handmap = []
-    print('points: ' + str(points))
+    #print('points: ' + str(points))
 
     # check per definire il valore dei riferimenti se qualche keypoint manca
-    if points[17] is not None:
-        n17 = 17
-    elif points[18] is not None:
-        n17 = 18
-    elif points[19] is not None:
-        n17 = 19
-    elif points[20] is not None:
-        n17 = 20
-    else:
-        n17 = 0
-
-    if points[5] is not None:
-        n5 = 5
-    elif points[6] is not None:
-        n5 = 6
-    elif points[7] is not None:
-        n5 = 7
-    elif points[8] is not None:
-        n5 = 8
-    else:
-        n5 = 0
-
-    if points[4] is not None:
-        n4 = 4
-    elif points[3] is not None:
-        n4 = 3
-    else:
-        n4 = 0
-
-    # devo capire come e' orientata la mano, se la coordinata x e' il riferimento
-    # per dx o sx o se devo guardare la y.
-
-    dx = abs(points[n17][0] - points[n5][0]) # range nocche su x
-    dy = abs(points[n17][1] - points[n5][1]) # range nocche su y
-    if dx > dy:
-        # se range x > range y, coordinata di riferimento la x
-        val = 0
-    else:
-        val = 1
-
-    # controllo se il pollice sta a dx o sx per capire che mano e'
-    if (points[n17][val] < points[0][val]) or (points[n5][val] > points[0][val]):
-        # se nocca del mignolo sta a sx dello 0 e nocca dell'indice
-        # sta a dx dello 0, allora il pollice sta a dx della nocca 5
-        if points[n4][val] < points[n5][val]:
-            # pollice chiuso perche' la sua x e' minore di quella dell'altro keypoint
-            handmap.append(0)
-        else:
-            # altrimenti il pollice e' aperto
-            handmap.append(1)
-    else:
-        # altri due casi
-        if points[n4][val] > points[n5][val]:
-            # pollice chiuso perche' la sua x e' minore di quella dell'altro keypoint
-            handmap.append(0)
-        else:
-            # altrimenti il pollice e' aperto
-            handmap.append(1)
+    # if points[17] is not None:
+    #     n17 = 17
+    # elif points[18] is not None:
+    #     n17 = 18
+    # elif points[19] is not None:
+    #     n17 = 19
+    # elif points[20] is not None:
+    #     n17 = 20
+    # else:
+    #     n17 = 0
+    #
+    # if points[5] is not None:
+    #     n5 = 5
+    # elif points[6] is not None:
+    #     n5 = 6
+    # elif points[7] is not None:
+    #     n5 = 7
+    # elif points[8] is not None:
+    #     n5 = 8
+    # else:
+    #     n5 = 0
+    #
+    # if points[4] is not None:
+    #     n4 = 4
+    # elif points[3] is not None:
+    #     n4 = 3
+    # else:
+    #     n4 = 0
+    #
+    # # devo capire come e' orientata la mano, se la coordinata x e' il riferimento
+    # # per dx o sx o se devo guardare la y.
+    #
+    # dx = abs(points[n17][0] - points[n5][0]) # range nocche su x
+    # dy = abs(points[n17][1] - points[n5][1]) # range nocche su y
+    # if dx > dy:
+    #     # se range x > range y, coordinata di riferimento la x
+    #     val = 0
+    # else:
+    #     val = 1
+    #
+    # # controllo se il pollice sta a dx o sx per capire che mano e'
+    # if (points[n17][val] < points[0][val]) or (points[n5][val] > points[0][val]):
+    #     # se nocca del mignolo sta a sx dello 0 e nocca dell'indice
+    #     # sta a dx dello 0, allora il pollice sta a dx della nocca 5
+    #     if points[n4][val] < points[n5][val]:
+    #         # pollice chiuso perche' la sua x e' minore di quella dell'altro keypoint
+    #         handmap.append(0)
+    #     else:
+    #         # altrimenti il pollice e' aperto
+    #         handmap.append(1)
+    # else:
+    #     # altri due casi
+    #     if points[n4][val] > points[n5][val]:
+    #         # pollice chiuso perche' la sua x e' minore di quella dell'altro keypoint
+    #         handmap.append(0)
+    #     else:
+    #         # altrimenti il pollice e' aperto
+    #         handmap.append(1)
 
     # da qui inizia a calcolare le dita oltre il pollice
 
-    j = 5
-    for k in range(1, 5): # per le 4 dita pollice escluso
+    #j = 5
+    j = 1
+    fop = []
+    for k in range(0, 5): # per le 5 dita
         finger = []
         for i in range(j,j+4): # legge i keypoints delle dita
-            print('keypoint: ' + str(points[i]))
+            #print('keypoint: ' + str(points[i]))
             if points[i]:
                 # se non e' None
                 finger.append(points[i])
@@ -364,7 +470,8 @@ def closed_finger(points):
                 # cosi non funziona quindi ci metto il punto zero
                 # che tanto nella distanza euclidea la distanza e' relativa a zero
                 finger.append(points[0])
-
+        #print(points)
+        #print('finger ' + str(k) + ': ' + str(finger))
         # check sui detected keypoints per controllare quanto sono distanti
         # controlla la distanza dal punto zero: se le distanze relative di ogni
         # keypoint del dito sono simili, allora il dito e' chiuso
@@ -373,21 +480,16 @@ def closed_finger(points):
                              distance.euclidean(points[0], finger[1]),
                              distance.euclidean(points[0], finger[2]),
                              distance.euclidean(points[0], finger[3])])
-        '''distances = np.array([distance.euclidean(finger[0], finger[1]),
-                             distance.euclidean(finger[1], finger[2]),
-                             distance.euclidean(finger[2], finger[3])])'''
-        '''dx = np.array([x[0] for x in finger])
-        dy = np.array([x[1] for x in finger])
-        print(np.amax(dx) - np.amin(dx))
-        print(np.amax(dy) - np.amin(dy))'''
-        print(distances)
-        # WARNING: quanto e' robusto rispetto allo zoom?
+        fop.append(distances[-1])
+
         if (distances[-1] > 0):
-            if sum(distances) == 0:
-                # se sono tutti assenti lo ipotizzo chiuso
+            if np.any(distances==0):
+                # ipotizzo il dito chiuso se manca anche solo un keypoint della sua catena
                 handmap.append(0)
-            elif ((distances[-1] - distances[0])/distances[-1]) < 0.20:
-                # closed
+            # elif ((distances[-1] - distances[0])/distances[-1]) < 0.10:
+            #     # closed
+            #     handmap.append(0)
+            elif ((distances[-1] - distances[0])/distances[-1]) < 0.10:
                 handmap.append(0)
             else:
                 handmap.append(1)
@@ -397,58 +499,108 @@ def closed_finger(points):
 
         j = j + 4
 
+    # i = 5
+    # finger = []
+    # knuckle = []
+    # for k in range(1, 5): # per le 4 dita da indice a mignolo
+    #     #print('keypoint: ' + str(points[i]))
+    #     # prende esclusivamente i keypoint finali del dito
+    #
+    #     if points[i+3]:
+    #         # se non e' None
+    #         finger.append(points[i+3])
+    #     else:
+    #         finger.append(points[0])
+    #
+    #     if points[i]:
+    #         # se non e' None
+    #         knuckle.append(points[i])
+    #     else:
+    #         knuckle.append(finger[-1]) #latest finger added
+    #
+    #     i = i + 4
+    #
+    # distances = np.array([distance.euclidean(points[0], finger[0]), #indice
+    #                       distance.euclidean(points[0], finger[1]), #medio
+    #                       distance.euclidean(points[0], finger[2]), #anulare
+    #                       distance.euclidean(points[0], finger[3])]) #mignolo
+    #
+    # ref_distance = np.array([distance.euclidean(finger[0], knuckle[0]), #indice
+    #                       distance.euclidean(finger[1], knuckle[1]), #medio
+    #                       distance.euclidean(finger[2], knuckle[2]), #anulare
+    #                       distance.euclidean(finger[3], knuckle[3])]) #mignolo
+    #
+    # print(ref_distance)
+    # # check su indice
+    # for i in range(0,4):
+    #     if max(distances == distances[0]) and distances[0] > 0 and i == 0:
+    #         # se il valore piu alto e' quello dell'indice, allora ho index aperto
+    #         handmap.append(2)
+    #
+    #     elif ref_distance[i] > 0 and ref_distance[i] > 95:
+    #         # aperto
+    #         handmap.append(1)
+    #     else:
+    #         handmap.append(0)
+    # print(handmap)
+
+    if max(fop) == fop[1]: # se il max e' l'indice
+        handmap[1] = 2
+
     return handmap
 
 # ok
-def gesture(points, chain, acquire, chvalue):
+def gesture(points, chain, acquire, chvalue, frame):
     ''' Function to check which gesture is performed. If index only, extracts the
     coordinates, if all the fingers are present starts acquiring the index position. '''
 
     handmap = closed_finger(points)
     # da qui capisco che gesto e'
     # se tutti 1 -> open hand
-    # se index x 1 0 0 0 -> estraggo l'index coordinate
+    # se index x 1 x x x con points[8] >> degli altri
 
-    if sum(handmap) == 5:
-        # tutti uno
+    if sum(handmap) >= 5:
+        # tutti aperti
         rospy.loginfo(color.BOLD + color.GREEN + 'HAND OPEN' + color.END)
         G = 'HAND OPEN'
         acquire = True
         chain = []
-    elif handmap[1] == 1 and sum(handmap[2:4]) == 0:
+    elif handmap[1] == 2: #and sum(handmap[2:4]) == 0:
         # index
         rospy.loginfo(color.BOLD + color.CYAN + 'INDEX' + color.END)
         G = 'INDEX'
-        if acquire == True and len(chain) < chvalue:
+        if acquire == True and len(chain) < chvalue and points[8]:
             # estrae tot volte le coordinate xy dell'indice in px, coordinata 8
             chain.append(points[8])
+            #error(points[8], frame)
     else:
         rospy.loginfo(color.BOLD + color.PURPLE + 'NO GESTURE' + color.END)
         G = 'NO GESTURE'
         # non svuoto perche' accetto il disturbo durante il riempimento della coda
         # che verra' svuotata quando raggiunge il chvalue
 
+
+        # da pylibfreenect2
+        # prende in input il frame depth undistorted e le (i, j) del punto
+        # nella matrice dell'immagine depth. i e' la riga, j la colonna
+        # restituisce XYZ del punto reale corrispondente gia' in metri
+        # bisognera' mappare questo dato rispetto a un certo sistema di riferimento
+        # comodo, ad esempio centrato rispetto al master, cosi' da essere di facile lettura
+    #    getPointXYZ(depth_frame, i, j)
+
+        # undistorted depth frame e registered color frame sono (512, 424)
+        # NOTA: verifica se per caso acquisisce un bigdepth frame, che ha la dimensione
+        # del frame rgb (1920, 1080). Non so cosa e' invece color_depth_map che e' pure un np array
+        # https://github.com/r9y9/pylibfreenect2/blob/master/examples/multiframe_listener.py
+
     return chain, acquire, G, str(handmap)
 
-
-    # da pylibfreenect2
-    # prende in input il frame depth undistorted e le (i, j) del punto
-    # nella matrice dell'immagine depth. i e' la riga, j la colonna
-    # restituisce XYZ del punto reale corrispondente gia' in metri
-    # bisognera' mappare questo dato rispetto a un certo sistema di riferimento
-    # comodo, ad esempio centrato rispetto al master, cosi' da essere di facile lettura
-#    getPointXYZ(depth_frame, i, j)
-
-    # undistorted depth frame e registered color frame sono (512, 424)
-    # NOTA: verifica se per caso acquisisce un bigdepth frame, che ha la dimensione
-    # del frame rgb (1920, 1080). Non so cosa e' invece color_depth_map che e' pure un np array
-    # https://github.com/r9y9/pylibfreenect2/blob/master/examples/multiframe_listener.py
-
-#def map_workspace():
+def map_workspace():
     ''' Funzione che mappa il workspace dell'operatore, che inquadra solo le mani,
     sul workspace del robot dove e' presente l'oggetto. Tutti i punti di W1 sono riferiti a W2
     quindi posso rappresentare con questa conversione semplice il punto dell'indice
     sull'altra immagine in tempo reale '''
+    print('Pippo')
 
 #######
 
@@ -464,20 +616,22 @@ def main():
     net = init_network()
     # input image dimensions for the network
     nPoints = 22
-    kinect = Kinect(True, True, True, True)
+    kinect = Kinect(True, True, True, True, K, D)
     chain = []
     acquire = False
-    threshold = 0.2
+    threshold = 0.4
     draw = True
     chvalue = 7
     G = 'INIT'
     H = 'INIT'
-    image = cv2.imread('/home/optolab/ur2020_workspace/src/telemove/src/HandPose/hand.jpg')
+    #image = cv2.imread('/home/optolab/ur2020_workspace/src/telemove/src/HandPose/hand.jpg')
+    cut = init_workspace(kinect)
 
     while not rospy.is_shutdown():
         kinect.acquire()
+        frame = kinect.RGBundistorted.copy()
         # per ogni frame acquisito dalla kinect deve fare sta cosa
-        points, inference_time = hand_keypoints(net, kinect.color_new, threshold, nPoints)
+        points, inference_time = hand_keypoints(net, frame, threshold, nPoints)
 
         #points, inference_time = hand_keypoints(net, image, threshold, nPoints)
 
@@ -488,19 +642,25 @@ def main():
             G = 'NO GESTURE'
             H = 'NONE'
         else:
-            chain, acquire, G, H = gesture(points, chain, acquire, chvalue)
+            chain, acquire, G, H = gesture(points, chain, acquire, chvalue, frame)
             draw = True
             if len(chain) == chvalue:
                 # ho riempito la coda
                 acquire = False
                 # elabora la media delle posizioni points acquisite
                 # se non e' index chain points e' vuota
+                print('C: ' + str(chain))
                 rechain = zip(*chain)
-                mean = [sum(rechain[0])/len(rechain[0]), sum(rechain[1])/len(rechain[1])]
-                rospy.loginfo(color.BOLD + color.YELLOW + 'CHAIN VALUE REACHED. MEAN IS: ' + str(mean) + color.END)
+                mean = np.array([[sum(rechain[0])/len(rechain[0]), sum(rechain[1])/len(rechain[1]), 1.0]])
+                rospy.loginfo(color.BOLD + color.YELLOW + 'CHAIN VALUE REACHED. MEAN IS: ' + str(mean[0][0]) + ' ,' + str(mean[0][1]) + color.END)
                 # svuoto la coda
                 chain = []
-        draw_skeleton(kinect.color_new, points, draw, inference_time, G, H)
+                print(mean)
+                Ph = px2meters(mean, reference, K, R, t)
+                Pr = H2R(Ph)
+                rospy.loginfo(color.BOLD + color.YELLOW + 'POINT IN H: ' + str(Ph) + ' POINT IN R: ' + str(Pr) + color.END)
+                # qui converto mean nel corrispondente punto del robot e lo muovo
+        draw_skeleton(frame, points, draw, inference_time, G, H)
         #draw_skeleton(image, points, draw, inference_time, G)
 
 
@@ -514,7 +674,7 @@ def main():
         if cv2.waitKey(25) == ord('q'):
             cv2.destroyAllWindows()
             break
-
+    kinect.stop()
     rospy.on_shutdown(myhook)
 
 if __name__ == '__main__':
