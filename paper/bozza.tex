@@ -28,11 +28,10 @@
 %\usepackage{mathptmx} % assumes new font selection scheme installed
 %\usepackage{times} % assumes new font selection scheme installed
 \usepackage{amsmath} % assumes amsmath package installed
-%\usepackage{amssymb}  % assumes amsmath package installed
-\usepackage{amssymb}
+\usepackage{amssymb}  % assumes amsmath package installed
 
 \title{\LARGE \bf
-Hands-Free: A Robot Augmented Reality Teleoperation System
+Hands-Free: a robot augmented reality teleoperation system
 }
 
 %\author{\authorblockN{Cristina Nuzzi\authorrefmark{1}, Stefano Ghidini\authorrefmark{2}, Roberto Pagani\authorrefmark{1}, Simone Pasinetti\authorrefmark{1} and Giovanna Sansoni\authorrefmark{1}}
@@ -67,9 +66,9 @@ This electronic document is a live template. The various components of your pape
 \section{INTRODUCTION}
 Despite advances in robotic perception are increasing autonomous capabilities, the human intelligence is still considered a necessity in unstructured or not predictable environments. Typical scenarios concern the detection of random shape objects, manipulation, or custom robot motion. In such context, human and robots must achieve mutual human-robot interaction (HRI) \cite{Yanco2002}.
 
-HRI can be both physical (pHRI) or not, depending on the assigned task. For example, when the robot is constrained in a dangerous environment or must handle hazardous materials, pHRI is not recommended. In this cases, robot teleoperation may be necessary. A teleoperation system concerns with the exploration and exploitation of spaces which do not allow user presence, thus, the operator acts by remotely move the robot \cite{VERTUTJean}. A plenty of human-machine interfaces for teleoperation have been developed considering a mechanical interface, this includes exoskeleton \cite{Rebelo2014} or gloves \cite{Lv2006}. Such systems are particularly helpful to achieve bilateral teleoperation \cite{Hokayem2006}, where they can transmit or reflect back to the user reaction forces from the task being performed. In this case, a high perception with complete haptic feedback \cite{Glover2009} is required. Other interfaces includes mouse, switchbox, keyboard, touch-screen and joystick, which is usually a better control device than others because the operators can identify better with the task \cite{Boboc2012}. Electromyography (EMG) is widely used to implement teleoperation systems by mean of muscular activity signals \cite{Vogel2011, Hassan2019}. However, as reminded recently in \cite{Roveda2018a}, EMG could be affected by difficulties in processing EMG signals for amplitude and spectral analysis, reducing their efficiency for many applications. Moreover, all the interfaces described still act by contact, hindering the movement of the operator or cause him to act through unnatural movements.
+HRI can be both physical (pHRI) or not, depending on the assigned task. For example, when the robot is constrained in a dangerous environment or must handle hazardous materials, pHRI is not recommended. In this cases, robot teleoperation may be necessary. A teloperation system concerns with the exploration and exploitation of spaces which do not allow user presence, thus, the operator acts by remotely move the robot \cite{VERTUTJean}. A plenty of human-machine interfaces for teleoperation have been developed considering a mechanical interface, this includes exoskeleton \cite{Rebelo2014} or gloves \cite{Lv2006}. Such systems are particularly helpful to achieve bilateral teleoperation \cite{Hokayem2006}, where they can transmit or reflect back to the user reaction forces from the task being performed. In this case, a high perception with complete haptic feedback \cite{Glover2009} is achieved. Other controllers includes mouse, switchbox, keyboard, touch-screen and joystick, which is usually a better control device than others because the operators can identify better with the task \cite{Boboc2012}. Among the systems where bilateral teleoperation is not required, a teleoperation system is defined by mean of electromyography (EMG) signals of the muscular activity \cite{Vogel2011, Hassan2019}. However, as reminded recently in \cite{Roveda2018a}, EMG could be affected by difficulties in processing EMG signals for amplitude and spectral analysis, reducing their efficiency for many applications. Moreover, all this interfaces still act by contact, hindering the movement of the operator or cause him to act through unnatural movements.
 
-Therefore, if bilater interaction is not required, a vision-based interface is preferable. A vision-based interface does not require physical contact with external devices such as cables, connectors and objects outside of the user working area. This grants a more natural and intuitive interaction, which is reflected on the task performance: as shown in \cite{Kofman2005}, the accuracy of object gripping tasks is improved by mean of a contactless vision-based robot teleoperation method, while in \cite{Livatino2009} a stereo vision system improved the performance of a mobile robot teleoperation application.
+On the other side, if bilater interaction is not required, a vision-based interface is preferable. A vision-based interface does not require physical contact with external devices such as cables, connectors and objects outside of the user working area. This grants a more natural and intuitive interaction, which is reflected on the task performance: as shown in \cite{Kofman2005}, the accuracy of object gripping tasks is improved by mean of a contactless vision-based robot teleoperation method, while in \cite{Livatino2009} a stereo vision system improved the performance of a mobile robot teleoperation application.
 
 Furthermore, if a vision-interface is integrated with virtual and augmented reality techniques, it translates in a greater level of immersion for the user. Such techniques are used to enhance the feedback information; in fact, the operator feels like being physically present in the remote environment, enhancing the immersion level. The notion of immersion is one of the most important reasons for using virtual and augmented reality \cite{Boboc2012}. An augmented reality system for teleoperation based on the Leap Motion (LM) controller is presented in \cite{Peppoloni2015}. For its application domain, the LM controller is considered an accurate sensor \cite{Hedayati2018}, however it is limited to a relatively small measuring distance if compared with other sensors. In this sense, the LM controller introduces spatial constraints that clash with the previously stated concept of the high level user immersion.
 
@@ -78,95 +77,69 @@ This, in combination with the ease of availability of an RGB camera, lead the fr
 Different experiments were performed on a \textit{Sawyer (Rethink Robotics)} industrial collaborative robot to evaluate repeatability and accuracy of the proposed system. Section \ref{sec:experiments} reports the results.
 
 \section{Workspace Calibration and Mapping} \label{sec:calib}
-
-%Qui spiego il problema del dover riferire i keypoints della mano ricavati nel primo workspace verde al workspace del robot per poterlo correttamente movimentare. I passi per questa procedura sono due: prima calibro il primo workspace verde rispetto a come la kinect lo inquadra, e questo sarà il workspace di riferimento. Ottengo una trasformazione pixel to realeper sapere in metri dove è posizionata la mano (i keypoints) nel workspace verde.
-%Poi devo riferire questo workspace verde a quello in cui si muove il robot. Per farlo devo sapere il rapporto di mapping tra il w1 e il w2, cioè a cosa corrisponde il punto 1 di w1 in w2 ecc. Poi devo fare la stessa cosa per capire qual è il riferimento del robot rispetto a w2. Per farlo devo muovere sperimentalmente il robot in diverse posizioni del master e ricavare a cosa corrispondono nel master rispetto al robot per ottenere questo mapping.
-%Immagini che rappresentano questa procedura.
-%Procedura di calibrazione automatica?
-
-Our set-up is composed of two workspaces: the \textit{user workspace} and the \textit{robot workspace}. Cartesian points in the user workspace, which can be reached by the user hand and are correctly viewed by the camera, correspond to precise robot end-effector Cartesian points in the robot workspace. To obtain a mapping between the hand positions and the robot end-effector positions, it is necessary to perform a set of calibration procedures described in the following sections.
+\begin{figure*}[h]
+\centering
+  \includegraphics[width=0.9\textwidth]{figures/horizcalib.png}
+  \caption{Scheme of the calibration steps.}
+  \label{fig:wscalib}
+\end{figure*}
+Our set-up is composed of two workspaces: the \textit{user workspace} and the \textit{robot workspace}. Cartesian points in the user workspace that can be reached by the user hand and are correctly viewed by the camera correspond to precise robot end-effector Cartesian points in the robot workspace. To obtain the mapping between the hand positions and the robot end-effector positions, it is necessary to perform a set of calibration procedures described in detail in the following sections.
 
 \subsection{User Workspace Calibration}
-In the user workspace an RGB camera is used to recognize the hand skeleton in real-time. Therefore, it is necessary to properly calibrate the camera relative to the user-defined reference system. This procedure is called \textit{camera calibration}, and can be easily realized following standard procedures, such as the one detailed in \cite{MatlabCameraCalib}.
-The projection mapping for a generic point $\mathbf{P}_{0,C} = (u,v)$ in the camera image plane with reference frame $C$ to its corresponding real world coordinate point $\mathbf{P}_{0,H} = (x,y,z)$ in reference frame $H$ is defined by the following Equation. Homogeneous coordinates are required:
+In the user workspace an RGB camera is used to recognize the hand skeleton in real-time. Therefore, it is necessary to properly calibrate the camera with respect to the user-defined reference system. This procedure is called \textit{camera calibration}, and can be easily realized following standard procedures, such as the one detailed in \cite{MatlabCameraCalib}.
+
+To correctly map an image point $S = (U, V)$ [px] to its corresponding real world coordinate $P = (X, Y, Z)$ [m] it is necessary to apply the following formula:
 \begin{equation}
 s 
   \begin{bmatrix}
-    u \\
-    v \\
+    U \\
+    V \\
     1
   \end{bmatrix}
  =
-\mathbf{K}
+\mathbf{K} \left( \mathbf{R}
   \begin{bmatrix}
-    \mathbf{R} | \mathbf{t}
+    X \\
+    Y \\
+    Z \\
   \end{bmatrix}
-  \begin{bmatrix}
-    x \\
-    y \\
-    z \\
-    1
-  \end{bmatrix}
++ \mathbf{t} \right)
 \label{eq1}
 \end{equation}
-However, since we are looking for the point position $\mathbf{P}_H$ in the frame $H$ by back-projecting a 2D point to 3D it is necessary to invert Equation \ref{eq1}:
-\begin{equation}
-\mathbf{P}_{0,H} = \begin{bmatrix}
-x \\
-y \\
-z
-\end{bmatrix}=
-\left(s 
-\begin{bmatrix}
-u \\
-v \\
-1
-\end{bmatrix}
-\mathbf{K}^{-1}-\mathbf{t}\right)\mathbf{R}^{-1}
-\label{eq2}
-\end{equation}
-In the equations above, the scalar $s\in\mathbb{R}$ is the scale factor of the image, $\mathbf{K}\in\mathbb{R}^{3\times3}$ is the camera matrix containing the intrinsic parameters of the camera such as focal length and optical center obtained through the calibration procedure, $\mathbf{[R|t]}\in\mathbb{R}^{4\times3}$ is the rigid transformation matrix containing the exstrinsic parameters for rotation ($\mathbf{R}\in\mathbb{R}^{3\times3}$) and translation ($\mathbf{t}\in\mathbb{R}^3$) of the camera reference frame $C$ relative to the calibration master reference frame $H$. 
-To obtain matrix \textbf{K} it is necessary to perform a calibration procedure. A well-performed calibration procedure allows to obtain a satisfactory estimation of the camera parameters. To correctly map image points to the corresponding real world coordinates, the rigid transformation matrix must be estimated with respect to the user-defined reference system of the calibration master. Thus, if reference frame $H$ changes or the camera frame $C$ moves, it is necessary to estimate again the correct rigid transformation matrix. % this procedure has been automatized by our software.
 
-Images acquired by the camera are processed, then the hand skeleton joints coordinates are calculated. By using Equation \ref{eq1} for each frame, it is possible to obtain the real world coordinates of the hand skeleton joints in real time (Fig. \ref{fig:w1}).
+In the equation above, the scalar $s\in\mathbb{R}$ is the scale factor of the image, $\mathbf{K}\in\mathbb{R}^{3\times3}$ is the camera matrix containing the intrinsic parameters of the camera such as focal length and optical center, while matrices $\mathbf{R}\in\mathbb{R}^{3\times3}$ and $\mathbf{t}\in\mathbb{R}^3$ are the rotation and translation matrices of the camera reference system $C$ with respect to the calibration master reference system $H$. When combined, these two represent the rigid transformation matrix $\mathbf{[R|t]}\in\mathbb{R}^{4\times3}$.
 
-\begin{figure} [h!]
-  \centering
-  \includegraphics[width=0.6\columnwidth]{figures/w1.png}
-  \caption{Scheme of the user workspace, where the camera reference system $C$ and the user-defined reference system $H$ are calibrated to find the correspondence between image points and real world coordinates.}
-  \label{fig:w1}
-\end{figure}
+To obtain matrix \textbf{K} it is necessary to perform a calibration procedure. A well-performed calibration procedure allows to obtain a satisfactory estimation of the camera parameters. To correctly map image points to the corresponding real world coordinates, the rigid transformation matrix must be estimated with respect to the user-defined reference system of the calibration master. Thus, if reference system $H$ changes or the camera $C$ moves, it is necessary to estimate again the correct rigid transformation matrix. This procedure has been automatized by our software: a calibration script calculates matrix \textbf{K} using a set of calibration images acquired by the user, then it takes a new frame from the actual set-up to estimate the position of reference system $H$.
+
+Images acquired by the camera are processed and the hand skeleton joints coordinates are calculated. By using the abovementioned formula, for each frame it is possible to obtain the real world coordinates of the hand skeleton joints in real time (image frame in Fig. \ref{fig:wscalib}).
 
 %% img del set up di calibrazione matlab
 % risultati di calibrazione? Img della mano con skeleton?
 
 \subsection{Robot Workspace Calibration}
-The robot workspace refers to the space in which the robot moves (purple square of Fig. \ref{fig:w2}) with respect to the user workspace (green square of Fig. \ref{fig:w1}). In this case, the user hand real-world position in reference system $H$ is mapped to the new reference system $W$. The mapping between reference system $H$ and reference system $W$ is obtained easily if the two workspaces have the same dimension (matrix \textbf{[R$|$t]} is the identity matrix) or if one workspace is a scaled version of the other one (matrix \textbf{[R$|$t]} is the identity matrix multiplied by the scale factor). %verificare
+The robot workspace refers to the space in which the robot moves (reference system $W$ of Fig. \ref{fig:wscalib}) with respect to the user workspace (reference system $H$ of Fig. \ref{fig:wscalib}). In this case, the user hand real-world position in reference system $H$ is mapped to the new reference system $W$. The mapping between reference system $H$ and reference system $W$ is obtained easily if the two workspaces have the same dimension (matrix \textbf{[R$|$t]} is the identity matrix) or if one workspace is a scaled version of the other one (matrix \textbf{[R$|$t]} is the identity matrix multiplied by the scale factor). %verificare
 
-\begin{figure} [h!]
-  \centering
-  \includegraphics[width=0.6\columnwidth]{figures/w2.png}
-  \caption{Scheme of the robot workspace, where the second user-defined reference system $W$ and the robot reference system $R$ are calibrated to find the correspondence between the workspace positions and the end-effector joint coordinates.}
-  \label{fig:w2}
+To correctly move the robot in a cartesian position of reference system $W$, it is necessary to perform a calibration between reference system $W$ and the robot reference system $R$. This procedure has been carried out experimentally by moving the robot (using its manual guidance mode) in different Cartesian positions of reference system $W$. The robot correct positioning on top of each calibration position has been assured by using a 3D-printed centering tool (Fig. \ref{fig:robotcalib}). 
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=1\columnwidth]{figures/robotcalibration.png}
+	\caption{Example of the robot calibration procedure. The calibration pose tool (top-right) is placed in correspondence of a calibration marker, then the robot end-effector is carefully placed inside the tool (bottom-left). The calibration pose tool cavity has been purposely made to fit the robot end-effector.}
+	\label{fig:robotcalib}
 \end{figure}
 
-To correctly move the robot in a cartesian position of reference system $W$, it is necessary to perform a calibration between reference system $W$ and the robot reference system $R$. This procedure has been carried out experimentally by moving the robot (using its manual guidance mode) in different Cartesian positions of reference system $W$ (Fig. xx). % check fig master
-The robot correct positioning on top of each calibration position has been assured by using a 3D-printed centering tool (Fig. xx). The tool must be centered manually on each calibration marker and secured in place, then the robot end effector can be moved on it and carefully positioned inside the purposely made circular cavity of the tool. When the positioning is complete, the robot coordinates (both in the Cartesian space and in the Joints space) corresponding to that particular marker (of which the positioning is known with respect to reference system $W$) can be extracted using ROS or the robot proprietary software. When a satisfactory number of calibration positions has been acquired, it is possible to estimate the rigid transformation matrix between workspaces $W$ and $R$ as follow.
+The tool must be centered manually on each calibration marker and secured in place, then the robot end effector can be moved on it and carefully positioned inside the purposely made circular cavity of the tool. When the positioning is complete, the robot coordinates (both in the Cartesian space and in the Joints space) corresponding to that particular marker (of which the positioning is known with respect to reference system $W$) can be extracted using ROS or the robot proprietary software. 
 
-Considering a generic point $\mathbf{P}_1\in\mathbb{R}^2$ relative to the frame $W$ ($P_{1,w}$) and the frame $R$ ($P_{1,R}$) as shown in Figure \ref{fig:master_robot}.
-\begin{figure}[]
+When a satisfactory number of calibration positions has been acquired, it is possible to estimate the rigid transformation matrix between workspaces $W$ and $R$. Considering the calibration example in Fig. \ref{master_robot}, the position of point $\mathbf{P}_1\in\mathbb{R}^2$ is calculated with respect to both frame $W$ ($P_{1,W}$) and frame $R$ ($P_{1,R}$).
+
+\begin{figure}[h]
 	\centering
-	\includegraphics[width=1\columnwidth]{figures/calibration_master2.pdf}
-	\caption{Master used to calibrate the second user-defined reference system $W$ with the robot reference frame $R$. The Figure illustrate the position of the point $\mathbf{P_1}$ in both reference frames. To properly calibrate the system, the position of each point is required, both for frame $W$ and $R$. In the context, 13 calibration points have been used.}
+	\includegraphics[width=1\columnwidth]{figures/calibration.png}
+	\caption{Master used to calibrate the second user-defined reference system $W$ with the robot reference frame $R$. The Figure illustrate the position of  point $\mathbf{P_1}$ in both reference frames. To properly calibrate the system, the position of each point is required, both for frame $W$ and $R$. In the context, 13 calibration points have been used.}
 	\label{fig:master_robot}
 \end{figure}
-\begin{figure}[]
-	\centering
-	\includegraphics[width=1\columnwidth]{figures/calibration_pose3.pdf}
-	\caption{Master used to calibrate the second user-defined reference system $W$ with the robot reference frame $R$. The Figure illustrate the position of the point $\mathbf{P_1}$ in both reference frames. To properly calibrate the system, the position of each point is required, both for frame $W$ and $R$. In the context, 13 calibration points have been used.}
-	\label{fig:master_robot}
-\end{figure}
-Consider $\mathbf{T}_R\in\mathbb{R}^2$ as the distance between the two frame, it is possible to affirm:
+
+The distance between the two reference frames is $\mathbf{T}_R\in\mathbb{R}^2$, hence:
 \begin{equation}
 \mathbf{P}_{0,R} = \mathbf{P}_{0,W} + \mathbf{T}_R
 \end{equation}
@@ -174,14 +147,14 @@ Using homogeneous coordinates it is possible to rewrite the previous equation as
 \begin{equation}\label{eq:matrix_M}
 \mathbf{P}_{0,R} = \mathbf{M}^W_{R}\mathbf{P}_{0,W}
 \end{equation}
-Where $\mathbf{M}^W_{R}\in\mathbb{R}^{3\times3}$ is the rigid transformation matrix composed both by translational and rotational coordinate from frame $R$ to frame $W$. By evidencing equations from Equation \ref{eq:matrix_M}, it is possible to write:
+Where $\mathbf{M}^W_{R}\in\mathbb{R}^{3\times3}$ is the rigid transformation matrix between the two reference systems. By evidencing equations from Equation \ref{eq:matrix_M}, we obtain:
 \begin{equation}\label{eq:linear_sys1}
 \begin{gathered}
 x_{P_{0,W}}=x_{P_{0,R}}\cos\theta+y_{P_{0,R}}\sin\theta+x_{T_R}\\
 y_{P_{0,W}}=-x_{P_{0,R}}\sin\theta+y_{P_{0,R}}\cos\theta+y_{T_R}
 \end{gathered}
 \end{equation}
-The aim of the calibration procedure is to identify the terms of $\mathbf{M}^W_{R}$ in order to find the correct position and orientation of frame $W$ with respect to the frame $R$. However, considering only one calibration position point $\mathbf{P_1}$, the system in Equation \ref{eq:linear_sys1} results underdetermined, hence, a minimum of $n>2$ calibration position points is required to solve the system. To minimize the calibration error $n=13$ points have been considered. Thus, the system in Equation \ref{eq:linear_sys1} becomes an overdetermined system $\mathbf{A}\mathbf{x}=\mathbf{b}$ that will be solved by mean of the least square method. Such that:
+The aim of the calibration procedure is to calculate $\mathbf{M}^W_{R}$ in order to find the correct position and orientation of frame $W$ with respect to frame $R$. However, considering only one calibration position point $\mathbf{P1}$, the system in Equation \ref{eq:linear_sys1} results underdetermined, hence, a minimum of $n>2$ calibration points is required to solve the system. To minimize the calibration error, $n=13$ points have been considered. Thus, the system in Equation \ref{eq:linear_sys1} becomes an overdetermined system $\mathbf{A}\mathbf{x}=\mathbf{b}$ that is solved using the least square method:
 
 \begin{equation}\label{eq:linear_sys2}
 \resizebox{\columnwidth}{!}{$%
@@ -210,40 +183,14 @@ The aim of the calibration procedure is to identify the terms of $\mathbf{M}^W_{
 	$%
 }%
 \end{equation}
-The rigid transformation matrix $\mathbf{M}^W_{R}$ used to identify the reference frame $W$ from $R$ is defined by the components of $\mathbf{x}$.
 
-Now, considering the schema in Figure (FIGURA COMPLESSIVA RIFERIMENTI), the generic point $\mathbf{P}_{0}$ in the robot reference frame $R$ with respect to the camera frame $C$ is calculated as follow:
-\begin{equation}\label{eq:roto1}
-\mathbf{P}_{0,R} = \mathbf{M}^W_{R}\mathbf{P}_{0,W}
-\end{equation}
-\begin{equation}\label{eq:roto2}
-\mathbf{P}_{0,W} = K_s\mathbf{P}_{0,H}
-\end{equation}
-Where $K_s\in \mathbb{R}$ is the a scaling factor between the robot and user's workspace. At the end, considering Equations (\ref{eq:roto1},\ref{eq:roto2}) and Equation \ref{eq2}, the point $\mathbf{P}_{0}$ in the robot reference frame using the camera coordinates results:
-\begin{equation}
-\mathbf{P}_{0,R} = \begin{bmatrix}
-x \\
-y \\
-z
-\end{bmatrix}=
-K_s\mathbf{M}^W_{R}
-\left(s 
-\begin{bmatrix}
-u \\
-v \\
-1
-\end{bmatrix}
-\mathbf{K}^{-1}-\mathbf{t}\right)\mathbf{R}^{-1}
-\end{equation}
-The space coordinates $(u,v)$ will be the output of the hand-gesture recognition algorithm, while the coordinates $(x,y,z)$ are the position set-points for the robot.
+Using the terms of $\mathbf{x}$ calculated from Equation \ref{eq:linear_sys2}, we obtain the rigid transformation matrix $\mathbf{M}^W_{R}$.
 
 \section{Hand-Gesture Recognition}\label{sec:HG_recon}
-%Che rete uso, come ho impostato i gesti, lo scheletro con openpose citato, funzione per ricavare il gesto basata sull'assenza del finger, invariante dall'orientamento e dallo zoom. Immagini di esempio.
-
 The proposed teleoperation method is based on the recognition of the user hands skeleton.
 
 Each frame acquired by the RGB camera (in our set-up, a Kinect v2 camera) is processed by the software, which leverages the OpenPose hand skeleton recognition network to predict the hand skeleton, following the details of \cite{simon2017hand}.
-The gesture recognition procedure is based on the position of the reference keypoint (red keypoint $0$ in Fig. \ref{fig:keypoints}) and on the position of the four knuckles keypoints (blue keypoints $5, 9, 13, 17$ in Fig. \ref{fig:keypoints}). According to the knuckles and the thumb $(x, y)$ keypoints positions (from keypoint $1$ to $4$), the hand orientation can be hypotized as upright, left oriented, right oriented, or upside down. This allows the software to recognize the gestures regardless of the hand orientation. %% prendere img di una mano e fare gli esempi di posizionamento, cambiare i colori dei marker
+The gesture recognition procedure is based on the position of the reference keypoint (red keypoint $0$ in Fig. \ref{fig:keypoints}) and on the position of the four knuckles keypoints (blue keypoints $5, 9, 13, 17$ in Fig. \ref{fig:keypoints}). According to the knuckles and the thumb $(x, y)$ keypoints positions (from keypoint $1$ to $4$), the hand orientation can be hypotized as upright, left oriented, right oriented, or upside down. This allows the software to recognize the gestures regardless of the hand orientation.
 
 To recognize if a certain finger is opened or closed, we consider the Euclidean distance between the reference keypoint $0$ and the last keypoint of each finger (pink keypoints $8, 12, 16, 20$ in Fig. \ref{fig:keypoints}). If the last keypoint of a finger is not recognized by the network, we consider the corresponding Euclidean distance equal to $0$. 
 Using this logic, we defined two gestures used to carry out basic teleoperation tasks: the \textbf{open hand} gesture, where all the fingers are detected as opened, and the \textbf{index} gesture, where the index finger is detected as open and with a corresponding Euclidean distance much greater than the Euclidean distances of the other fingers. This requirement has been proved useful to reduce the recognition error of the index gesture due to a wrong prediction of the fingers keypoints.
@@ -264,48 +211,97 @@ Considering the calibration procedure detailed in Section \ref{sec:calib}, a cer
 
 It is worth noting that, since the hand skeleton is obtained by a neural network which estimates the joints coordinates frame per frame, their position in consectuive frames may vary. Therefore, our software extracts $N$ different $P_H$ coordinates from $N$ consecutive index gestures recognized in consecutive frames. The average coordinates are extracted to reduce positioning errors introduced by the hand skeleton recognition network. The higher the value of $N$, the higher the error reduction, at the cost of a higher delay before the final $P_H$ coordinates are extracted. In our set-up, we set $N = 7$.
 After a position $P_H$ is obtained, the corresponding robot position $P_R$ is calculated and the robot is moved there using ROS.
-To perform a new robot movement, the procedure in Fig. xx must be repeated from the start.
+To perform a new robot movement, the procedure in Fig. xx must be repeated from the start. %%
 
 \section{EXPERIMENTAL EVALUATION}\label{sec:experiments}
-A reliable teleoperation system is obtained if the robot correctly moves to the desired position with a low positioning error. In the case of the proposed set-up, the positioning error is obtained as a sum of different positioning errors, obtained as follows:
-\begin{enumerate}
-\item thanks to the camera calibration procedure, a certain index finger position $P_C$ [px] in the acquired image frame corresponds to a certain Cartesian point $P_H$ [mm] in workspace $H$. Since the camera calibration procedure introduces an estimation error $E_1$, we obtain $P_H = P_C + E_1$;
-\item our software extracts $N$ consecutive finger positions estimated by OpenPose neural network and calculates the average of them. The resulting point is $P_O = \frac{\sum_{n=1}^{N}(P_{Hn} + E_{2n})}{N}$, where $E_2$ is the error between the real position of the index finger in the image and the index keypoint estimation made by OpenPose;
-\item the extracted index finger position $P_O$ corresponds to a certain Cartesian point in workspace $W$. According to the mapping between workspace $H$ and $W$, we obtain $P_W = P_O + E_3$, where $E_3$ is the positioning error caused by this mapping;
-\item the robot end-effector will move in cartesian point $P_R$, obtained considering the rigid transformation between workspaces $W$ and $R$. This transformation introduces the positioning error $E_4$, thus we obtain $P_R = P_W + E_4$.
-\end{enumerate}
+A reliable teleoperation system is obtained if the robot correctly moves to the desired position with a low positioning error. In the case of the proposed set-up, the positioning error seen when teleoperating our robot is obtained as a sum of different errors, as shown in Fig. \ref{fig:wscalib}. %
 
-Hence, we obtain the final end-effector position $P_R$ as: 
+First, when the user points the index finger to a Cartesian point in workspace $H$, OpenPose neural network estimates the index position in the image (keypoint $8$ in Fig. \ref{fig:keypoints}). According to the filtering adopted and explained in Section \ref{sec:HG_recon}, the correspoding point is:
 \begin{equation}
-P_R =\frac{\sum_{n=1}^{N}(P_{Cn} +  E_{1n} +  E_{2n})}{N} + E_3 + E_4
+P_O = \frac{\sum_{n=1}^{N}P_{On}}{N}
 \end{equation}
-Considering this formula, and that in our set-up $E_3$ can be assumed equal to zero (because we kept workspace $H$ and workspace $W$ dimensions except for the scaling factor), we designed two experiments to assess if the positioning error obtained depends (i) on the camera calibration ($E_1$), (ii) on the estimation of the hand skeleton ($E_2$), or (iii) on the robot calibration ($E_4$).
+
+The extracted index position $P_O$ corresponds to an image point $P_C$ plus an estimation error $E_{sk}$, obtained as the pixel distance between the real index position ($P_C$) and the estimaed index keypoint position ($P_O$). Hence: 
+\begin{equation}
+P_C = P_O + E_{sk} = \frac{\sum_{n=1}^{N}P_{On}}{N} + E_{sk}
+\end{equation}
+
+Thanks to the camera calibration procedure, a point in the acquired image frame $P_C$ [px] corresponds to a Cartesian point in workspace $H$, $P_C'$ [m]. $P_C'$ corresponds to the real position $P_H$ of the original $P_C$ plus an estimation error $E_H$ which depends on the accuracy of the calibration:
+\begin{equation}
+P_H = P_C' + E_H = (P_O + E_{sk})' + E_H
+\end{equation}
+Since the image point we consider is $P_O$, we obtain: 
+\begin{equation}
+P_H = (\frac{\sum_{n=1}^{N}P_{On}}{N} + E_{sk})' + E_H
+\end{equation}
+where the apex represents the conversion from pixels to meters (Section \ref{sec:calib}).
+
+Since the workspace where we want the robot to move is workspace $W$, we must obtain the position of $P_W$, which corresponds to $P_H$ according to the specific mapping between the two workspaces. We obtain:
+\begin{equation}
+P_W = P_H + E_{map} = (\frac{\sum_{n=1}^{N}P_{On}}{N} + E_{sk}) + E_H + E_{map}
+\end{equation}
+where $E_{map}$ is the error caused by this mapping.
+
+Finally, to correctly move the robot end-effector to $P_W$, we must obtain the corresponding $P_R$ in the robot reference system $R$. This correspondence is obtained from the robot calibration procedure detailed in Section \ref{sec:calib}, therefore: 
+\begin{equation}
+P_R = P_W + E_W
+\end{equation}
+\begin{equation}
+P_R = (\frac{\sum_{n=1}^{N}P_{On}}{N} + E_{sk})' + E_H + E_{map} + E_W
+\end{equation}
+
+Considering the last formula, and that in our set-up $E_{map}$ can be assumed equal to zero (because we kept workspace $H$ and workspace $W$ dimensions except for the scaling factor), we designed two experiments to assess if the positioning error obtained depends (i) on the estimation of the hand skeleton ($E_{sk}$), (ii) on the camera calibration ($E_H$) or (iii) on the robot workspace calibration ($E_W$).
 
 \subsection{Evaluation of the skeleton estimation error}
 The positioning error due to the estimation of the hand skeleton joints made by OpenPose neural network has been evaluated considering the theoretical position of the index in the image $T$ and the index joint position in the image $A$ calculated by the software (Fig. xx).
 %% risultati e commento
 
 \subsection{Evaluation of the robot positioning error}
-In our set-up, reference system $H$ is placed horizontally with the camera mounted still at a $1 m$ distance (Fig. xx). Reference system $W$, however, has been placed vertically on a glass pane (Fig. xx).
-To reliably assess the positioning of the robot end-effector, a red laser has been mounted on the end effector (laser name bla bla) (Fig. xx). When the robot is moved to a certain theoretical position $T$, the laser will point to its actual positioning $A$. To correctly visualize and measure the robot workspace and the laser positioning, an RGB camera (camera serial name) has been mounted behind the glass pane.
-A measuring software has been developed using LabVIEW to measure the distance between the theoretical position $T$ (calculated as the barycenter of the black dot of the experimental master as in Fig. xx) and the actual positioning $A$ (red dot in the image as in Fig. xx).
+In our set-up, reference system $H$ is placed horizontally with the camera mounted still at a $1 m$ distance (Fig. xx). Reference system $W$, however, has been placed vertically on a glass pane (Fig. xx). %%
 
-We moved the robot using the proposed system in $xx$ theoretical positions. To do that, we used the Cartesian positions corresponding to the circular markers barycenters (theoretical positions) to move the robot using ROS. Hence, this procedure avoids considering the hand skeleton estimation errors.
-%% risultati e commento
+To reliably assess the positioning of the robot end-effector, a 3D printed carrier holding a bright red laser has been mounted on the end effector (\textit{Lasiris laser 635nm, 10mW}) (Fig. \ref{fig:laser}, bottom-right corner).
 
+When the robot is moved to a certain theoretical position $T$, the laser will point to its actual positioning $A$. To correctly visualize and measure the robot workspace and the laser positioning, an RGB camera (\textit{IDS Imaging UI-1460C}) has been mounted behind the glass pane.
+A measuring software has been developed using LabVIEW to measure the distance ($E$) between the theoretical position $T$ (calculated as the barycenter of the black square of the experimental master, represented as the green dot in Fig. \ref{fig:laser}, top-left corner) and the actual positioning $A$ (red dot in Fig. \ref{fig:laser}, top-left corner).
 
+\begin{figure} [h!]
+  \centering
+  \includegraphics[width=0.7\columnwidth]{figures/lasermount.png}
+  \caption{Example of a robot positioning evaluation. The image shows a close-up of the 3D printed laser carrier used (bottom-right) and the corresponding view of the measuring software developed (top-left).}
+  \label{fig:laser}
+\end{figure}
 
-\section{Figures and Tables}
+We moved the robot in $5$ theoretical positions, corresponding to markers A4, A5, O0, B4 and B5, for a total of $3$ times per each theoretical position. To do that, we used the Cartesian positions corresponding to the circular markers barycenters (theoretical positions) to move the robot using ROS. Hence, this procedure avoids considering the hand skeleton estimation errors.
+The resulting distances in millimeters are reported in Table \ref{tab:laser}.
 
 \begin{table}[h]
-\caption{An Example of a Table}
-\label{table_example}
 \begin{center}
-\begin{tabular}{|c||c|}
+\caption{Robot positioning errors}
+\label{tab:laser}
+\begin{tabular}{|c||c||c||c||c|}
 \hline
-One & Two\\
+\textbf{A4} & \textbf{A5} & \textbf{O0} & \textbf{B4} & \textbf{B5} \\
 \hline
-Three & Four\\
+6.84 & 6.89 & 7.75 & 6.27 & 8.86 \\
+6.70 & 5.64 & 7.88 & 6.48 & 5.64\\
+6.99 & 5.29 & 7.87 & 6.77 & 5.29\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+We computed the resulting mean distance and the standard deviation of each marker position, reported in Table \ref{tab:mean}. The average mean distance and the average standard deviation achieved by the robot are $6.74$ mm and $0.53$ mm respectively.
+
+\begin{table}[h]
+\begin{center}
+\caption{Mean and standard deviation}
+\label{tab:mean}
+\begin{tabular}{|c||c||c||c||c|}
+\hline
+\textbf{A4} & \textbf{A5} & \textbf{O0} & \textbf{B4} & \textbf{B5} \\
+\hline
+6.84 & 5.94 & 7.84 & 6.51 & 6.60 \\
+0.12 & 0.69 & 0.06 & 0.21 & 1.61 \\
 \hline
 \end{tabular}
 \end{center}
