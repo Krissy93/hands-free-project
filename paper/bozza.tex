@@ -81,7 +81,7 @@ Different experiments were performed on a \textit{Sawyer (Rethink Robotics)} ind
 
 \begin{figure*}[h]
 \centering
-  \includegraphics[width=0.9\textwidth]{figures/horizcalib.png}
+  \includegraphics[width=0.9\textwidth]{figures/horizcalib.eps}
   \caption{Scheme of the calibration steps.}
   \label{fig:wscalib}
 \end{figure*}
@@ -143,7 +143,7 @@ To correctly move the robot in a cartesian position of reference system $W$, it 
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=1\columnwidth]{figures/robotcalibration.png}
+	\includegraphics[width=1\columnwidth]{figures/robotcalibration.eps}
 	\caption{Example of the robot calibration procedure. The calibration pose tool (top-right) is placed in correspondence of a calibration marker, then the robot end-effector is carefully placed inside the tool (bottom-left). The calibration pose tool cavity has been purposely made to fit the robot end-effector.}
 	\label{fig:robotcalib}
 \end{figure}
@@ -156,7 +156,7 @@ Referring to the calibration example in Fig. \ref{fig:robotcalib}, the plane pos
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=1\columnwidth]{figures/calibration.png}
+	\includegraphics[width=1\columnwidth]{figures/calibration.eps}
 	\caption{Master used to calibrate the second user-defined reference system $W$ with the robot reference frame $R$. The Figure illustrate the position of  point $\mathbf{P_1}$ in both reference frames. To properly calibrate the system, the position of each point is required, both for frame $W$ and $R$. In the procedure, 13 calibration points have been acquired.}
 	\label{fig:master_robot}
 \end{figure}
@@ -260,7 +260,7 @@ We based the gesture recognition procedure on the recognition of the fingers, th
 
 \begin{figure} [h!]
   \centering
-  \includegraphics[width=1\columnwidth]{figures/keypoints.png}
+  \includegraphics[width=1\columnwidth]{figures/keypoints.eps}
   \caption{Scheme of the hand skeleton predicted by OpenPose neural network. The red keypoint is the reference keypoint, the blue keypoints are the knuckles keypoints and the pink keypoints are the fingertips keypoints. Examples of correclty recognized gestures: open hand gesture (top-right) and index gesture (bottom-right).}
   \label{fig:keypoints}
 \end{figure}
@@ -345,32 +345,43 @@ Finally, to correctly move the robot end-effector to $\mathbf{P}_W$, we must obt
 It is made evident how moving from one reference frame to another introduces an error. Considering Equation \ref{eq:error_final}, and that in our set-up $\mathbf{E}_{map}$ can be assumed equal to zero (because we kept workspace $H$ and workspace $W$ dimensions except for the scaling factor), we designed two experiments to assess if the positioning error obtained depends (i) on the estimation of the hand skeleton ($\mathbf{E}_{sk}$), (ii) on the camera calibration ($\mathbf{E}_{H}$) or (iii) on the robot workspace calibration ($\mathbf{E}_{W}$).
 
 \subsection{Evaluation of the skeleton estimation error}
-The positioning error due to the estimation of the hand skeleton joints made by OpenPose neural network has been evaluated considering the theoretical position of the index in the image $T$ and the index joint position in the image $A$ calculated by the software (Fig. xx). %%
+The positioning error due to the estimation of the hand skeleton $\mathbf{E}_{sk}$ made by OpenPose neural network has been evaluated considering the theoretical position of the index in the image $\mathbf{T} \in \mathbb{R}^2$ and the index joint position in the image $\mathbf{A} \in \mathbb{R}^2$ calculated by the software (Fig. xx) such as:
+\begin{equation}
+\mathbf{E}_{sk} = \mathbf{T} - \mathbf{A} = \begin{bmatrix}
+T_{x,n}\\
+T_{y,n}
+\end{bmatrix}-
+\begin{bmatrix}
+A_{x,n}\\
+A_{y,n}
+\end{bmatrix}
+\thickspace
+\forall \thickspace 1 \leq n \leq N
+\end{equation}
 When users point to a position, they must keep the index gesture firmly in place until $N = 7$ consecutive index gesture have been successfully detected by the software. Hence, in this experiment the user hand moved to $14$ different locations of workspace $H$, corresponding to $14 * 7 = 98$ couples of image frames and index joint estimations.
 
 Theoretical positions have been manually selected from each acquired frame considering the tip of the index finger, while the actual positioning $A$ of each frame corresponds to the predicted index keypoint obtained from OpenPose neural network. The user hand in the acquired frames is both vertically oriented and left or right oriented. An equal number of left-hand and right-hand frames have been selected for the evaluation.
 
-For each location, the average pixel deviation along both axes $X, Y$ (Table \ref{tab:dev}) has been calculated as:
+For each location, the $(x,y)$ components of the average error due to the estimation of the hand skeleton $\overline{\mathbf{E}}_{sk}$ (Table \ref{tab:dev}) has been calculated as:
 
 \begin{equation}
-D_x = \frac{\sum_{n=1}^{N} T_{xn} - A_{xn}}{N}
+\overline{\mathbf{E}}_{sk} = \begin{bmatrix}
+\overline{E}_{sk,x}  = \frac{1}{N}\sum_{n=1}^{N} T_{xn} - A_{xn} \\
+\overline{E}_{sk,y} = \frac{1}{N}\sum_{n=1}^{N} T_{yn} - A_{yn}
+\end{bmatrix}
 \end{equation}
 
-\begin{equation}
-D_y = \frac{\sum_{n=1}^{N} T_{yn} - A_{yn}}{N}
-\end{equation}
+It is worth noting that values of $\overline{\mathbf{E}}_{sk}$ are extremely low: $2.06$ px along the X-axis and $-2.64$ px along the Y-axis. The negative sign represents the case when the actual positioning $A$ is overstimated with respect to the corresponding theoretical positioning $T$.
 
-It is worth noting that the average deviations achieved are extremely low: $2.06$ px along the X-axis and $-2.64$ px along the Y-axis. The negative sign represents the case when the actual positioning $A$ is overstimated with respect to the corresponding theoretical positioning $T$.
-
-By calculating the standard deviation of the $N$ different pixel positions along both axes, we obtained how much the user kept the hand firmly in place for each location, both for theoretical positions ($dev_{Tx}$, $dev_{Ty}$) and actual positions ($dev_{Ax}$, $dev_{Ay}$) (Table \ref{tab:firm}). This result is useful to understand in which location the user moved the hand too much, thus reducing the accuracy of the estimation of the average index keypoint, which could lead to an incorrect placing of the robot end-effector.
+By calculating the standard deviation $\sigma_x$ of the $N$ different pixel positions along both axes, we obtained how much the user kept the hand firmly in place for each location, both for theoretical positions ($\sigma_{Tx}$, $\sigma_{Ty}$) and actual positions ($\sigma_{Ax}$, $\sigma_{Ay}$) (Table \ref{tab:firm}). This result is useful to understand in which location the user moved the hand too much, thus reducing the accuracy of the estimation of the average index keypoint, which could lead to an incorrect placing of the robot end-effector.
 
 \begin{table}[h]
 \begin{center}
-\caption{Test Locations Average pixel deviations}
+\caption{Average error due to the estimation of the hand skeleton}
 \label{tab:dev}
 \begin{tabular}{|c||c|}
 \hline
-$\mathbf{D_x}$ & $\mathbf{D_y}$ \\
+$\overline{E}_{sk,x} [px]$ & $\overline{E}_{sk,y} [px]$ \\
 \hline
 -1.29 & -3.29\\
 1.71 & -2.14\\
@@ -397,7 +408,7 @@ $\mathbf{D_x}$ & $\mathbf{D_y}$ \\
 \label{tab:firm}
 \begin{tabular}{|c||c||c||c|}
 \hline
-$\mathbf{dev_{Tx}}$ & $\mathbf{dev_{Ty}}$ & $\mathbf{dev_{Ax}}$ & $\mathbf{dev_{Ay}}$ \\
+$\sigma_{Tx}$[px] & $\sigma_{Ty}$[px] & $\sigma_{Ax}$[px] & $\sigma_{Ay}$[px] \\
 \hline
 47.83 & 6.80 & 48.85 & 9.05\\
 82.25 & 67.77 & 80.35 & 68.02\\
