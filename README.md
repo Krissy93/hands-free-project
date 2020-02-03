@@ -1,5 +1,7 @@
-# Hands-Free Project
-The Hands-Free Project allow users to move a robot in a desired position of its workspace simply by using their hands to point to the desired positions of a simulated workspace.
+# Hands-Free Project Repository
+Welcome to the Hands-Free Project of Vis4Mechs, University of Brescia, Italy!
+The project aims to give users a smart way to teleoperate a robot using their hands. This allows the robot to work in a working area that can be the same of the operator or a different one, even positioned far away from the operator itself (i. g. when the robot is placed behind a safety cage compared to a Collaborative Robot that usually works in the same working area of the human operator).
+
 To do so, it is required by the software to set up two workspaces:
 - the user workspace (small, controlled background to improve robustness)
 - the robot workspace (big)
