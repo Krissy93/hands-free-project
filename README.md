@@ -20,6 +20,6 @@ The index coordinates are extracted as the mean of the consecutive index positio
 # To do
 - [x] Get the hand skeleton from frames in real time using Kinect v2
 - [x] Define gestures (orientation and zoom invariant)
-- [ ] Map the experimental workspaces
-- [ ] Define a procedure to automatically map the workspaces
+- [x] Map the experimental workspaces
+- [x] Define a procedure to automatically map the workspaces
 - [ ] Write visualization code of the two simultaneous workspaces, skeleton mapped to the robot one
