@@ -15,8 +15,9 @@ import caffe
 from pylibfreenect2 import Freenect2, SyncMultiFrameListener
 from pylibfreenect2 import FrameType, Registration, Frame
 from geometry_msgs.msg import Pose
+from cartesian import *
 # sawyer interface
-#import intera_interface
+import intera_interface
 
 #######
 
@@ -318,6 +319,8 @@ def H2R(Ph):
     #               allow_collision=True)
     #print(joints)
     #limb.move_to_joint_positions(joints)
+
+    move2cartesian(position=(pose.position.x, pose.position.y, pose.position.z), in_tip_frame=True, linear_speed=0.3)
 
     return Pr
 
