@@ -61,6 +61,13 @@ S.~Livatino, G.~Muscato, and F.~Privitera, ``{Stereo viewing and virtual
   reality technologies in mobile robot teleguide},'' {\em IEEE Trans. Robot.},
   vol.~25, no.~6, pp.~1343--1355, 2009.
 
+\bibitem{CollabWork}
+C.~Nuzzi, S.~Pasinetti, R.~Pagani, F.~Docchio, and G.~Sansoni, ``Hand gesture
+  recognition for collaborative workstations: A smart command system
+  prototype,'' in {\em New Trends in Image Analysis and Processing -- ICIAP
+  2019} (M.~Cristani, A.~Prati, O.~Lanz, S.~Messelodi, and N.~Sebe, eds.),
+  (Cham), pp.~332--342, Springer International Publishing, 2019.
+
 \bibitem{Peppoloni2015}
 L.~Peppoloni, F.~Brizzi, C.~A. Avizzano, and E.~Ruffaldi, ``{Immersive
   ROS-integrated framework for robot teleoperation},'' {\em 2015 IEEE Symp. 3D
@@ -85,7 +92,9 @@ Y.~Jia, E.~Shelhamer, J.~Donahue, S.~Karayev, J.~Long, R.~Girshick,
   S.~Guadarrama, and T.~Darrell, ``Caffe: Convolutional architecture for fast
   feature embedding,'' {\em arXiv preprint arXiv:1408.5093}, 2014.
 
-\bibitem{MatlabCameraCalib}
-J.-Y. Bouguet, ``Camera calibration toolbox for matlab,'' 2001.
+\bibitem{CameraCalib}
+Z.~{Zhang}, ``A flexible new technique for camera calibration,'' {\em IEEE
+  Transactions on Pattern Analysis and Machine Intelligence}, vol.~22,
+  pp.~1330--1334, Nov 2000.
 
 \end{thebibliography}
