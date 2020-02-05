@@ -1,23 +1,19 @@
 # Hands-Free Project Repository
 Welcome to the Hands-Free Project of Vis4Mechs, University of Brescia, Italy!
-The project aims to give users a smart way to teleoperate a robot using their hands. This allows the robot to work in a working area that can be the same of the operator or a different one, even positioned far away from the operator itself (i. g. when the robot is placed behind a safety cage compared to a Collaborative Robot that usually works in the same working area of the human operator).
+The project aims to give users a smart way to teleoperate a robot using their hands. This allows the robot to work in a working area that can be either (i) the same of the operator or (ii) a different one, even positioned far away from the operator itself (e. g. a robot placed behind a safety cage, which works far away from the operator, or a Collaborative Robot, which usually works in the same working area of the operator).
 
-To do so, it is required by the software to set up two workspaces:
-- the user workspace (small, controlled background to improve robustness)
-- the robot workspace (big)
-A point in the user workspace corresponds to a point in the robot workspace thanks to a correspondence function which converts the coordinates. This step is basically a calibration between reference systems.
+# Maintainers
+- Cristina Nuzzi, [Krissy93](https://github.com/Krissy93)
+- Stefano Ghidini, [stefanoghidini](https://github.com/stefanoghidini)
+- Roberto Pagani, [Roby-Pagani](https://github.com/Roby-Pagani)
 
-# How it works
-To obtain a robot position, the index position of the user hand (left or right) is extracted from a frame representing the user workspace. The pixel coordinates are converted in meters and mapped to the robot workspace using the correspondence function.
+## Table of Contents
+- [Installation instructions](https://github.com/Krissy93/meta-workstations-project/blob/master/docs/Installation.md)
 
-Two gestures are defined by the software:
-- hand open
-- index only
-Users can move the hands freely in the user workspace. When they want to move the robot to a specific position, they have to perform the "hand open" gesture first and the "index" gesture afterwards, keeping the latter gesture still for a certain amount of time.
+## Custom modules
+If you want to contribute adding custom modules and functionalities to the software, feel free to do so! Contact us if you need help or want to work with us by sending an e-mail to [Cristina Nuzzi](mailto:c.nuzzi@unibs.it).
 
-The index coordinates are extracted as the mean of the consecutive index positions acquired. The number of consecutive index gestures acquired are defined by the parameter chvalue: an higher number means more robustness but also more time required to properly fill the chain of consecutive gestures.
-
-# To do
+# "To do" list
 - [x] Get the hand skeleton from frames in real time using Kinect v2
 - [x] Define gestures (orientation and zoom invariant)
 - [x] Map the experimental workspaces
