@@ -29,6 +29,9 @@
 %\usepackage{times} % assumes new font selection scheme installed
 \usepackage{amsmath} % assumes amsmath package installed
 \usepackage{amssymb}  % assumes amsmath package installed
+\usepackage{booktabs}
+\usepackage{multirow}
+
 
 \title{\LARGE \bf
 Hands-Free: a robot augmented reality teleoperation system
@@ -436,6 +439,24 @@ The resulting distances in millimeters are reported in Table \ref{tab:laser}.
 \hline
 \end{tabular}
 \end{center}
+\end{table}
+
+\begin{table}[]
+	\centering
+	\caption{}
+	\label{tab:my-table}
+	\resizebox{\columnwidth}{!}{%
+		\begin{tabular}{@{}cccccc@{}}
+			\toprule
+			\multirow{2}{*}{Point} & \multicolumn{3}{c}{Test {[}mm{]}} & \multicolumn{1}{l}{\multirow{2}{*}{Average {[}mm{]}}} & \multicolumn{1}{l}{\multirow{2}{*}{$\sigma$ {[}mm{]}}} \\ \cmidrule(lr){2-4}
+			& 1         & 2         & 3         & \multicolumn{1}{l}{}                                  & \multicolumn{1}{l}{}                                   \\ \midrule
+			1                      & 6.27      & 6.48      & 6.77      & 6.51                                                  & 0.21                                                   \\
+			2                      & 8.86      & 5.64      & 5.29      & 6.60                                                  & 1.61                                                   \\
+			3                      & 7.75      & 7.88      & 7.87      & 7.84                                                  & 0.06                                                   \\
+			4                      & 6.84      & 6.70      & 6.99      & 6.84                                                  & 0.12                                                   \\
+			5                      & 6.89      & 5.64      & 5.29      & 5.94                                                  & 0.69                                                   \\ \bottomrule
+		\end{tabular}%
+	}
 \end{table}
 
 We computed the resulting mean distance and the standard deviation of each marker position, reported in Table \ref{tab:mean}. The average mean distance and the average standard deviation achieved by the robot are $6.74$ [mm] and $0.53$ [mm] respectively.
