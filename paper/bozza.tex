@@ -34,7 +34,7 @@
 \usepackage{float}
 \usepackage{multicol}
 \usepackage{adjustbox}
-
+\usepackage{stfloats}
 
 \title{\LARGE \bf
 Hands-Free: a robot augmented reality teleoperation system
@@ -80,16 +80,16 @@ On the other side, if bilater interaction is not required, a vision-based interf
 Furthermore, if a vision-interface is integrated with virtual and augmented reality techniques, it translates in a greater level of immersion for the user. Such techniques are used to improve the feedback information; in fact, the operator feels like being physically present in the remote environment, improving the immersion level. Immersivity is, in fact, one of the most important reasons for using virtual and augmented reality \cite{Boboc2012}.
 An augmented reality system for teleoperation based on the Leap Motion (LM) controller is presented in \cite{Peppoloni2015}. For its application domain, the LM controller is considered an accurate sensor \cite{Hedayati2018}, however it is limited to a relatively small measuring distance if compared with other sensors. In this sense, the LM controller introduces spatial constraints that clash with the user immersivity concept.
 
+\begin{figure*}[b!]
+	\centering
+	\includegraphics[width=1\textwidth]{figures/horizcalib}
+	\caption{Scheme of the calibration steps.}
+	\label{fig:wscalib}
+\end{figure*}
+
 For these reasons, we present a novel robot augmented reality teleoperation system that exploits RGB cameras, which supply greater measuring distance if compared with the LM controller. A ROS-based framework has been developed to supply hand tracking and hand-gesture recognition features, exploiting the OpenPose software \cite{simon2017hand, cao2018openpose} based on the Deep Learning framework Caffe \cite{jia2014caffe}.
 This, in combination with the ease of availability of an RGB camera, leads the framework to be strongly open-source oriented and highly replicable on all the ROS-based platform. The proposed system includes: a rigorous procedure for robot workspace calibration and a mapping policy between the coordinate system of the user and the robot (Section \ref{sec:calib}), and a deep learning approach for the hand-gesture recognition by means of hand keypoints estimation (Section \ref{sec:HG_recon}).
 Different experiments were performed on a \textit{Sawyer (Rethink Robotics)} industrial collaborative robot to evaluate repeatability and accuracy of the proposed system. Section \ref{sec:experiments} reports the results.
-
-\begin{figure*}[ht]
-\centering
-  \includegraphics[width=0.9\textwidth]{figures/horizcalib}
-  \caption{Scheme of the calibration steps.}
-  \label{fig:wscalib}
-\end{figure*}
 
 \section{Workspace Calibration and Mapping} \label{sec:calib}
 
@@ -141,13 +141,13 @@ To obtain matrix \textbf{K} it is necessary to perform a calibration procedure. 
 
 Images acquired by the camera are processed and the hand skeleton joints coordinates are calculated. By using the abovementioned formulas, it is possible to obtain the real world coordinates of the hand skeleton joints in real time for each acquired frame (image frame in Fig. \ref{fig:wscalib}).
 
+
 \subsection{Robot Workspace Calibration}
 
 The robot workspace refers to the space in which the robot moves (reference system $W$ of Fig. \ref{fig:wscalib}) with respect to the user workspace (reference system $H$ of Fig. \ref{fig:wscalib}). In this case, the user hand real-world position in reference system $H$ is mapped to the new reference system $W$. The mapping between reference system $H$ and reference system $W$ is obtained easily if the two workspaces have the same dimension (matrix \textbf{[R$|$t]} is the identity matrix) or if one workspace is a scaled version of the other one (matrix \textbf{[R$|$t]} is the identity matrix multiplied by the scale factor). %verificare
 
 To correctly move the robot in a cartesian position of reference system $W$, it is necessary to perform a calibration between reference system $W$ and the robot reference system $R$. This procedure has been carried out experimentally by moving the robot (using its manual guidance mode) in different Cartesian positions of reference system $W$. The robot correct positioning on top of each calibration position has been assured by using a 3D-printed centering tool (Fig. \ref{fig:robotcalib}). 
-
-\begin{figure}[ht]
+\begin{figure}[b]
 	\centering
 	\includegraphics[width=1\columnwidth]{figures/robotcalibration}
 	\caption{Example of the robot calibration procedure. The calibration pose tool (top-right) is placed in correspondence of a calibration marker, then the robot end-effector is carefully placed inside the tool (bottom-left). The calibration pose tool cavity has been purposely made to fit the robot end-effector.}
@@ -160,7 +160,7 @@ When a satisfactory number of calibration positions has been acquired, it is pos
 
 Referring to the calibration example in Fig. \ref{fig:master_robot}, the plane position of a point $\mathbf{P}_1\in\mathbb{R}^2$ is calculated with respect to both frame $W$ ($P_{1,W}$) and frame $R$ ($P_{1,R}$).
 
-\begin{figure}[ht]
+\begin{figure}[h]
 	\centering
 	\includegraphics[width=1\columnwidth]{figures/calibration}
 	\caption{Master used to calibrate the second user-defined reference system $W$ with the robot reference frame $R$. The Figure illustrate the position of  point $\mathbf{P_1}$ in both reference frames. To properly calibrate the system, the position of each point is required, both for frame $W$ and $R$. In the procedure, 13 calibration points have been acquired.}
