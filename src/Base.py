@@ -14,6 +14,10 @@ import sys
 import caffe
 from pylibfreenect2 import Freenect2, SyncMultiFrameListener
 from pylibfreenect2 import FrameType, Registration, Frame
+from geometry_msgs.msg import Pose
+from cartesian import *
+# sawyer interface
+import intera_interface
 
 #######
 
@@ -21,17 +25,24 @@ from pylibfreenect2 import FrameType, Registration, Frame
 global POSE_PAIRS, K, R, D, t, reference
 POSE_PAIRS = [ [0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[0,9],[9,10],[10,11],[11,12],[0,13],[13,14],[14,15],[15,16],[0,17],[17,18],[18,19],[19,20] ]
 
-K = np.array([[1.06314129e+03, 0.00000000e+00, 9.62163539e+02],
-          [0.00000000e+00, 1.06450150e+03, 5.38537956e+02],
-          [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]])
-D = np.array([[ 0.04147518, -0.0393437,   0.00013869, -0.00071462, -0.00889844]])
-R = np.array([[0.99916424, -0.01386533, -0.03845227],
-             [0.01251816,  0.99930691, -0.03505704],
-             [0.0389117,   0.03454639,  0.9986453]])
-t = np.array([[-35.12119381], [-19.63899217], [41.9282398]])
-reference, _ = cv2.projectPoints(np.array([[0.0, 0.0, 0.0]]), R, t, K, D)
+K = np.array([[1.06314155e+03, 0.00000000e+00, 9.62163918e+02],
+              [0.00000000e+00, 1.06450171e+03, 5.40462082e+02],
+              [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]])
+D = np.array([[0.04147462, -0.03934306, -0.00013871, -0.00071449, -0.00889901]])
+# Rt ottenute con calibrazione su immagine NON antidistorta
+R = np.array([[0.99980291, -0.01924482, -0.00487729],
+              [0.01907285, 0.99926855, -0.03314486],
+              [0.00551159, 0.0330453, 0.99943866]])
+t = np.array([[-32.91148716], [-15.32579363], [41.38506969]])
+# Rt ottenute con calibrazione su immagine antidistorta
+Rd = np.array([[0.99978689, -0.01612781, -0.01288714],
+               [0.01586225, 0.99966504, -0.02044997],
+               [0.01321263, 0.02024119, 0.99970782]])
+td = np.array([[-34.13972018], [-15.92266493], [ 42.32613221]])
+
+reference, _ = cv2.projectPoints(np.array([[0.0, 0.0, 0.0]]), Rd, td, K, D)
 reference = reference.flatten()
-reference = np.array([[reference[0], reference[1], 1.0]])
+reference = np.array([[reference[0], reference[1], 1.0]]) #px coordinates
 
 ################
 
@@ -145,6 +156,7 @@ class Kinect():
             #self.color_new = cv2.flip(self.color_new, 0)
             #self.color_new = cv2.flip(self.color_new, 1)
             #self.color_new = self.color_new[230:830, 540:1450]
+            #self.color_new = self.color_new[0:1080, 520:1650]
             self.correct_distortion()
         if self.enable_depth:
             # these only have one dimension, we just need to convert them to arrays
@@ -202,7 +214,7 @@ class Kinect():
         x,y,w,h = roi
         self.RGBundistorted = self.RGBundistorted[y:y+h, x:x+w]
         self.RGBundistorted = cv2.flip(self.RGBundistorted, 0)
-        self.RGBundistorted = self.RGBundistorted[230:830, 540:1450]
+        self.RGBundistorted = self.RGBundistorted[0:900, 520:1650]
 #######
 
 def init_workspace(kinect):
@@ -255,7 +267,7 @@ def init_network():
     return net
 
 #nok
-def px2meters(pt, reference, K, R, t):
+def px2meters(pt, K, R, t):
     ''' Funzione di conversione tra pixel e metri per ottenere la posizione
     corretta in metri della posizione rilevata nell'immagine RGB-D. La Kinect
     prende (x,y) dall'RGB e (z) dal sensore di profondita', quindi deve essere
@@ -266,9 +278,13 @@ def px2meters(pt, reference, K, R, t):
     pt = pt.T
 
     S = K2.dot(pt)
+    #print('S = K-1 * pt: \n' + str(S))
     N = S - t
+    #print('N = S - t: \n' + str(N))
     PT = R2.dot(N)
-    XYZ = (PT - reference)*100 # in cm
+    #print('PT = R-1 * N: \n' + str(PT))
+    #print(reference)
+    XYZ = PT # in cm rispetto allo 0 videocamera
 
     return XYZ
 
@@ -276,17 +292,35 @@ def H2R(Ph):
     ''' conversione e movimentazione del robot
     gli viene passato il punto gia' convertito da px a m '''
 
+    Ph = Ph.flatten()
+    Ph = np.array([[Ph[1], Ph[0]]])
+    print('Point is: ' + str(Ph))
     RW = np.array([[-0.0001, 0.0100], [-0.0100, -0.0001]])
     tW = np.array([[-0.0457],[0.3835]])
     Pr = RW.dot(Ph.T)
     Pr = Pr + tW
+    Pr = Pr.flatten()
+    print(Pr)
 
     #pr ha prima la z poi la y, quindi per muoverlo devo lanciare
-    x = 0.7 # distanza fissa dal vetro
-    y = Pr[0][1]
-    z = Pr[0][0]
 
-    
+    #limb = intera_interface.Limb('right')
+    #limb.set_joint_position_speed(0.3)
+
+    pose = Pose()
+    pose.position.x = 0.7
+    pose.position.y = round(Pr[1],2)
+    pose.position.z = round(Pr[0],2)
+    print('Pose: ' + str(pose))
+
+
+    #joints = limb.ik_request(pose, end_point='right_hand', joint_seed=None,
+    #               nullspace_goal=None, nullspace_gain=0.4,
+    #               allow_collision=True)
+    #print(joints)
+    #limb.move_to_joint_positions(joints)
+
+    move2cartesian(position=(pose.position.x, pose.position.y, pose.position.z), in_tip_frame=True, linear_speed=0.3)
 
     return Pr
 
@@ -619,17 +653,18 @@ def main():
     kinect = Kinect(True, True, True, True, K, D)
     chain = []
     acquire = False
-    threshold = 0.4
+    threshold = 0.2
     draw = True
     chvalue = 7
     G = 'INIT'
     H = 'INIT'
     #image = cv2.imread('/home/optolab/ur2020_workspace/src/telemove/src/HandPose/hand.jpg')
-    cut = init_workspace(kinect)
+    #cut = init_workspace(kinect)
 
     while not rospy.is_shutdown():
         kinect.acquire()
-        frame = kinect.RGBundistorted.copy()
+        #frame = kinect.RGBundistorted.copy()
+        frame = kinect.color_new.copy()
         # per ogni frame acquisito dalla kinect deve fare sta cosa
         points, inference_time = hand_keypoints(net, frame, threshold, nPoints)
 
@@ -649,15 +684,20 @@ def main():
                 acquire = False
                 # elabora la media delle posizioni points acquisite
                 # se non e' index chain points e' vuota
-                print('C: ' + str(chain))
+                #print('C: ' + str(chain))
                 rechain = zip(*chain)
                 mean = np.array([[sum(rechain[0])/len(rechain[0]), sum(rechain[1])/len(rechain[1]), 1.0]])
                 rospy.loginfo(color.BOLD + color.YELLOW + 'CHAIN VALUE REACHED. MEAN IS: ' + str(mean[0][0]) + ' ,' + str(mean[0][1]) + color.END)
                 # svuoto la coda
                 chain = []
-                print(mean)
-                Ph = px2meters(mean, reference, K, R, t)
-                Pr = H2R(Ph)
+                #print(mean)
+                Ref = px2meters(reference, K, R, t)
+                print('Ref: ' + str(Ref))
+                Ph = px2meters(mean, K, R, t)
+                print('Point: ' + str(Ph))
+                new = (Ph - Ref)*100 #in cm
+                print(new)
+                Pr = H2R(new)
                 rospy.loginfo(color.BOLD + color.YELLOW + 'POINT IN H: ' + str(Ph) + ' POINT IN R: ' + str(Pr) + color.END)
                 # qui converto mean nel corrispondente punto del robot e lo muovo
         draw_skeleton(frame, points, draw, inference_time, G, H)

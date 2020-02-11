@@ -1,23 +1,21 @@
-# Hands-Free Project
-The Hands-Free Project allow users to move a robot in a desired position of its workspace simply by using their hands to point to the desired positions of a simulated workspace.
-To do so, it is required by the software to set up two workspaces:
-- the user workspace (small, controlled background to improve robustness)
-- the robot workspace (big)
-A point in the user workspace corresponds to a point in the robot workspace thanks to a correspondence function which converts the coordinates. This step is basically a calibration between reference systems.
+# Hands-Free Project Repository
+Welcome to the Hands-Free Project of Vis4Mechs, University of Brescia, Italy!
+The project aims to give users a smart way to teleoperate a robot using their hands. This allows the robot to work in a working area that can be either (i) the same of the operator or (ii) a different one, even positioned far away from the operator itself (e. g. a robot placed behind a safety cage, which works far away from the operator, or a Collaborative Robot, which usually works in the same working area of the operator).
 
-# How it works
-To obtain a robot position, the index position of the user hand (left or right) is extracted from a frame representing the user workspace. The pixel coordinates are converted in meters and mapped to the robot workspace using the correspondence function.
+# Maintainers
+- Cristina Nuzzi, [Krissy93](https://github.com/Krissy93)
+- Stefano Ghidini, [stefanoghidini](https://github.com/stefanoghidini)
+- Roberto Pagani, [Roby-Pagani](https://github.com/Roby-Pagani)
 
-Two gestures are defined by the software:
-- hand open
-- index only
-Users can move the hands freely in the user workspace. When they want to move the robot to a specific position, they have to perform the "hand open" gesture first and the "index" gesture afterwards, keeping the latter gesture still for a certain amount of time.
+## Table of Contents
+- [Installation instructions](https://github.com/Krissy93/meta-workstations-project/blob/master/docs/Installation.md)
 
-The index coordinates are extracted as the mean of the consecutive index positions acquired. The number of consecutive index gestures acquired are defined by the parameter chvalue: an higher number means more robustness but also more time required to properly fill the chain of consecutive gestures.
+## Custom modules
+If you want to contribute adding custom modules and functionalities to the software, feel free to do so! Contact us if you need help or want to work with us by sending an e-mail to [Cristina Nuzzi](mailto:c.nuzzi@unibs.it).
 
-# To do
+# "To do" list
 - [x] Get the hand skeleton from frames in real time using Kinect v2
 - [x] Define gestures (orientation and zoom invariant)
-- [ ] Map the experimental workspaces
-- [ ] Define a procedure to automatically map the workspaces
+- [x] Map the experimental workspaces
+- [x] Define a procedure to automatically map the workspaces
 - [ ] Write visualization code of the two simultaneous workspaces, skeleton mapped to the robot one

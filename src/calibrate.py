@@ -148,11 +148,34 @@ class Kinect():
         self.device.close()
 
 def draw(img, corners, imgpts):
+    #print('image points: ' +str(imgpts))
+    #print('boh: ' + str(tuple(imgpts[0].ravel())))
     corner = tuple(corners[0].ravel())
+    #print('boh2: ' + str(tuple(corners[0].ravel())))
     img = cv2.line(img, corner, tuple(imgpts[0].ravel()), (255,0,0), 5)
     img = cv2.line(img, corner, tuple(imgpts[1].ravel()), (0,255,0), 5)
     img = cv2.line(img, corner, tuple(imgpts[2].ravel()), (0,0,255), 5)
     return img
+
+def findRT(img, mtx, dist):
+    # find R and T in the reference
+    gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+    ret, corners = cv2.findChessboardCorners(gray, (9,6),None)
+
+    if ret == True:
+        criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
+        objp = np.zeros((6*9,3), np.float32)
+        objp[:,:2] = np.mgrid[0:9,0:6].T.reshape(-1,2)
+
+        corners2 = cv2.cornerSubPix(gray,corners,(11,11),(-1,-1),criteria)
+
+        # Find the rotation and translation vectors.
+        _, rvecs2, tvecs2, inliers = cv2.solvePnPRansac(objp, corners2, mtx, dist)
+        R, J = cv2.Rodrigues(rvecs2)
+        #print('Original R: ' + str(rvecs2))
+        print('R Matrix: ' + str(R))
+        print('T Matrix: ' + str(tvecs2))
+        return rvecs2, tvecs2, corners2
 
 # termination criteria
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
@@ -169,6 +192,7 @@ images = glob.glob('calib/*.png')
 
 for fname in images:
     img = cv2.imread(fname)
+    img = cv2.flip(img, 0)
     gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
 
     # Find the chess board corners
@@ -183,8 +207,8 @@ for fname in images:
 
         # Draw and display the corners
         img = cv2.drawChessboardCorners(img, (9,6), corners2,ret)
-        cv2.imshow('img',img)
-        cv2.waitKey(0)
+        #cv2.imshow('img',img)
+        #cv2.waitKey(0)
 
 cv2.destroyAllWindows()
 
@@ -196,11 +220,13 @@ print('Distortion: ' + str(dist))
 
 kinect = Kinect(True, False, False, False)
 kinect.acquire()
-img = kinect.color_new
+img = kinect.color_new.copy()
 kinect.stop()
+cv2.imwrite('example.png',img)
 
 h,  w = img.shape[:2]
 newcameramtx, roi=cv2.getOptimalNewCameraMatrix(mtx,dist,(w,h),1,(w,h))
+print('Optimal Matrix: ' + str(newcameramtx))
 # undistort
 dst = cv2.undistort(img, mtx, dist, None, newcameramtx)
 # crop the image
@@ -208,47 +234,47 @@ x,y,w,h = roi
 dst = dst[y:y+h, x:x+w]
 cv2.imwrite('calibresult.png',dst)
 
+# qui ho img che e' non antidistorta
+# e dst che e' quella antidistorta
+
+
 # find reference point
 
 #img = cv2.imread('big3.png')
 
-img = cv2.flip(dst, 0)
-img = img[230:830, 540:1450]
+dst = cv2.flip(dst, 0)
+dst = dst[0:900, 520:1650]
 
-# find R and T in the reference
-gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-ret, corners = cv2.findChessboardCorners(gray, (9,6),None)
+img = cv2.flip(img, 0)
+img = img[0:900, 520:1650]
+cv2.imshow('img',img)
+k = cv2.waitKey(0) & 0xff
+cv2.destroyAllWindows()
 
-if ret == True:
-    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
-    objp = np.zeros((6*9,3), np.float32)
-    objp[:,:2] = np.mgrid[0:9,0:6].T.reshape(-1,2)
+# trova img
+print('Find R and t of normal image:')
+rvecs1, tvecs1, corners1 = findRT(img, mtx, dist)
 
-    corners2 = cv2.cornerSubPix(gray,corners,(11,11),(-1,-1),criteria)
+# trova dst
+print('Find R and t of undistorted image:')
+rvecs2, tvecs2, corners2 = findRT(dst, mtx, dist)
 
-    # Find the rotation and translation vectors.
-    _, rvecs2, tvecs2, inliers = cv2.solvePnPRansac(objp, corners2, newcameramtx, dist)
-    R, J = cv2.Rodrigues(rvecs2)
-    print('R Matrix: ' + str(R))
-    print('T Matrix: ' + str(tvecs2))
+# project 3D points to image plane
+axis = np.float32([[3,0,0], [0,3,0], [0,0,-3]]).reshape(-1,3)
+imgpts, jac = cv2.projectPoints(axis, rvecs1, tvecs1, mtx, dist)
 
-    # project 3D points to image plane
-    axis = np.float32([[3,0,0], [0,3,0], [0,0,-3]]).reshape(-1,3)
-    imgpts, jac = cv2.projectPoints(axis, rvecs2, tvecs2, newcameramtx, dist)
-
-    img = draw(img,corners2,imgpts)
-    cv2.imshow('img',img)
-    k = cv2.waitKey(0) & 0xff
-    if k == 's':
-        cv2.imwrite('ref.png', img)
+img = draw(img,corners1,imgpts)
+cv2.imshow('img',img)
+k = cv2.waitKey(0) & 0xff
+cv2.imwrite('ref.png', img)
 
 cv2.destroyAllWindows()
 
 
 mean_error = 0
 for i in xrange(len(objpoints)):
-    imgpoints2, _ = cv2.projectPoints(objpoints[i], rvecs[i], tvecs[i], newcameramtx, dist)
+    imgpoints2, _ = cv2.projectPoints(objpoints[i], rvecs[i], tvecs[i], mtx, dist)
     error = cv2.norm(imgpoints[i],imgpoints2, cv2.NORM_L2)/len(imgpoints2)
     mean_error += error
 
-print "total error: ", mean_error/len(objpoints)
+print "total error of calibration: ", mean_error/len(objpoints)
