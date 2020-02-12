@@ -452,8 +452,9 @@ A measuring software has been developed using LabVIEW to measure the distance ($
   \label{fig:laser}
 \end{figure}
 
-We moved the robot in $5$ theoretical positions, corresponding to markers P3, P4, P6, P8 and P9 in Fig. \ref{fig:master_robot}, for a total of $3$ times per each theoretical position. To do that, we used the Cartesian positions corresponding to the circular markers centroids (theoretical positions) to move the robot using the ROS interface. Hence, this procedure avoids considering the hand skeleton estimation errors.
+We moved the robot in $7$ theoretical positions, corresponding to markers P3, P4, P5, P6, P7, P8 and P9 in Fig. \ref{fig:master_robot}, for a total of $3$ times per each theoretical position. To do that, we used the Cartesian positions corresponding to the circular markers centroids (theoretical positions) to move the robot using the ROS interface. Hence, this procedure avoids considering the hand skeleton estimation errors.
 The resulting distances in millimeters are reported in Table \ref{tab:laser}.
+
 
 \begin{table}[h!]
 	\centering
@@ -462,14 +463,16 @@ The resulting distances in millimeters are reported in Table \ref{tab:laser}.
 	\begin{adjustbox}{max width=\textwidth}
 		\begin{tabular}{@{}cccccc@{}}
 			\toprule
-			\multirow{2}{*}{Point} & \multicolumn{3}{c}{$||\mathbf{E}^b_{W}||$ {[}mm{]}} & \multicolumn{1}{l}{\multirow{2}{*}{$\overline{\mathbf{E}}^b_{W}$ {[}mm{]}}} & \multicolumn{1}{l}{\multirow{2}{*}{$\sigma\mathbf{E}^b_{W}$ {[}mm{]}}} \\ \cmidrule(lr){2-4}
-			& 1         & 2         & 3         & \multicolumn{1}{l}{}                                  & \multicolumn{1}{l}{}                                   \\ \midrule
-			P3                      & 6.27      & 6.48      & 6.77      & 6.51                                                  & 0.21                                                   \\
-			P4                      & 8.86      & 5.64      & 5.29      & 6.60                                                  & 1.61                                                   \\
-			P6                      & 7.75      & 7.88      & 7.87      & 7.84                                                  & 0.06                                                   \\
-			P8                      & 6.84      & 6.70      & 6.99      & 6.84                                                  & 0.12                                                   \\
-			P9                     & 6.89      & 5.64      & 5.29      & 5.94                                                  & 0.69                                                   \\ \bottomrule
-		\end{tabular}%
+			\multirow{2}{*}{Points} & \multicolumn{2}{c}{$\overline{\mathbf{E}}^b_{W}$} &  & \multicolumn{2}{c}{$\sigma{\mathbf{E}}^b_{W}$} \\ \cmidrule(lr){2-3} \cmidrule(l){5-6} 
+			& $x$                     & $y$                    &  & $x$                   & $y$                   \\ \midrule
+			P8                     & 0.20                    & 1.50                   &  & 0.17                  & 0.06                  \\
+			P9                     & 0.91                    & 1.40                   &  & 0.40                  & 0.04                  \\
+			P5                     & 1.63                    & 0.58                   &  & 0.14                  & 0.05                  \\
+			P6                   & 0.77                    & 1.44                   &  & 0.04                  & 0.05                  \\
+			P7                      & 0.70                    & 1.15                   &  & 0.02                  & 0.12                  \\
+			P3                      & 0.26                    & 1.86                   &  & 0.01                  & 0.05                  \\
+			P4                      & 0.19                    & 1.59                   &  & 0.11                  & 0.27                  \\ \bottomrule
+		\end{tabular}%%
 	\end{adjustbox}
 \end{table}
 
