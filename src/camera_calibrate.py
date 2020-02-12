@@ -78,7 +78,7 @@ def initial_calibration(path):
         # e. g. if I flip the image here, I have to flip it everytime I calculate something on the image
         img = cv2.flip(img, 0)
         # converts image to black and white
-        gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+        gray = cv2.cvtColor(img,cv2.COLOR_BGloadcalibrobotR2GRAY)
 
         # find the chess board corners
         ret, corners = cv2.findChessboardCorners(gray, (9,6),None)
