@@ -345,7 +345,30 @@ Finally, to correctly move the robot end-effector to $\mathbf{P}_W$, we must obt
 \end{bmatrix} + \mathbf{E}_{sk} + \mathbf{E}_{H} + \mathbf{E}_{map} \right)' + \mathbf{E}_W
 \end{equation}
 
-It is made evident that moving from one reference frame to another introduces errors. Considering (\ref{eq:error_final}), and $\mathbf{E}_{map}$ assumed equal to zero (because we kept workspace $H$ and workspace $W$ dimensions equal), we designed two experiments to assess if the positioning error obtained depends (i) on the estimation of the hand skeleton ($\mathbf{E}_{sk}$), (ii) on the camera calibration ($\mathbf{E}_{H}$) or (iii) on the robot workspace calibration ($\mathbf{E}_{W}$).
+It is made evident that moving from one reference frame to another introduces errors. Considering (\ref{eq:error_final}), and $\mathbf{E}_{map}$ assumed equal to zero (because we kept workspace $H$ and workspace $W$ dimensions equal), we designed two experiments to assess if the positioning error obtained depends (i) on the estimation of the hand skeleton ($\mathbf{E}_{sk}$), (ii) on the camera calibration ($\mathbf{E}_{H}$) or (iii) on the robot workspace calibration and robot intrinsic characteristics ($\mathbf{E}_{W}$).
+
+\subsection{Evaluation of the camera calibration error}
+Here there is the camera calibration error. The following table is just a sample
+
+\begin{table}[h!]
+	\centering
+	\caption{Norm, averages and standard deviations of error $\mathbf{E}_H$}
+	\label{tab:laser}
+	\begin{adjustbox}{max width=\textwidth}
+		\begin{tabular}{cccccc}
+			\hline
+			\multirow{2}{*}{Points} & \multicolumn{2}{c}{$\mathbf{E}_H$} &  & \multicolumn{2}{c}{$\overline{\mathbf{E}}_H$} \\ \cline{2-3} \cline{5-6} 
+			& $x$                & $y$               &  & $x$                     & $y$                     \\ \hline
+			A4                      & 0.40               & 0.50              &  & 0.20                    & 1.50                    \\
+			A5                      & 2.00               & 0.50              &  & 0.91                    & 1.40                    \\
+			O1                      & 6.70               & 0.70              &  & 1.63                    & 0.58                    \\
+			O0                      & 0.60               & 0.40              &  & 0.77                    & 1.44                    \\
+			O2                      & 2.60               & 0.20              &  & 0.70                    & 1.15                    \\
+			B4                      & 0.30               & 1.10              &  & 0.26                    & 1.86                    \\
+			B5                      & 1.70               & 0.00              &  & 0.19                    & 1.59                    \\ \hline
+		\end{tabular}%
+	\end{adjustbox}
+\end{table}
 
 \subsection{Evaluation of the skeleton estimation error}
 
@@ -436,13 +459,17 @@ Moreover, by calculating the standard deviation $\sigma_x$ of the $N$ different 
 %\end{tabular}
 %\end{center}
 %\end{table}
-\subsection{Evaluation of the robot positioning error}
+\subsection{Evaluation of the robot workspace error}
 
 In our set-up, reference system $H$ is placed horizontally with the camera mounted at a $1$ m distance (green horizontal square in Fig. \ref{fig:wscalib}). Reference system $W$, however, has been placed vertically on a glass pane (purple vertical square in Fig. \ref{fig:wscalib}).
 
-The robot workspace error $\mathbf{E}_{W}$ is composed by the calibration error $\mathbf{E}^a_{W}$ and the robot position error $\mathbf{E}^b_{W}$ due to physical robot characteristics. In this section $\mathbf{E}^b_{W}$ is evaluated. To robustly assess the positioning of the robot end-effector, a 3D printed carrier holding a bright red laser has been mounted on the end effector (\textit{Lasiris laser 635nm, 10mW}) (Fig. \ref{fig:laser}, bottom-right corner).
+The robot workspace error $\mathbf{E}_{W}$ is composed by an error $\mathbf{E}^a_{W}$ only related to the calibration procedure, and the robot position error $\mathbf{E}^b_{W}$ due to physical robot characteristics, such that:
+\begin{equation}
+\mathbf{E}_{W} = \mathbf{E}^a_{W} + \mathbf{E}^b_{W}
+\end{equation} 
+To robustly assess the robot positioning error $\mathbf{E}^b_{W}$ of the end-effector, a 3D printed carrier holding a bright red laser has been mounted on the end effector (\textit{Lasiris laser 635nm, 10mW}) (Fig. \ref{fig:laser}, bottom-right corner).
 
-When the robot is moved to a certain theoretical position $T$, the laser will point to its actual positioning $A$. To correctly visualize and measure the robot workspace and the laser positioning, an RGB camera (\textit{IDS Imaging UI-1460C}) has been mounted behind the glass pane.
+When the robot is moved with its own software to a certain theoretical position $T$, the laser will point to its actual positioning $A$. To correctly visualize and measure the robot workspace and the laser positioning, an RGB camera (\textit{IDS Imaging UI-1460C}) has been mounted behind the glass pane.
 A measuring software has been developed using LabVIEW to measure the distance ($E$) between the theoretical position $T$ (calculated as the centroid of the black square of the experimental master, represented as the green dot in Fig. \ref{fig:laser}, top-left corner) and the actual positioning $A$ (red dot in Fig. \ref{fig:laser}, top-left corner).
 
 \begin{figure} [ht]
@@ -453,7 +480,9 @@ A measuring software has been developed using LabVIEW to measure the distance ($
 \end{figure}
 
 We moved the robot in $7$ theoretical positions, corresponding to markers P3, P4, P5, P6, P7, P8 and P9 in Fig. \ref{fig:master_robot}, for a total of $3$ times per each theoretical position. To do that, we used the Cartesian positions corresponding to the circular markers centroids (theoretical positions) to move the robot using the ROS interface. Hence, this procedure avoids considering the hand skeleton estimation errors.
-The resulting distances in millimeters are reported in Table \ref{tab:laser}.
+
+The error $\mathbf{E}^a_{W}$ has been calculated by considering the same positions previously stated in respect with the robot frame, transformed with Equation \ref{eq:roto1}. Since the rigid transformation matrix is obtained from the calibration least square method, this procedure permits to isolate the calibration error. $\mathbf{E}^a_{W}$ is defined as the absolute difference between the robot theoretical position $T$ and the actual position $A$ calculated using Equation \ref{eq:roto1}.
+The resulting distances in millimeters are reported in Table \ref{tab:laser}, where $\mathbf{E}^b_{W}$ values are reported as the average among the 3 tests.
 
 
 \begin{table}[h!]
@@ -461,22 +490,22 @@ The resulting distances in millimeters are reported in Table \ref{tab:laser}.
 	\caption{Norm, averages and standard deviations of error $\mathbf{E}^b_{W}$}
 	\label{tab:laser}
 	\begin{adjustbox}{max width=\textwidth}
-		\begin{tabular}{@{}cccccc@{}}
-			\toprule
-			\multirow{2}{*}{Points} & \multicolumn{2}{c}{$\overline{\mathbf{E}}^b_{W}$} &  & \multicolumn{2}{c}{$\sigma{\mathbf{E}}^b_{W}$} \\ \cmidrule(lr){2-3} \cmidrule(l){5-6} 
-			& $x$                     & $y$                    &  & $x$                   & $y$                   \\ \midrule
-			P8                     & 0.20                    & 1.50                   &  & 0.17                  & 0.06                  \\
-			P9                     & 0.91                    & 1.40                   &  & 0.40                  & 0.04                  \\
-			P5                     & 1.63                    & 0.58                   &  & 0.14                  & 0.05                  \\
-			P6                   & 0.77                    & 1.44                   &  & 0.04                  & 0.05                  \\
-			P7                      & 0.70                    & 1.15                   &  & 0.02                  & 0.12                  \\
-			P3                      & 0.26                    & 1.86                   &  & 0.01                  & 0.05                  \\
-			P4                      & 0.19                    & 1.59                   &  & 0.11                  & 0.27                  \\ \bottomrule
-		\end{tabular}%%
+		\begin{tabular}{ccccccccc}
+			\hline
+			\multirow{2}{*}{Points} & \multicolumn{2}{c}{$\mathbf{E}^a_{W}$ [mm]} &  & \multicolumn{2}{c}{$\mathbf{E}^b_{W}$ [mm]} &  & \multicolumn{2}{c}{$\sigma\mathbf{E}^b_{W}$ [mm]} \\ \cline{2-3} \cline{5-6} \cline{8-9} 
+			& $x$                & $y$               &  & $x$                     & $y$                     &  & $x$                   & $y$                  \\ \hline
+			P8                     & 0.40               & 0.50              &  & 0.20                    & 1.50                    &  & 0.17                  & 0.06                 \\
+			P9                      & 2.00               & 0.50              &  & 0.91                    & 1.40                    &  & 0.40                  & 0.04                 \\
+			P5                      & 6.70               & 0.70              &  & 1.63                    & 0.58                    &  & 0.14                  & 0.05                 \\
+			P6                      & 0.60               & 0.40              &  & 0.77                    & 1.44                    &  & 0.04                  & 0.05                 \\
+			P7                      & 2.60               & 0.20              &  & 0.70                    & 1.15                    &  & 0.02                  & 0.12                 \\
+			P3                      & 0.30               & 1.10              &  & 0.26                    & 1.86                    &  & 0.01                  & 0.05                 \\
+			P4                      & 1.70               & 0.00              &  & 0.19                    & 1.59                    &  & 0.11                  & 0.27                 \\ \hline
+		\end{tabular}%
 	\end{adjustbox}
 \end{table}
 
-We computed the resulting mean distance and the standard deviation of each marker position, reported in Table \ref{tab:laser}. The average mean distance and the average standard deviation achieved by the robot are $6.74$ [mm] and $0.53$ [mm] respectively.
+We computed the resulting mean distance and the standard deviation of each marker position, reported in Table \ref{tab:laser}. Considering $\mathbf{E}^a_{W}$, the average mean distance is $2.04$ [mm] for the X-axis and $0.49$ [mm] for the Y-axis. While $\mathbf{E}^b_{W}$ has an average of $0.66$ [mm] for the X-axis and $1.66$ [mm] for the Y-axix. The standard deviation among the 3 tests for $\mathbf{E}^b_{W}$ is $0.13$ [mm] for the X-axis and $0.09$ [mm] for the Y-axis.
 
 \section{CONCLUSIONS}
 %%%%%%% TO DO
