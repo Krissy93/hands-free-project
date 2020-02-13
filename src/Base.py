@@ -18,9 +18,9 @@ import caffe
 from pylibfreenect2 import Freenect2, SyncMultiFrameListener
 from pylibfreenect2 import FrameType, Registration, Frame
 from geometry_msgs.msg import Pose
-from cartesian import *
+#from cartesian import *
 # sawyer interface
-import intera_interface
+#import intera_interface
 # custom made utility file
 from utils import *
 
@@ -79,7 +79,7 @@ def H2R(Ph, Robot, x):
     Pr = Robot.dot(Ph.T)
     print(color.BOLD + color.PURPLE + 'Calculated point: ' + str(Pr) + color.END)
 
-    move2cartesian(position=(x, round(Pr[0],2), round(Pr[1],2)), orientation=(0.5, 0.5, 0.5, 0.5), in_tip_frame=True, linear_speed=0.3)
+    #move2cartesian(position=(x, round(Pr[0],2), round(Pr[1],2)), orientation=(0.5, 0.5, 0.5, 0.5), in_tip_frame=True, linear_speed=0.3)
 
     return Pr
 
@@ -129,15 +129,39 @@ def hand_keypoints(net, frame, threshold, nPoints):
     return points, inference_time
 
 
-def draw_skeleton(frame, points, draw, inference_time, G, H):
+def pointsW(lista, pt, Ref, K, Rd, td, RRobot):
+
+    pt = np.array([[pt[0], pt[1], 1.0]])
+    PT = px2meters(pt, K, Rd, td)
+    new = (PT - Ref)
+    PR = H2R(new, RRobot, 0.7)
+    lista.append([(pt[0][0], pt[0][1]), (new[0].tolist(), new[1].tolist(), new[2].tolist()), (round(PR[0],2), round(PR[1],2))])
+
+def draw_skeleton(frame, points, draw, inference_time, G, H, pt0, pt1, pt2, pt3):
     ''' Function to draw the skeleton of one hand according to
     a pre-defined pose pair scheme to the frame. Does not return anything. '''
 
     POSE_PAIRS = [[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[0,9],[9,10],
                   [10,11],[11,12],[0,13],[13,14],[14,15],[15,16],[0,17],[17,18],[18,19],[19,20]]
 
+    B2 = (315, 390)
+    B3 = (318, 633)
+    B4 = (506, 267)
+    B5 = (506, 513)
+    O1 = (698, 141)
+    O0 = (696, 391)
+    O2 = (693, 636)
+    A4 = (890, 268)
+    A5 = (886, 516)
+    A1 = (1086, 140)
+    A2 = (1081, 393)
+    A3 = (1075, 643)
+
     # always use the copy() method when working on cv2 frames that need to be modified
     A = frame.copy()
+
+    #A = find_marker_centroids(A)
+
     # draw skeleton on frame if the draw flag has been set as True
     if draw:
         for pair in POSE_PAIRS:
@@ -150,6 +174,30 @@ def draw_skeleton(frame, points, draw, inference_time, G, H):
                 cv2.line(A, points[partA], points[partB], (0, 255, 255), 2)
                 cv2.circle(A, points[partA], 8, (0, 0, 255), thickness=-1, lineType=cv2.FILLED)
                 cv2.circle(A, points[partB], 8, (0, 0, 255), thickness=-1, lineType=cv2.FILLED)
+
+    # DRAW THE WORKSPACE
+    # cv2.circle(A, pt0, 5, (0, 255, 0), thickness=-1, lineType=cv2.FILLED)
+    # cv2.circle(A, pt1, 5, (0, 0, 255), thickness=-1, lineType=cv2.FILLED)
+    # cv2.circle(A, pt2, 5, (0, 0, 255), thickness=-1, lineType=cv2.FILLED)
+    # cv2.circle(A, pt3, 5, (0, 0, 255), thickness=-1, lineType=cv2.FILLED)
+    # cv2.line(A, pt0, pt1, (0, 0, 0), 2)
+    # cv2.line(A, pt1, pt2, (0, 0, 0), 2)
+    # cv2.line(A, pt2, pt3, (0, 0, 0), 2)
+    # cv2.line(A, pt3, pt0, (0, 0, 0), 2)
+
+    cv2.circle(A, pt0, 2, (0, 255, 0), thickness=-1, lineType=cv2.FILLED)
+    cv2.circle(A, A1, 2, (0, 255, 0), thickness=-1, lineType=cv2.FILLED)
+    cv2.circle(A, A2, 2, (0, 255, 0), thickness=-1, lineType=cv2.FILLED)
+    cv2.circle(A, A3, 2, (0, 255, 0), thickness=-1, lineType=cv2.FILLED)
+    cv2.circle(A, A4, 2, (0, 255, 0), thickness=-1, lineType=cv2.FILLED)
+    cv2.circle(A, A5, 2, (0, 255, 0), thickness=-1, lineType=cv2.FILLED)
+    cv2.circle(A, O1, 2, (0, 255, 0), thickness=-1, lineType=cv2.FILLED)
+    cv2.circle(A, O0, 2, (0, 255, 0), thickness=-1, lineType=cv2.FILLED)
+    cv2.circle(A, O2, 2, (0, 255, 0), thickness=-1, lineType=cv2.FILLED)
+    cv2.circle(A, B2, 2, (0, 255, 0), thickness=-1, lineType=cv2.FILLED)
+    cv2.circle(A, B3, 2, (0, 255, 0), thickness=-1, lineType=cv2.FILLED)
+    cv2.circle(A, B4, 2, (0, 255, 0), thickness=-1, lineType=cv2.FILLED)
+    cv2.circle(A, B5, 2, (0, 255, 0), thickness=-1, lineType=cv2.FILLED)
 
     # the structure is: image, string of text, position from the top-left angle, font, size, BGR value of txt color, thickness, graphic
     cv2.putText(A, 'INFERENCE TIME: ' + str(inference_time) + ' SEC', (20,50), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (80, 65, 242), 3, cv2.LINE_AA)
@@ -272,6 +320,19 @@ def gesture(points, chain, acquire, chvalue, frame):
 
     return chain, acquire, G, str(handmap)
 
+
+#def showW(points, frame):
+    ''' Function that projects the hand keypoints from workspace H (pixels)
+        to workspace W (pixels), for visualization purposes '''
+
+    # our workspace H (X right, Y down) corresponds to workspace W (X up, y right)
+    # without scale factors, so we just need to change the coordinates!
+    # when we move our hand right we must see the point going up (and vice versa)
+    # when we move our hand down, we must see the point going left (and vice versa)
+
+    # if index in workspace allora draw
+    # mappare coordinate al contrario
+
 #######
 
 def myhook():
@@ -308,6 +369,7 @@ def main():
     rospy.init_node('kinect_node')
     # caffe network initialization
     net = init_network()
+    #refmaster = cv2.imread('master10mm.png')
 
     # loading of the calibration parameters of both camera and robot
     K, D, R, t, Rd, td = loadcalibcamera('camera_calibration.yaml')
@@ -317,8 +379,23 @@ def main():
     # to refer all the other points in the same workspace!
     reference, _ = cv2.projectPoints(np.array([[0.0, 0.0, 0.0]]), Rd, td, K, D)
     reference = reference.flatten()
+    pt0 = (int(round(reference[0],2)), int(round(reference[1],2)))
     reference = np.array([[reference[0], reference[1], 1.0]])
     Ref = px2meters(reference, K, Rd, td)
+    B3 = (319, 646)
+    A3 = (1087, 647)
+    A1 = (1097, 140)
+    pt1 = px2meters(np.array([[float(B3[0]), float(B3[1]), 1.0]]), K, Rd, td)
+    # new1 = (pt1 - Ref)
+    pt2 = px2meters(np.array([[float(A3[0]), float(A3[1]), 1.0]]), K, Rd, td)
+    # new2 = (pt2 - pt1)
+    pt3 = px2meters(np.array([[float(A1[0]), float(A1[1]), 1.0]]), K, Rd, td)
+    # new3 = (pt3 - pt2)
+    # new4 = (Ref - pt3)
+    # print('Distance B1-B3: ' + str(new1))
+    # print('Distance B3-A3: ' + str(new2))
+    # print('Distance A3-A1: ' + str(new3))
+    # print('Distance A3-B1: ' + str(new4))
 
     # Kinect object creation
     kinect = Kinect(True, True, True, True, K, D)
@@ -341,6 +418,7 @@ def main():
     # only on plane ZY, thus we fix the depth (in our case X) according to workspace W
     # distance from the robot (to avoid accidental collisions)
     x = 0.7
+    TOSAVE = []
 
     while not rospy.is_shutdown():
         ###### STEP 2: FRAME ACQUISITION
@@ -380,6 +458,7 @@ def main():
                 # so now we can perform the mean easily
                 mean = np.array([[sum(rechain[0])/len(rechain[0]), sum(rechain[1])/len(rechain[1]), 1.0]])
                 rospy.loginfo(color.BOLD + color.YELLOW + 'CHAIN VALUE REACHED. MEAN IS: ' + str(mean[0][0]) + ', ' + str(mean[0][1]) + color.END)
+                TOSAVE.append((mean[0][0], mean[0][1]))
                 # empty the queue
                 chain = []
 
@@ -397,13 +476,31 @@ def main():
                 rospy.loginfo(color.BOLD + color.YELLOW + 'CALCULATED COORDINATES FOR ROBOT: ' + str(Pr) + color.END)
 
         ###### STEP 5: VISUALIZATION
-        draw_skeleton(frame, points, draw, inference_time, G, H)
+        draw_skeleton(frame, points, draw, inference_time, G, H, pt0, B3, A3, A1)
         # commands needed to correctly visualize opencv images
         if cv2.waitKey(25) == ord('q'):
             cv2.destroyAllWindows()
             break
 
     # upon exiting, closes the kinect object and shuts down the ROS node
+    LISTA = []
+    B2 = (315, 390)
+    B3 = (318, 633)
+    B4 = (506, 267)
+    B5 = (506, 513)
+    O1 = (698, 141)
+    O0 = (696, 391)
+    O2 = (693, 636)
+    A4 = (890, 268)
+    A5 = (886, 516)
+    A1 = (1086, 140)
+    A2 = (1081, 393)
+    A3 = (1075, 643)
+    PP = [pt0, B2, B3, B4, B5, O1, O0, O2, A4, A5, A1, A2, A3]
+    for p in range(0,len(PP)):
+        pointsW(LISTA, PP[p], Ref, K, Rd, td, RRobot)
+    print(LISTA)
+    rospy.loginfo(color.BOLD + color.GREEN + str(TOSAVE) + color.END)
     kinect.stop()
     rospy.on_shutdown(myhook)
 

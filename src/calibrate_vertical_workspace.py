@@ -36,9 +36,9 @@ def main():
     points = []
     pose = ['A1', 'A2', 'A3', 'A4', 'A5', 'O1', 'O0', 'O2', 'B1', 'B2', 'B3', 'B4', 'B5']
     i = 0
+    print(color.BOLD + color.CYAN + 'Move the robot to position ' + str(pose[i]) + color.END)
     raw_input(color.BOLD + color.YELLOW + '-- Starting! Press ENTER to continue' + color.END)
     while not rospy.is_shutdown() and i <= len(pose):
-        print(color.BOLD + color.CYAN + 'Move the robot to position ' + str(pose[i]) + color.END)
         # we use wait for message because is a bettere option than the classic Subscriber
         # in this case, since the topic is continuosly written by the robot
         msg = rospy.wait_for_message(posenode, EndpointState)
@@ -46,8 +46,11 @@ def main():
         # append the acquired points to the whole matrix of marker-robot positions
         points.append([X, Y, Z])
         i = i + 1
-        # using this, we stop and acquire a new point only after ENTER is pressed again
-        raw_input(color.BOLD + color.YELLOW + 'Press any key to continue' + color.END)
+        if i <= len(pose):
+            # using this, we stop and acquire a new point only after ENTER is pressed again
+            print(color.BOLD + color.CYAN + 'Move the robot to position ' + str(pose[i]) + color.END)
+            raw_input(color.BOLD + color.YELLOW + 'Press any key to continue' + color.END)
+        else: break
 
     # we should have acquired all the points, in our case 13!
     # now we write them in the YAML file along the Master points,

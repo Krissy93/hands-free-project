@@ -78,7 +78,7 @@ def initial_calibration(path):
         # e. g. if I flip the image here, I have to flip it everytime I calculate something on the image
         img = cv2.flip(img, 0)
         # converts image to black and white
-        gray = cv2.cvtColor(img,cv2.COLOR_BGloadcalibrobotR2GRAY)
+        gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
 
         # find the chess board corners
         ret, corners = cv2.findChessboardCorners(gray, (9,6),None)
@@ -173,10 +173,10 @@ def main():
     # suitable corners from the original frame and perform the cut for both the
     # undistorted image dst and the original image img
     dst = cv2.flip(dst, 0)
-    dst = dst[0:900, 520:1650]
+    dst = dst[0:900, 300:1800]
 
     img = cv2.flip(img, 0)
-    img = img[0:900, 520:1650]
+    img = img[0:900, 300:1800]
 
     # to check the cut, show the image
     cv2.imshow('Cropped Image', img)

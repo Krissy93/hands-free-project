@@ -166,7 +166,8 @@ class Kinect():
             x,y,w,h = roi
             self.RGBundistorted = self.RGBundistorted[y:y+h, x:x+w]
             self.RGBundistorted = cv2.flip(self.RGBundistorted, 0)
-            self.RGBundistorted = self.RGBundistorted[0:900, 520:1650]
+            self.RGBundistorted = self.RGBundistorted[0:900, 300:1800]
+            #self.RGBundistorted = self.RGBundistorted[0:900, 520:1650]
         else:
             rospy.loginfo(color.BOLD + color.RED + '-- ERROR: NO CALIBRATION LOADED!! --' + color.END)
             self.RGBundistorted = self.color_new
@@ -326,3 +327,46 @@ def error(point, frame):
     with open('points.txt', 'a') as file_object:
     # append the image number and the point value
         file_object.write('img_' + str(n+1) + '\t' + str(point) + '\n')
+
+def find_marker_centroids(frame):
+    # prende il frame, identifica i marker neri nell'area inquadrata (che gli do' io)
+    # per ognuno trova il centroide
+
+    img=cv2.GaussianBlur(frame, (5,5), 0)
+
+    img=cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+
+    lower=np.array([0, 0, 0],np.uint8)
+    upper=np.array([180, 255, 50],np.uint8)
+    separated=cv2.inRange(img,lower,upper)
+
+
+    #this bit draws a red rectangle around the detected region
+    _, contours, hierarchy=cv2.findContours(separated,cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)
+    for cnt in contours:
+        approx = cv2.approxPolyDP(cnt,0.01*cv2.arcLength(cnt,True),True)
+        if len(approx)==4:
+            cv2.drawContours(frame, contours, -1, (0, 0, 255), 3, cv2.LINE_AA)
+
+
+    # max_area = 0
+    # largest_contour = None
+    # for idx, contour in enumerate(contours):
+    #     area = cv2.contourArea(contour)
+    #     if area > max_area:
+    #         max_area = area
+    #         largest_contour=contour
+    #         print(largest_contour)
+    #         if not largest_contour==None:
+    #             moment = cv2.moments(largest_contour)
+    #             if moment["m00"] > 1000:
+    #                 rect = cv2.minAreaRect(largest_contour)
+    #                 rect = ((rect[0][0], rect[0][1]), (rect[1][0], rect[1][1]), rect[2])
+    #                 (width,height)=(rect[1][0],rect[1][1])
+    #                 print str(width)+" "+str(height)
+    #                 box = cv2.cv.BoxPoints(rect)
+    #                 box = np.int0(box)
+    #                 if(height>0.9*width and height<1.1*width):
+    #                         cv2.drawContours(frame,[box], 0, (0, 0, 255), 2)
+
+    return frame
