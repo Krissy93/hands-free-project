@@ -63,11 +63,15 @@ Hands-Free: a robot augmented reality teleoperation system
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{abstract}
 
-This electronic document is a live template. The various components of your paper [title, text, heads, etc.] are already defined on the style sheet, as illustrated by the portions given in this document.This electronic document is a live template. The various components of your paper [title, text, heads, etc.] are already defined on the style sheet, as illustrated by the portions given in this document.This electronic document is a live template. The various components of your paper [title, text, heads, etc.] are already defined on the style sheet, as illustrated by the portions given in this document.
+In this paper the novel teleoperation method "Hands-Free" is presented.
+Hands-Free is a vision-based augmented reality system that allows users to teleoperate a robot end-effector with their hands in real time. The system leverages OpenPose neural network to detect the human operator hand in a given workspace, achieving an average inference time of 0.15 s. The user index position is extracted from the image and converted in real world coordinates to move the robot end-effector in a different workspace. 
 
+Since a set of calibration procedures is involved to convert the index position to the robot end-effector position, we designed three experiments to determine the different errors introduced by conversion.
+A detailed explanation of the mathematical principles adoptes in the work is provided in the paper. 
+
+Finally, the proposed system has been developed using ROS and is publicly available in the following GitHub repository: https://github.com/Krissy93/hands-free-project.
 
 \end{abstract}
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{INTRODUCTION}
@@ -141,16 +145,16 @@ To obtain matrix \textbf{K} it is necessary to perform a calibration procedure. 
 
 Images acquired by the camera are processed and the hand skeleton joints coordinates are calculated. By using the abovementioned formulas, it is possible to obtain the real world coordinates of the hand skeleton joints in real time for each acquired frame (image frame in Fig. \ref{fig:wscalib}).
 
-
 \subsection{Robot Workspace Calibration}
 
 The robot workspace refers to the space in which the robot moves (reference system $W$ of Fig. \ref{fig:wscalib}) with respect to the user workspace (reference system $H$ of Fig. \ref{fig:wscalib}). In this case, the user hand real-world position in reference system $H$ is mapped to the new reference system $W$. The mapping between reference system $H$ and reference system $W$ is obtained easily if the two workspaces have the same dimension (matrix \textbf{[R$|$t]} is the identity matrix) or if one workspace is a scaled version of the other one (matrix \textbf{[R$|$t]} is the identity matrix multiplied by the scale factor). %verificare
 
 To correctly move the robot in a cartesian position of reference system $W$, it is necessary to perform a calibration between reference system $W$ and the robot reference system $R$. This procedure has been carried out experimentally by moving the robot (using its manual guidance mode) in different Cartesian positions of reference system $W$. The robot correct positioning on top of each calibration position has been assured by using a 3D-printed centering tool (Fig. \ref{fig:robotcalib}). 
-\begin{figure}[b]
+
+\begin{figure}[ht]
 	\centering
 	\includegraphics[width=1\columnwidth]{figures/robotcalibration}
-	\caption{Example of the robot calibration procedure. The calibration pose tool (top-right) is placed in correspondence of a calibration marker, then the robot end-effector is carefully placed inside the tool (bottom-left). The calibration pose tool cavity has been purposely made to fit the robot end-effector.}
+	\caption{Example of the robot calibration procedure. The calibration pose tool is placed in correspondence of a calibration marker, then the robot end-effector is carefully placed inside the tool. The calibration pose tool cavity has been purposely made to fit the robot end-effector.}
 	\label{fig:robotcalib}
 \end{figure}
 
@@ -163,7 +167,7 @@ Referring to the calibration example in Fig. \ref{fig:master_robot}, the plane p
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=1\columnwidth]{figures/calibration}
-	\caption{Master used to calibrate the second user-defined reference system $W$ with the robot reference frame $R$. The Figure illustrate the position of  point $\mathbf{P_1}$ in both reference frames. To properly calibrate the system, the position of each point is required, both for frame $W$ and $R$. In the procedure, 13 calibration points have been acquired.}
+	\caption{Master used to calibrate the second user-defined reference system $W$ with the robot reference frame $R$. The figure illustrate the position of point $\mathbf{P_1}$ in both reference frames. To properly calibrate the system, the position of each point is required, both for frame $W$ and $R$. In the procedure, 13 calibration points have been acquired.}
 	\label{fig:master_robot}
 \end{figure}
 
@@ -227,7 +231,7 @@ The same point in the robot workspace $W$ is:
 \mathbf{P}_{W} = K_s\mathbf{P}_{H}
 \end{equation}
 
-Where $K_s\in \mathbb{R}$ is the a scaling factor between the robot and the user workspaces and $\mathbf{P}_{H}$ is defined in (\ref{eq2}). Finally, considering equations (\ref{eq:roto1}),(\ref{eq:roto2}) and equation (\ref{eq2}), the resulting point $\mathbf{P}_R$ in the robot reference frame using the camera coordinates is calculated as:
+Where $K_s\in \mathbb{R}$ is the a scaling factor between the robot and the user workspaces and $\mathbf{P}_{H}$ is defined in (\ref{eq2}). Finally, considering equations (\ref{eq:roto1}), (\ref{eq:roto2}) and equation (\ref{eq2}), the resulting point $\mathbf{P}_R$ in the robot reference frame using the camera coordinates is calculated as:
 
 \begin{equation}
 \mathbf{P}_{R} = \begin{bmatrix}
@@ -268,16 +272,16 @@ We based the gesture recognition procedure on the recognition of the fingers, wh
   \label{fig:keypoints}
 \end{figure}
 
-Considering the calibration procedure detailed in Section \ref{sec:calib}, a certain position $\mathbf{P}_{H}$ of user workspace $H$ corresponds to a certain robot end-effector position $\mathbf{P}_{W}$ in workspace $W$. Hence, to move the robot end-effector in position $P_W$  using the software, the users must: %img
+Considering the calibration procedure detailed in Section \ref{sec:calib}, a certain position $\mathbf{P}_{H}$ of user workspace $H$ corresponds to a certain robot end-effector position $\mathbf{P}_{W}$ in workspace $W$. Hence, to move the robot end-effector in position $P_W$  using the software, the users must:
 \begin{enumerate}
-\item place their hand in position $\mathbf{P}_H$ (corresponding to position $\mathbf{P}_W$), using the real-time visualization of the software as guidance (Fig. xx a);
-\item perform the open hand gesture to allow the coordinate extraction (Fig. xx b);
-\item perform the index gesture by carefully pointing the index finger to position $\mathbf{P}_H$ (Fig. xx c).
+\item place their hand in position $\mathbf{P}_H$ (corresponding to position $\mathbf{P}_W$), using the real-time visualization of the software as guidance;
+\item perform the open hand gesture to allow the coordinate extraction;
+\item perform the index gesture by carefully pointing the index finger to position $\mathbf{P}_H$.
 \end{enumerate}
 
 It is worth noting that, since the hand skeleton is obtained by a neural network which estimates the joints coordinates frame per frame, their position in consectuive frames may vary. Therefore, our software extracts $N$ different $\mathbf{P}_H$ coordinates from $N$ consecutive index gestures recognized in consecutive frames. The average coordinates are extracted to reduce positioning errors introduced by the hand skeleton recognition network. The higher the value of $N$, the higher the error reduction, at the cost of a higher delay before the final $\mathbf{P}_H$ coordinates are extracted. In our set-up, we set $N = 7$.
 After a position $\mathbf{P}_H$ is obtained, the corresponding robot position $\mathbf{P}_R$ is calculated and the robot is moved there using the ROS interface.
-To perform a new robot movement, the procedure in Fig. xx must be repeated from the start. %%
+To perform a new robot movement, the procedure must be repeated from the start.
 
 \section{EXPERIMENTAL EVALUATION}\label{sec:experiments}
 
@@ -302,7 +306,7 @@ The extracted index position $\mathbf{P}_O$ [px] corresponds to the camera image
 \end{bmatrix} + \mathbf{E}_{sk}
 \end{equation}
 
-Thanks to the camera calibration procedure, a point in the acquired image frame $\mathbf{P}_C$ [px] corresponds to a Cartesian point $\mathbf{P}_C'$ [m] rototranslated in workspace $H$. $\mathbf{P}_C'$ corresponds to the real position $\mathbf{P}_H$ of the original $\mathbf{P}_C$ with an estimation error $\mathbf{E}_H$ which depends on the accuracy of the calibration. In the following, we refer to generic points $\mathbf{P}'$ as the already rototranslated points according to equations (\ref{eq2}), (\ref{eq:roto1}, (\ref{eq:roto2}). Thus, $\mathbf{P}_H$ is defined as:
+Thanks to the camera calibration procedure, a point in the acquired image frame $\mathbf{P}_C$ [px] corresponds to a Cartesian point $\mathbf{P}_C'$ [m] rototranslated in workspace $H$. $\mathbf{P}_C'$ corresponds to the real position $\mathbf{P}_H$ of the original $\mathbf{P}_C$ with an estimation error $\mathbf{E}_H$ which depends on the accuracy of the calibration. In the following, we refer to generic points $\mathbf{P}'$ as the already rototranslated points according to equations (\ref{eq2}), (\ref{eq:roto1}), (\ref{eq:roto2}). Thus, $\mathbf{P}_H$ is defined as:
 
 \begin{equation}
 \mathbf{P}_H = \mathbf{P}_C' + \mathbf{E}_H = (\mathbf{P}_O + \mathbf{E}_{sk})' + \mathbf{E}_H
@@ -345,132 +349,124 @@ Finally, to correctly move the robot end-effector to $\mathbf{P}_W$, we must obt
 \end{bmatrix} + \mathbf{E}_{sk} + \mathbf{E}_{H} + \mathbf{E}_{map} \right)' + \mathbf{E}_W
 \end{equation}
 
-It is made evident that moving from one reference frame to another introduces errors. Considering (\ref{eq:error_final}), and $\mathbf{E}_{map}$ assumed equal to zero (because we kept workspace $H$ and workspace $W$ dimensions equal), we designed two experiments to assess if the positioning error obtained depends (i) on the estimation of the hand skeleton ($\mathbf{E}_{sk}$), (ii) on the camera calibration ($\mathbf{E}_{H}$) or (iii) on the robot workspace calibration and robot intrinsic characteristics ($\mathbf{E}_{W}$).
+It is made evident that moving from one reference frame to another introduces errors. Considering (\ref{eq:error_final}), and $\mathbf{E}_{map}$ assumed equal to zero (because we kept workspace $H$ and workspace $W$ dimensions equal), we designed two experiments to assess if the positioning error obtained depends (i) on the camera calibration ($\mathbf{E}_{H}$), (ii) on the estimation of the hand skeleton ($\mathbf{E}_{sk}$) or (iii) on the robot workspace calibration and robot intrinsic characteristics ($\mathbf{E}_{W}$).
 
 \subsection{Evaluation of the camera calibration error}
-Here there is the camera calibration error. The following table is just a sample
+
+With the calibration procedure detailed in Section \ref{sec:calib}, a point in the image frame corresponds to a point in workspace $H$. The conversion from pixel coordinates to real world coordinates introduces an error, which has been estimated considering the difference between (i) theoretical positions $\mathbf{T} \in \mathbb{R}^2$ [mm], corresponding to the calibration points $P_p$ real world coordinates in workspace \textbf{H} (Fig. \ref{fig:master_robot}) with respect to reference point $P_0$ and (ii) the converted positions $\mathbf{C} \in \mathbb{R}^2$ [mm], corresponding to real world coordinates of the same calibration points, obtained converting their pixel coordinates (taken from the image frame) in real world coordinates using matrixes $\mathbf{K}$, $\mathbf{R}$ and $\mathbf{t}$ obtained from equation (\ref{eq2}). Hence, the total error $\mathbf{E}_{H}$ is obtained as the sum of $P$ positioning errors, where $P$ is the total number of calibration points considered:
+
+\begin{equation}
+\mathbf{E}_{H} =\sum_{p = 0}^{P} (\mathbf{T}_p - \mathbf{C}_p) = 
+\sum_{p = 0}^{P} \bigg( \begin{bmatrix}
+T_{x,p}\\
+T_{y,p}
+\end{bmatrix}-
+\begin{bmatrix}
+C_{x,p}\\
+C_{y,p}
+\end{bmatrix} \bigg)
+\end{equation}
+
+Table \ref{tab:calibrationH} reports the values obtained for each point $P_p$: real world coordinates of the point in workspace \textbf{H} ($\mathbf{T_p}$), calculated coordinates of the point starting from its corresponding pixel coordinates in the image frame ($\mathbf{C_p}$) and the corresponding error $\mathbf{E}^p_{H}$. The negative sign represents the case when the converted position $C$ is overstimated with respect to the corresponding theoretical position $T$.
 
 \begin{table}[h!]
 	\centering
-	\caption{Norm, averages and standard deviations of error $\mathbf{E}_H$}
-	\label{tab:laser}
-	\begin{adjustbox}{max width=\textwidth}
-		\begin{tabular}{cccccc}
-			\hline
-			\multirow{2}{*}{Points} & \multicolumn{2}{c}{$\mathbf{E}_H$} &  & \multicolumn{2}{c}{$\overline{\mathbf{E}}_H$} \\ \cline{2-3} \cline{5-6} 
-			& $x$                & $y$               &  & $x$                     & $y$                     \\ \hline
-			A4                      & 0.40               & 0.50              &  & 0.20                    & 1.50                    \\
-			A5                      & 2.00               & 0.50              &  & 0.91                    & 1.40                    \\
-			O1                      & 6.70               & 0.70              &  & 1.63                    & 0.58                    \\
-			O0                      & 0.60               & 0.40              &  & 0.77                    & 1.44                    \\
-			O2                      & 2.60               & 0.20              &  & 0.70                    & 1.15                    \\
-			B4                      & 0.30               & 1.10              &  & 0.26                    & 1.86                    \\
-			B5                      & 1.70               & 0.00              &  & 0.19                    & 1.59                    \\ \hline
+	\caption{Theoretical positions $\mathbf{T_p}$, converted positions $\mathbf{C_p}$ and calibration error $\mathbf{E}^p_{H}$ of each calibration point}
+	\label{tab:calibrationH}
+	\begin{adjustbox}{max width=\columnwidth}
+		\begin{tabular}{ccccccccc}
+			\toprule
+			\multirow{2}{*}{Points} & \multicolumn{2}{c}{$\mathbf{T_p}$ [mm]} &  & \multicolumn{2}{c}{$\mathbf{C_p}$ [mm]} &  & \multicolumn{2}{c}{$\mathbf{E}^p_{H}$ [mm]} \\ \cmidrule{2-3} \cmidrule{5-6} \cmidrule{8-9} 
+			& $x$                & $y$               &  & $x$                     & $y$                     &  & $x$                   & $y$                  \\ \midrule
+			$P_0$               & 0.00               & 0.00                   &  & -0.66                      & -0.68                  &  & 0.66                  & 0.68    \\
+			$P_1$               & 225.00           & 0.00                   &  & 234.17                   & 0.99                    &  & -9.17                 & -0.99   \\
+			$P_2$               & 450.00           & 0.00                   &  & 462.42                   & 4.52                    &  & -12.42               & -4.52   \\
+			$P_3$               & 112.50           & 175.00               &  & 118.14                   & 180.19                &  & -5.64                 & -5.19   \\
+			$P_4$               & 337.50           & 175.00               &  & 349.22                   & 180.91                &  & -11.72               & -5.91   \\
+			$P_5$               & 0.00               & 350.00               &  & -0.71                      & 360.32                &  & -0.71                 & -10.32   \\
+			$P_6$               & 225.00           & 350.00               &  & 234.13                   & 359.17                 &  & -9.13                & -9.17   \\
+                                $P_7$               & 450.00           & 350.00               &  & 464.28                    & 357.07                &  & -14.28              & -7.07  \\
+                                $P_8$               & 112.50           & 525.00               &  & 118.19                    & 541.19                &  & -5.60                 & -16.19  \\
+                                $P_9$               & 337.50           & 525.00               &  & 351.06                    & 538.16                &  & -13.56               & -13.16   \\
+                                $P_{10}$          & 0.00               & 700.00               &  & -2.64                      & 725.08                &  & 2.64                  & -25.08   \\
+                                $P_{11}$          & 225.00           & 700.00               &  & 235.02                    & 721.12                &  & -10.02               & -21.12   \\
+                                $P_{12}$          & 450.00           & 700.00               &  & 469.87                    & 716.21                &  & -19.87               & -16.21   \\  \bottomrule
 		\end{tabular}%
 	\end{adjustbox}
 \end{table}
+
+The resulting mean error and the standard deviation of values in Table \ref{tab:calibrationH} are $-8.26$ [mm] and $6.36$ [mm] respectively along the X-axis, and $-10.33$ [mm] and $7.40$ [mm] respectively along the Y-axis.
 
 \subsection{Evaluation of the skeleton estimation error}
 
-The positioning error due to the estimation of the hand skeleton $\mathbf{E}_{sk}$ made by OpenPose neural network has been evaluated considering the theoretical position of the index in the image $\mathbf{T} \in \mathbb{R}^2$ and the index joint position in the image $\mathbf{A} \in \mathbb{R}^2$ calculated by the software (Fig. xx) such as:
+Similarly to the estimation procedure of $\mathbf{E}_H$, for each considered point $P$ the positioning error due to the estimation of the hand skeleton $\mathbf{E}_{sk}$ made by OpenPose neural network has been evaluated considering (i) the theoretical position of the index in the image $\mathbf{T} \in \mathbb{R}^2$ [px] and the index joint position in the image $\mathbf{A} \in \mathbb{R}^2$ [px] calculated by the software. It is worth noting that when users point their finger to a position, they must keep the index gesture firmly in place until $N = 7$ consecutive index gesture have been successfully detected by the software, hence:
 
 \begin{equation}
-\mathbf{E}_{sk} = \mathbf{T} - \mathbf{A} = \begin{bmatrix}
-T_{x,n}\\
-T_{y,n}
+\mathbf{E}_{sk} = \sum_{p = 0}^P \sum_{n = 0}^N (\mathbf{T}^n_p - \mathbf{A}^n_p) =
+\sum_{p = 0}^{P} \sum_{n = 0}^N \bigg( \begin{bmatrix}
+T^n_{x,p}\\
+T^n_{y,p}
 \end{bmatrix}-
 \begin{bmatrix}
-A_{x,n}\\
-A_{y,n}
-\end{bmatrix}
-\thickspace
-\forall \thickspace 1 \leq n \leq N
+A^n_{x,p}\\
+A^n_{y,p}
+\end{bmatrix} \bigg)
 \end{equation}
 
-When users point to a position, they must keep the index gesture firmly in place until $N = 7$ consecutive index gesture have been successfully detected by the software. Hence, in this experiment the user hand moved to $14$ different locations of workspace $H$, corresponding to $14 * 7 = 98$ couples of image frames and index joint estimations.
+In this experiment the user hand moved to $14$ different locations of workspace $H$, corresponding to $14 * 7 = 98$ couples of image frames and index joint estimations. Theoretical positions have been manually selected from each acquired frame considering the tip of the index finger, while the actual positioning $A$ of each frame corresponds to the predicted index keypoint obtained from OpenPose neural network. The user hand in the acquired frames is both vertically oriented and left or right oriented. An equal number of left-hand and right-hand frames have been selected for the evaluation.
 
-Theoretical positions have been manually selected from each acquired frame considering the tip of the index finger, while the actual positioning $A$ of each frame corresponds to the predicted index keypoint obtained from OpenPose neural network. The user hand in the acquired frames is both vertically oriented and left or right oriented. An equal number of left-hand and right-hand frames have been selected for the evaluation.
+To evaluate the relevance of $\mathbf{E}_{sk}$ we considered the average value $\overline{\mathbf{E}}^p_{sk}$ and the standard deviation $\sigma{\mathbf{E}}^p_{sk}$ calculated on the $7$ consecutive detections of each point $P$, resulting in the values in Table \ref{tab:dev}.
 
-To evaluate the relevance of $\mathbf{E}_{sk}$ we considered the average value $\overline{\mathbf{E}}_{sk}$ and the standard deviation $\sigma{\mathbf{E}}_{sk}$ along all 7 software detection for all 14 points (Table \ref{tab:dev}).
 \begin{table}[h!]
 	\centering
-	\caption{Averages and standard deviations of error $\mathbf{E}_{sk}$, theoretical position $\mathbf{T}$ and actual position $\mathbf{A}$}
+	\caption{Averages and standard deviations of error $\mathbf{E}_{sk}$, theoretical position $\mathbf{T}_p$ and actual position $\mathbf{A}_p$}
 	\label{tab:dev}
-	\begin{adjustbox}{max width=\textwidth}
+	\begin{adjustbox}{max width=\columnwidth}
 		\begin{tabular}{@{}ccccclccccc@{}}
 			\toprule
-			\multicolumn{2}{c}{$\overline{\mathbf{E}}_{sk}$[px]} &  & \multicolumn{2}{c}{$\sigma{\mathbf{E}}_{sk}$[px]} &  & \multicolumn{2}{c}{$\sigma\mathbf{T}${[px]}} &  & \multicolumn{2}{c}{$\sigma\mathbf{A}${[px]}} \\ \cmidrule(r){1-2} \cmidrule(lr){4-5} \cmidrule(lr){7-8} \cmidrule(l){10-11} 
-			$x$                     & $y$                    &  & $x$                   & $y$                   &  & $x$                    & $y$                   &  & $x$                    & $y$                   \\ \midrule
-			-1.29                   & -3.29                  &  & 3.92                  & 4.06                  &  & 47.8                   & 6.80                  &  & 48.9                   & 9.05                  \\
-			1.71                    & -2.14                  &  & 3.06                  & 3.00                  &  & 82.3                   & 67.8                  &  & 80.4                   & 68.0                  \\
-			-0.29                   & -4.86                  &  & 4.49                  & 6.49                  &  & 41.6                   & 22.5                  &  & 40.2                   & 28.2                  \\
-			1.43                    & -4.14                  &  & 2.77                  & 5.19                  &  & 52.5                   & 6.25                  &  & 53.8                   & 8.34                  \\
-			2.29                    & 0.14                   &  & 4.43                  & 1.96                  &  & 4.43                   & 3.59                  &  & 0.00                   & 4.55                  \\
-			0.43                    & -5.43                  &  & 2.56                  & 1.18                  &  & 2.56                   & 1.18                  &  & 0.00                   & 0.00                  \\
-			4.14                    & -6.14                  &  & 4.09                  & 2.53                  &  & 78.1                   & 87.0                  &  & 78.6                   & 86.2                  \\
-			0.29                    & 0.00                   &  & 3.73                  & 4.07                  &  & 151                    & 26.5                  &  & 147                    & 30.2                  \\
-			3.71                    & -3.00                  &  & 3.84                  & 3.82                  &  & 97.8                   & 15.1                  &  & 98.5                   & 15.1                  \\
-			1.29                    & -0.43                  &  & 3.92                  & 1.84                  &  & 77.9                   & 21.9                  &  & 76.4                   & 23.5                  \\
-			4.14                    & -1.43                  &  & 4.09                  & 4.03                  &  & 79.0                   & 20.7                  &  & 78.3                   & 23.8                  \\
-			3.29                    & -1.71                  &  & 4.46                  & 2.55                  &  & 8.91                   & 43.8                  &  & 11.8                   & 44.5                  \\
-			4.71                    & -3.00                  &  & 2.37                  & 4.24                  &  & 2.26                   & 14.4                  &  & 4.55                   & 14.0                  \\
-			3.00                    & -1.57                  &  & 2.93                  & 3.96                  &  & 27.0                   & 98.7                  &  & 28.5                   & 97.2                  \\ \bottomrule
+			\multicolumn{2}{c}{$\overline{\mathbf{E}}^p_{sk}$ [px]} &  & \multicolumn{2}{c}{$\sigma{\mathbf{E}}^p_{sk}$[px]} &  & \multicolumn{2}{c}{$\sigma\mathbf{T}_p$ {[px]}} &  & \multicolumn{2}{c}{$\sigma\mathbf{A}_p$ {[px]}} \\ \cmidrule(r){1-2} \cmidrule(lr){4-5} \cmidrule(lr){7-8} \cmidrule(l){10-11} 
+			& & 		        $x$                        & $y$                  &  & $x$                      & $y$                   &  & $x$                     & $y$ \\ \midrule
+			-1.29                   & -3.29                  &  & 3.92                  & 4.06                  &  & 47.83                  & 6.80                  &  & 48.85 \\
+			1.71                    & -2.14                  &  & 3.06                  & 3.00                  &  & 82.25                  & 67.77                 &  & 80.35 \\
+			-0.29                   & -4.86                  &  & 4.49                  & 6.49                  &  & 41.62                  & 22.46                 &  & 40.18 \\
+			1.43                    & -4.14                  &  & 2.77                  & 5.19                  &  & 52.52                  & 6.25                   &  & 53.76 \\
+			2.29                    & 0.14                   &  & 4.43                  & 1.96                  &  & 4.43                    & 3.59                   &  & 0.00 \\
+			0.43                    & -5.43                  &  & 2.56                  & 1.18                  &  & 2.56                    & 1.18                   &  & 0.00 \\
+			4.14                    & -6.14                  &  & 4.09                  & 2.53                  &  & 78.10                  & 87.03                 &  & 78.57  \\
+			0.29                    & 0.00                   &  & 3.73                  & 4.07                  &  & 150.60                & 26.54                 &  & 146.98 \\
+			3.71                    & -3.00                  &  & 3.84                  & 3.82                  &  & 97.83                  & 15.08                 &  & 98.48 \\
+			1.29                    & -0.43                  &  & 3.92                  & 1.84                  &  & 77.88                  & 21.88                 &  & 76.35   \\
+			4.14                    & -1.43                  &  & 4.09                  & 4.03                  &  & 79.02                  & 20.71                 &  & 78.26  \\
+			3.29                    & -1.71                  &  & 4.46                  & 2.55                  &  & 8.91                    & 43.75                 &  & 11.75  \\
+			4.71                    & -3.00                  &  & 2.37                  & 4.24                  &  & 2.26                    & 14.37                 &  & 4.55  \\
+			3.00                    & -1.57                  &  & 2.93                  & 3.96                  &  & 27.01                  & 98.68                 &  & 28.53 \\ \bottomrule
 		\end{tabular}%
 	\end{adjustbox}
 \end{table}
 
-In each location, the $(x,y)$ components of the average error has been calculated as:
+In each point $P$, the $(x, y)$ components of the average error has been calculated as:
 
 \begin{equation}
-\overline{\mathbf{E}}_{sk} = \begin{bmatrix}
-\overline{E}_{sk,x}  = \frac{1}{N}\sum_{n=1}^{N} (T_{xn} - A_{xn}) \\
-\overline{E}_{sk,y} = \frac{1}{N}\sum_{n=1}^{N} (T_{yn} - A_{yn})
+\overline{\mathbf{E}}^p_{sk} = \begin{bmatrix}
+\overline{E}^p_{sk,x}  = \frac{1}{N}\sum_{n=1}^{N} (T_{x,n} - A_{x,n}) \\
+\overline{E}^p_{sk,y} = \frac{1}{N}\sum_{n=1}^{N} (T_{y,n} - A_{y,n})
 \end{bmatrix}
 \end{equation}
 
-It is worth noting that the mean value calculated with all $\overline{\mathbf{E}}_{sk}$ is extremely low: $2.06$ [px] along the X-axis and $-2.64$ [px] along the Y-axis, as well for the mean of standard deviations $\sigma{\mathbf{E}}_{sk}$: $3.61$ [px] along the X-axis and $3.49$ [px] along the Y-axis. The negative sign represents the case when the actual positioning $A$ is overstimated with respect to the corresponding theoretical positioning $T$.
+It is worth noting that the mean value of $\overline{\mathbf{E}}^p_{sk}$ is extremely low: $2.06$ [px] along the X-axis and $-2.64$ [px] along the Y-axis, as well for the mean of standard deviations $\sigma{\mathbf{E}}^p_{sk}$: $3.61$ [px] along the X-axis and $3.49$ [px] along the Y-axis. The negative sign represents the case when the actual positioning $A$ is overstimated with respect to the corresponding theoretical positioning $T$.
 
-Moreover, by calculating the standard deviation $\sigma_x$ of the $N$ different pixel positions along both for theoretical positions ($\sigma_{Tx}$, $\sigma_{Ty}$) and actual positions ($\sigma_{Ax}$, $\sigma_{Ay}$) (Table \ref{tab:dev}), we know how much the user kept the hand firmly in place for each location. This result is an index useful to understand in which location the user moved the hand too much, thus reducing the accuracy of the estimation of the average index keypoint, which could lead to an incorrect placing of the robot end-effector.
+Moreover, by calculating the standard deviation $\sigma$ of the $N$ different pixel positions along both theoretical positions ($\sigma T_x$, $\sigma T_y$) and actual positions ($\sigma A_x$, $\sigma A_y$) (Table \ref{tab:dev}), we know how much the user kept the hand firmly in place for each location. This result is useful to understand in which location the user moved the hand too much, thus reducing the accuracy of the estimation of the average index keypoint, which could lead to an incorrect placing of the robot end-effector.
 
-%
-%\begin{table}[h]
-%\begin{center}
-%\caption{Test Locations Standard Deviations}
-%\label{tab:firm}
-%\begin{tabular}{|c||c||c||c|}
-%\hline
-%$\sigma_{Tx}$[px] & $\sigma_{Ty}$[px] & $\sigma_{Ax}$[px] & $\sigma_{Ay}$[px] \\
-%\hline
-%47.83 & 6.80 & 48.85 & 9.05\\
-%82.25 & 67.77 & 80.35 & 68.02\\
-%41.62 & 22.46 & 40.18 & 28.16\\
-%52.52 & 6.25 & 53.76 & 8.34\\
-%4.43 & 3.59 & 0.00 & 4.55\\
-%2.56 & 1.18 & 0.00 & 0.00\\
-%78.10 & 87.03 & 78.57 & 86.21\\
-%150.60 & 26.54 & 146.98 & 30.17\\
-%97.83 & 15.08 & 98.48 & 15.09\\
-%77.88 & 21.88 & 76.35 & 23.49\\
-%79.02 & 20.71 & 78.26 & 23.78\\
-%8.91 & 43.75 & 11.75 & 44.54\\
-%2.26 & 14.37 & 4.55 & 14.04\\
-%27.01 & 98.68 & 28.53 & 97.18\\
-%\hline
-%\end{tabular}
-%\end{center}
-%\end{table}
 \subsection{Evaluation of the robot workspace error}
 
 In our set-up, reference system $H$ is placed horizontally with the camera mounted at a $1$ m distance (green horizontal square in Fig. \ref{fig:wscalib}). Reference system $W$, however, has been placed vertically on a glass pane (purple vertical square in Fig. \ref{fig:wscalib}).
+The robot workspace error $\mathbf{E}_{W}$ is composed by (i) an error $\mathbf{E}^a_{W}$ only related to the calibration procedure and (ii) the robot position error $\mathbf{E}^b_{W}$ due to physical robot characteristics:
 
-The robot workspace error $\mathbf{E}_{W}$ is composed by an error $\mathbf{E}^a_{W}$ only related to the calibration procedure, and the robot position error $\mathbf{E}^b_{W}$ due to physical robot characteristics, such that:
 \begin{equation}
 \mathbf{E}_{W} = \mathbf{E}^a_{W} + \mathbf{E}^b_{W}
 \end{equation} 
-To robustly assess the robot positioning error $\mathbf{E}^b_{W}$ of the end-effector, a 3D printed carrier holding a bright red laser has been mounted on the end effector (\textit{Lasiris laser 635nm, 10mW}) (Fig. \ref{fig:laser}, bottom-right corner).
 
-When the robot is moved with its own software to a certain theoretical position $T$, the laser will point to its actual positioning $A$. To correctly visualize and measure the robot workspace and the laser positioning, an RGB camera (\textit{IDS Imaging UI-1460C}) has been mounted behind the glass pane.
-A measuring software has been developed using LabVIEW to measure the distance ($E$) between the theoretical position $T$ (calculated as the centroid of the black square of the experimental master, represented as the green dot in Fig. \ref{fig:laser}, top-left corner) and the actual positioning $A$ (red dot in Fig. \ref{fig:laser}, top-left corner).
+To robustly assess the robot positioning error $\mathbf{E}^b_{W}$ of the end-effector, a 3D printed carrier holding a bright red laser (\textit{Lasiris laser 635nm, 10mW}) has been mounted on the end effector (Fig. \ref{fig:laser}, bottom-right corner).
 
 \begin{figure} [ht]
   \centering
@@ -479,28 +475,30 @@ A measuring software has been developed using LabVIEW to measure the distance ($
   \label{fig:laser}
 \end{figure}
 
-We moved the robot in $7$ theoretical positions, corresponding to markers P3, P4, P5, P6, P7, P8 and P9 in Fig. \ref{fig:master_robot}, for a total of $3$ times per each theoretical position. To do that, we used the Cartesian positions corresponding to the circular markers centroids (theoretical positions) to move the robot using the ROS interface. Hence, this procedure avoids considering the hand skeleton estimation errors.
+When the robot is moved with its own software to a certain theoretical position $T$, the laser will point to its actual positioning $A$. To correctly visualize and measure the robot workspace and the laser positioning, an RGB camera (\textit{IDS Imaging UI-1460C}) has been mounted behind the glass pane.
+A measuring software has been developed using LabVIEW to measure the distance ($E$) between the theoretical position $T$ (calculated as the centroid of the black square of the experimental master, represented as the green dot in Fig. \ref{fig:laser}, top-left corner) and the actual positioning $A$ (red dot in Fig. \ref{fig:laser}, top-left corner).
 
-The error $\mathbf{E}^a_{W}$ has been calculated by considering the same positions previously stated in respect with the robot frame, transformed with Equation \ref{eq:roto1}. Since the rigid transformation matrix is obtained from the calibration least square method, this procedure permits to isolate the calibration error. $\mathbf{E}^a_{W}$ is defined as the absolute difference between the robot theoretical position $T$ and the actual position $A$ calculated using Equation \ref{eq:roto1}.
+We moved the robot in $7$ theoretical positions, corresponding to points $P_3$, $P_4$, $P_5$, $P_6$, $P_7$, $P_8$ and $P_9$ in Fig. \ref{fig:master_robot}, for a total of $3$ times per each theoretical position. To do that, we used the Cartesian positions corresponding to the circular markers centroids (theoretical positions) to move the robot using the ROS interface. Hence, this procedure avoids considering the hand skeleton estimation errors.
+
+The error $\mathbf{E}^a_{W}$ has been calculated by considering the same points with respect to the robot frame, calculated using equation \ref{eq:roto1}. Since the rigid transformation matrix is obtained from the calibration least square method, this procedure allows to isolate the calibration error. $\mathbf{E}^a_{W}$ is defined as the absolute difference between the robot theoretical position $T$ and the actual position $A$ calculated using equation \ref{eq:roto1}.
 The resulting distances in millimeters are reported in Table \ref{tab:laser}, where $\mathbf{E}^b_{W}$ values are reported as the average among the 3 tests.
-
 
 \begin{table}[h!]
 	\centering
 	\caption{Norm, averages and standard deviations of error $\mathbf{E}^b_{W}$}
 	\label{tab:laser}
-	\begin{adjustbox}{max width=\textwidth}
+	\begin{adjustbox}{max width=\columnwidth}
 		\begin{tabular}{ccccccccc}
-			\hline
-			\multirow{2}{*}{Points} & \multicolumn{2}{c}{$\mathbf{E}^a_{W}$ [mm]} &  & \multicolumn{2}{c}{$\mathbf{E}^b_{W}$ [mm]} &  & \multicolumn{2}{c}{$\sigma\mathbf{E}^b_{W}$ [mm]} \\ \cline{2-3} \cline{5-6} \cline{8-9} 
-			& $x$                & $y$               &  & $x$                     & $y$                     &  & $x$                   & $y$                  \\ \hline
-			P8                     & 0.40               & 0.50              &  & 0.20                    & 1.50                    &  & 0.17                  & 0.06                 \\
-			P9                      & 2.00               & 0.50              &  & 0.91                    & 1.40                    &  & 0.40                  & 0.04                 \\
-			P5                      & 6.70               & 0.70              &  & 1.63                    & 0.58                    &  & 0.14                  & 0.05                 \\
-			P6                      & 0.60               & 0.40              &  & 0.77                    & 1.44                    &  & 0.04                  & 0.05                 \\
-			P7                      & 2.60               & 0.20              &  & 0.70                    & 1.15                    &  & 0.02                  & 0.12                 \\
-			P3                      & 0.30               & 1.10              &  & 0.26                    & 1.86                    &  & 0.01                  & 0.05                 \\
-			P4                      & 1.70               & 0.00              &  & 0.19                    & 1.59                    &  & 0.11                  & 0.27                 \\ \hline
+			\toprule
+			\multirow{2}{*}{Points} & \multicolumn{2}{c}{$\mathbf{E}^a_{W}$ [mm]} &  & \multicolumn{2}{c}{$\mathbf{E}^b_{W}$ [mm]} &  & \multicolumn{2}{c}{$\sigma\mathbf{E}^b_{W}$ [mm]} \\ \cmidrule{2-3} \cmidrule{5-6} \cmidrule{8-9} 
+			& $x$                & $y$               &  & $x$                     & $y$                     &  & $x$                   & $y$                  \\ \midrule
+                                $P_3$                      & 0.30               & 1.10              &  & 0.26                    & 1.86                    &  & 0.01                  & 0.05                 \\
+			$P_4$                      & 1.70               & 0.00              &  & 0.19                    & 1.59                    &  & 0.11                  & 0.27                 \\ 
+			$P_5$                      & 6.70               & 0.70              &  & 1.63                    & 0.58                    &  & 0.14                  & 0.05                 \\
+			$P_6$                      & 0.60               & 0.40              &  & 0.77                    & 1.44                    &  & 0.04                  & 0.05                 \\
+			$P_7$                      & 2.60               & 0.20              &  & 0.70                    & 1.15                    &  & 0.02                  & 0.12                 \\
+			$P_8$                     & 0.40               & 0.50              &  & 0.20                    & 1.50                    &  & 0.17                  & 0.06                 \\
+			$P_9$                      & 2.00               & 0.50              &  & 0.91                    & 1.40                    &  & 0.40                  & 0.04                 \\ \bottomrule
 		\end{tabular}%
 	\end{adjustbox}
 \end{table}
@@ -508,11 +506,15 @@ The resulting distances in millimeters are reported in Table \ref{tab:laser}, wh
 We computed the resulting mean distance and the standard deviation of each marker position, reported in Table \ref{tab:laser}. Considering $\mathbf{E}^a_{W}$, the average mean distance is $2.04$ [mm] for the X-axis and $0.49$ [mm] for the Y-axis. While $\mathbf{E}^b_{W}$ has an average of $0.66$ [mm] for the X-axis and $1.66$ [mm] for the Y-axix. The standard deviation among the 3 tests for $\mathbf{E}^b_{W}$ is $0.13$ [mm] for the X-axis and $0.09$ [mm] for the Y-axis.
 
 \section{CONCLUSIONS}
-%%%%%%% TO DO
 
-Conclusioni sul progetto/esperimenti ottenuti.
-Problematiche incontrate e come sono state risolte.
-Future developments.
+In this paper a novel teleoperation method called "Hands-Free" is presented. The proposed system adopts an RGB visual system properly calibrated and OpenPose neural network to acquire the user index finger location in the user workspace $H$. The estimated position is then converted in the corresponding robot end-effector position with respect to a second workspace $W$ in which the robot operates.
+
+Given the characteristics of Hands-Free, a number of positioning errors sum up and affect the final robot positioning. To correctly determine them, we performed 3 experiments: the first one was aimed at identifying the camera calibration error $\mathbf{E}_{H}$ which affects the conversion between the pixel coordinates of a point in the image frame to the corresponding real world coordinates in workspace $H$. The second one was aimed at identifying the skeleton estimation error $\mathbf{E}_{sk}$ which is due to OpenPose neural network. The third error was aimed at identifying the robot workspace error $\mathbf{E}_{W}$, which depends on both (i) the calibration procedure of the robot with respect to workspace $W$ and (ii) the robot intrinsic characteristics.
+
+Considering the results obtained from the experiments we can conclude that using Hands-Free the final positioning error is due mostly to $\mathbf{E}_{H}$, and that this error can be reduced if a better RGB camera is used compared to the Kinect v2 camera adopted in this paper.
+As a further contribution, we released the code in our public repository on GitHub: https://github.com/Krissy93/hands-free-project.
+
+In future developments we will add the Z-axis spatial control to Hands-Free and reproduce the experiments adopting a different camera, to better improve the system performances.
 
 \addtolength{\textheight}{-12cm}   % This command serves to balance the column lengths
                                   % on the last page of the document manually. It shortens
