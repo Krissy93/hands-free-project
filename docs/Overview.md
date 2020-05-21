@@ -50,6 +50,7 @@ To obtain a robot position, the index position of the user hand (left or right) 
 Two gestures are defined by the software (Fig. 3):
 - hand open
 - index only
+
 Users can move the hands freely in the user workspace. When they want to move the robot to a specific position, they have to perform the "hand open" gesture first and the "index" gesture afterwards, keeping the latter gesture still for a certain amount of time.
 
 <p align="center">
