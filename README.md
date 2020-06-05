@@ -13,10 +13,3 @@ The project aims to give users a smart way to teleoperate a robot using their ha
 
 ## Custom modules
 If you want to contribute adding custom modules and functionalities to the software, feel free to do so! Contact us if you need help or want to work with us by sending an e-mail to [Cristina Nuzzi](mailto:c.nuzzi@unibs.it).
-
-## "To do" list
-- [x] Get the hand skeleton from frames in real time using Kinect v2
-- [x] Define gestures (orientation and zoom invariant)
-- [x] Map the experimental workspaces
-- [x] Define a procedure to automatically map the workspaces
-- [ ] Write visualization code of the two simultaneous workspaces, skeleton mapped to the robot one
