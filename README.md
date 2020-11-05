@@ -2,9 +2,11 @@
 Welcome to the Hands-Free Project of Vis4Mechs, University of Brescia, Italy!
 The project aims to give users a smart way to teleoperate a robot using their hands. This allows the robot to work in a working area that can be either (i) the same of the operator or (ii) a different one, even positioned far away from the operator itself (e. g. a robot placed behind a safety cage, which works far away from the operator, or a Collaborative Robot, which usually works in the same working area of the operator).
 
+Check out the [video presentation](https://vis4mechs.unibs.it/wp-content/uploads/2020/07/122_Hands_Free_Video.mp4) of the project!
+
 If you find this project useful for your research please support us by citing it in your work:
 ```
-@INPROCEEDINGS{handsfree2020,
+@inproceedings{handsfree2020,
   author={C. {Nuzzi} and S. {Ghidini} and R. {Pagani} and S. {Pasinetti} and G. {Coffetti} and G. {Sansoni}},
   booktitle={2020 17th International Conference on Ubiquitous Robots (UR)}, 
   title={Hands-Free: a robot augmented reality teleoperation system}, 
