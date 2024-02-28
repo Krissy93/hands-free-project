@@ -1,9 +1,8 @@
 # Hands-Free Project Repository
-Welcome to the Hands-Free Project of Vis4Mechs, University of Brescia, Italy!
+Welcome to the Hands-Free Project of the Mechanical and Thermal Measurements group of the University of Brescia (Italy)!
 The project aims to give users a smart way to teleoperate a robot using their hands. This allows the robot to work in a working area that can be either (i) the same of the operator or (ii) a different one, even positioned far away from the operator itself (e. g. a robot placed behind a safety cage, which works far away from the operator, or a Collaborative Robot, which usually works in the same working area of the operator).
 
-Check out the [video presentation](https://vis4mechs.unibs.it/wp-content/uploads/2020/07/122_Hands_Free_Video.mp4) of the project!
-
+Check out the [video presentation]([https://drive.google.com/file/d/11DPQRnKTaxQ1hyH73rma3vDW1baqvhwu/view?usp=sharing]) of the project!
 If you find this project useful for your research please support us by citing it in your work:
 ```
 @inproceedings{handsfree2020,
@@ -25,4 +24,4 @@ If you find this project useful for your research please support us by citing it
 - Roberto Pagani, [Roby-Pagani](https://github.com/Roby-Pagani)
 
 ## Custom modules
-If you want to contribute adding custom modules and functionalities to the software, feel free to do so! Contact us if you need help or want to work with us by sending an e-mail to [Cristina Nuzzi](mailto:c.nuzzi@unibs.it).
+If you want to contribute adding custom modules and functionalities to the software, feel free to do so! Contact us if you need help or want to work with us by sending an e-mail to [Cristina Nuzzi](mailto:cristina.nuzzi@unibs.it).
