@@ -1,68 +1,44 @@
 #!/usr/bin/env python
 
 import rospy
+import graphical_utils as gu
 import utils
 
-# constants for marker in simulator panel
-x = 0.75
+# Posizioni predefinite
 
-poses = {
-        'A1': [x, 0.225, 1.455],
-        'A2': [x, 0.0, 1.455],
-        'A3': [x, -0.225, 1.455],
-        'A4': [x, 0.1125, 1.28],
-        'A5': [x, -0.1125, 1.28],
-        'O1': [x, 0.225, 1.105],
-        'O0': [x, 0.0, 1.105],
-        'O2': [x, -0.225, 1.105],
-        'B1': [x, 0.225, 0.755],
-        'B2': [x, 0.0, 0.755],
-        'B3': [x, -0.225, 0.755],
-        'B4': [x, 0.1125, 0.93],
-        'B5': [x, -0.1125, 0.93],
-     }
-
-x_offset = -0.05  # gripper dimension
-y_offset = 0
-z_offset = -0.93  # offset between robot base and origin of simulator axis
-
+y = 0.4
+positions = {
+    '1': [0.2, y, 0.15],  # Primo punto da testare
+    '2': [0.0, y, 0.15],  # Secondo punto da testare
+    '3': [-0.2, y, 0.15],  # Terzo punto da testare
+    '4': [0.2, y, 0.325],
+    '5': [0.0, y, 0.325],
+    '6': [-0.2, y, 0.325],
+    '7': [0.2, y, 0.45],
+    '8': [0.0, y, 0.45],
+    '9': [-0.2, y, 0.45]
+}
 
 def main():
-    ''' Program used to move the robot in the simulator on the point selected from markers list.  '''
+    rospy.init_node("move_to_predefined_pose")
+    print(gu.Color.BOLD + gu.Color.CYAN + 'Initializing node... ' + gu.Color.END)
 
-    print(utils.Color.BOLD + utils.Color.CYAN + 'Initializing node... ' + utils.Color.END)
-    # initialize ros node
-    rospy.init_node("calibrate_robot_acquisition")
-
-    # MOVEMENT
-    # initialize robot
     robot = utils.Robot()
 
-    done = False
+    # Muovi alla posizione neutra
+    robot.set_neutral()
+    print(gu.Color.BOLD + gu.Color.CYAN + 'Moved to neutral position.' + gu.Color.END)
 
-    print(utils.Color.BOLD + utils.Color.CYAN + 'Please select point:' + utils.Color.END)
-    print(utils.Color.BOLD + utils.Color.CYAN + 'A1       A2      A3 ' + utils.Color.END)
-    print(utils.Color.BOLD + utils.Color.CYAN + '    A4       A5       ' + utils.Color.END)
-    print(utils.Color.BOLD + utils.Color.CYAN + 'O1       O0      O2 ' + utils.Color.END)
-    print(utils.Color.BOLD + utils.Color.CYAN + '    B4       B5      ' + utils.Color.END)
-    print(utils.Color.BOLD + utils.Color.CYAN + 'B1       B2      B3 ' + utils.Color.END)
-
-    while not done and not rospy.is_shutdown():
-
-        # takes the string corresponding to the point
-        point_in = raw_input()
-        point_in = point_in.upper()
-        point_in = point_in.replace(" ", "")
-
-        # move the robot to the selected point or it prints an error indicating wrong point
-        if point_in in poses:
-            p = poses[point_in]
-            robot.move_to_cartesian(p[0] + x_offset, p[1] + y_offset, p[2] + z_offset)
+    print(gu.Color.BOLD + gu.Color.CYAN + 'Enter O1, O2, or O3 to move to the corresponding point.' + gu.Color.END)
+    
+    while not rospy.is_shutdown():
+        point_in = input("Enter the point (1, 2, 3, 4, 5, 6, 7, 8, 9): ").strip().upper()
+        if point_in in positions:
+            p = positions[point_in]
+            robot.move_to_cartesian(p[0], p[1], p[2])
+            rospy.sleep(2)  # Wait a bit before allowing the next input
         else:
-            print(utils.Color.BOLD + utils.Color.RED + 'ERROR: Invalid point' + utils.Color.END)
-
-    rospy.on_shutdown(utils.myhook)
-
+            print(gu.Color.BOLD + gu.Color.RED + 'ERROR: Invalid point. Please enter 1, 2, 3, 4, 5, 6, 7, 8, 9.' + gu.Color.END)
 
 if __name__ == '__main__':
     main()

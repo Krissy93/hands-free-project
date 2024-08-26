@@ -5,19 +5,32 @@ import numpy as np
 import cv2
 import sys
 import graphical_utils as gu
-# import rospy
+import rospy
 # import math
 # import time
-# from geometry_msgs.msg import Pose
-# from tf.transformations import quaternion_from_euler
-# from pylibfreenect2 import Freenect2, SyncMultiFrameListener
-# from pylibfreenect2 import FrameType, Registration, Frame
-# import intera_interface
-# from scipy.spatial import distance
+from geometry_msgs.msg import Pose
+from tf.transformations import quaternion_from_euler
+from pylibfreenect2 import Freenect2, SyncMultiFrameListener
+from pylibfreenect2 import FrameType, Registration, Frame
+from scipy.spatial import distance
 #
-# import matplotlib as mpl
-# import matplotlib.pyplot as plt
-# from mpl_toolkits.mplot3d import Axes3D
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+import math
+from std_msgs.msg import String  # Import String message type for ROS communication
+from ur_msgs.srv import SetIO
+#import intera_interface
+
+import actionlib
+from moveit_commander import RobotCommander, PlanningSceneInterface
+from moveit_commander import MoveGroupCommander
+from moveit_commander import roscpp_initialize, roscpp_shutdown
+import moveit_commander
+from geometry_msgs.msg import PoseStamped, Quaternion
+import geometry_msgs.msg
+import moveit_msgs.msg
 
 
 class Camera:
@@ -37,7 +50,7 @@ class Camera:
         if self.cap is None or not self.cap.isOpened():
             self.cap = cv2.VideoCapture(1)
             if self.cap is None or not self.cap.isOpened():
-                print(Color.BOLD + Color.RED + '-- ERROR: NO DEVICE CONNECTED TO PORT 0 AND 1! --' + Color.END)
+                print(gu.Color.BOLD + gu.Color.RED + '-- ERROR: NO DEVICE CONNECTED TO PORT 0 AND 1! --' + gu.Color.END)
                 sys.exit(1)
 
     def acquire(self, correct=False):
@@ -58,7 +71,7 @@ class Camera:
     def stop(self):
         ''' Stop method to close device upon exiting the program '''
 
-        print(Color.BOLD + Color.CYAN + '\n -- CLOSING DEVICE... --' + Color.END)
+        print(gu.Color.BOLD + gu.Color.CYAN + '\n -- CLOSING DEVICE... --' + gu.Color.END)
         self.cap.release()
         cv2.destroyAllWindows()
 
@@ -81,7 +94,7 @@ class Camera:
             x, y, w, h = roi
             self.RGBundistorted = self.RGBundistorted[y:y+h, x:x+w]
         else:
-            print(Color.BOLD + Color.YELLOW + '-- NO CALIBRATION LOADED!! --' + Color.END)
+            print(gu.Color.BOLD + gu.Color.YELLOW + '-- NO CALIBRATION LOADED!! --' + gu.Color.END)
             self.RGBundistorted = self.color_new
 
 class Kinect:
@@ -105,7 +118,7 @@ class Kinect:
                 from pylibfreenect2 import CpuPacketPipeline
                 self.pipeline = CpuPacketPipeline()
 
-        rospy.loginfo(Color.BOLD + Color.YELLOW + '-- PACKET PIPELINE: ' + str(type(self.pipeline).__name__) + ' --' + Color.END)
+        rospy.loginfo(gu.Color.BOLD + gu.Color.YELLOW + '-- PACKET PIPELINE: ' + str(type(self.pipeline).__name__) + ' --' + gu.Color.END)
 
         self.enable_rgb = enable_rgb
         self.enable_depth = enable_depth
@@ -117,7 +130,7 @@ class Kinect:
         # if no kinects are plugged in the system, it quits
         self.num_devices = self.fn.enumerateDevices()
         if self.num_devices == 0:
-            rospy.loginfo(Color.BOLD + Color.RED + '-- ERROR: NO DEVICE CONNECTED!! --' + Color.END)
+            rospy.loginfo(gu.Color.BOLD + gu.Color.RED + '-- ERROR: NO DEVICE CONNECTED!! --' + gu.Color.END)
             sys.exit(1)
 
         # otherwise it gets the first one available
@@ -211,7 +224,7 @@ class Kinect:
     def stop(self):
         ''' Stop method to close device upon exiting the program '''
 
-        rospy.loginfo(Color.BOLD + Color.RED + '\n -- CLOSING DEVICE... --' + Color.END)
+        rospy.loginfo(gu.Color.BOLD + gu.Color.RED + '\n -- CLOSING DEVICE... --' + gu.Color.END)
         self.device.stop()
         self.device.close()
 
@@ -226,121 +239,178 @@ class Kinect:
             # crop the image
             x,y,w,h = roi
             self.RGBundistorted = self.RGBundistorted[y:y+h, x:x+w]
-            self.RGBundistorted = cv2.flip(self.RGBundistorted, 0)
+            #self.RGBundistorted = cv2.flip(self.RGBundistorted, 1)
             #self.RGBundistorted = self.RGBundistorted[0:900, 300:1800]
             #self.RGBundistorted = self.RGBundistorted[0:900, 520:1650]
         else:
             #rospy.loginfo(Color.BOLD + Color.RED + '-- NO UNDISTORTION APPLIED --' + Color.END)
             self.RGBundistorted = self.color_new
-            self.RGBundistorted = cv2.flip(self.RGBundistorted, 0)
+            #self.RGBundistorted = cv2.flip(self.RGBundistorted, 1)
 
 class Robot:
-    ''' Class that represents a Robot object '''
+    def __init__(self):
+        # Initialize move group commander for UR3 arm
+        moveit_commander.roscpp_initialize(sys.argv)
 
-    def __init__(self,tip_name="right_hand"):
-        ''' Init method called upon creation of Robot object '''
+        self.robot = RobotCommander()
+        self.group = MoveGroupCommander("manipulator")  # Name of the move group for UR3
+        self.group.set_pose_reference_frame("base_link")
+        
+        # Initialize the robot and the scene
+        self.scene = PlanningSceneInterface()
+        
+        # Create a publisher to visualize trajectories in RViz
+        self.display_trajectory_publisher = rospy.Publisher(
+            '/move_group/display_planned_path',
+            moveit_msgs.msg.DisplayTrajectory,
+            queue_size=20)
+        
+        # Allow some time for the scene to initialize
+        rospy.sleep(2)
+        
+        # Set the planner
+        self.group.set_planner_id("RRTConnectkConfigDefault")
+        self.group.set_planning_time(10)
+        
 
-        rp = intera_interface.RobotParams()
-        valid_limbs = rp.get_limb_names()
-        if not valid_limbs:
-            rp.log_message("Cannot detect any limb parameters on this robot. Exiting.", "ERROR")
-            return
+    def set_neutral(self):
+        """
+        Moves the UR3 robot arm to the neutral (home) position.
+        """
+        try:
+            # Go to neutral pose
+            self.group.set_named_target("home")
+            plan = self.group.go(wait=True)
+            self.group.stop()
+            self.group.clear_pose_targets()
 
-        print(Color.BOLD + Color.CYAN + 'Enabling robot... ' + Color.END)
+            rospy.loginfo('Moved to neutral position.')
+        except rospy.ROSInterruptException:
+            rospy.logerr('Keyboard interrupt detected from the user. Exiting before trajectory completion.')
+        except Exception as e:
+            rospy.logerr('An error occurred: %s', str(e))
 
-        # enables robot
-        rs = intera_interface.RobotEnable(intera_interface.CHECK_VERSION)
-        init_state = rs.state().enabled
-        rs.enable()
+    def move_to_cartesian(self, x, y, z, Debug=False):
+        # Method to move the robot to a desired point.
 
-        self.limb = intera_interface.Limb(valid_limbs[0])
-        # Inserito da verificare
-        self._tip_name=tip_name
+        try:
+            target_pose = geometry_msgs.msg.Pose()
+            target_pose.position.x = x
+            target_pose.position.y = y
+            target_pose.position.z = z
 
-        print(Color.BOLD + Color.GREEN + ' -- ROBOT READY -- ' + Color.END)
+            # Set a fixed orientation (you can adjust this if needed)
+            #q = quaternion_from_euler(0, math.pi / 2, 0)
+            q = quaternion_from_euler(-math.pi / 2, 0, 0)
+            target_pose.orientation.x = q[0]
+            target_pose.orientation.y = q[1]
+            target_pose.orientation.z = q[2]
+            target_pose.orientation.w = q[3]
 
-    def move_to_cartesian(self, x, y, z, time=4.0, steps=400.0, Debug=False):
-        ''' Method to move the robot to a desired point. '''
+            self.group.set_pose_target(target_pose)
+            plan = self.group.plan()
 
-        if Debug:
-            print(Color.BOLD + Color.CYAN + 'Moving to selected point..' + Color.END)
-
-        rate = rospy.Rate(1 / (time / steps))  # Defaults to 100Hz command rate
-
-        current_pose = self.limb.endpoint_pose()
-        delta = Pose()
-        delta.position.x = (current_pose['position'].x - x) / steps
-        delta.position.y = (current_pose['position'].y - y) / steps
-        delta.position.z = (current_pose['position'].z - z) / steps
-
-        for d in range(int(steps), -1, -1):
-            if rospy.is_shutdown():
-                return
-            step = Pose()
-            step.position.x = d * delta.position.x + x
-            step.position.y = d * delta.position.y + y
-            step.position.z = d * delta.position.z + z
-            rpy = quaternion_from_euler(0, math.pi / 2, 0)  # end effector parallel to vertical master plane
-
-            step.orientation.x = rpy[0]
-            step.orientation.y = rpy[1]
-            step.orientation.z = rpy[2]
-            step.orientation.w = rpy[3]
-
-            # inverse kinematic request
-            joint_angles = self.limb.ik_request(step,self._tip_name)
-            if joint_angles:
-                self.limb.set_joint_positions(joint_angles)
+            if plan[1]:  # Check if a valid plan was found
+                rospy.loginfo("Plan found, visualizing in RViz...")
+                self.group.execute(plan[1], wait=True)
+                self.group.stop()
+                self.group.clear_pose_targets()
+                rospy.loginfo('Moved to the specified position.')
             else:
-                if Debug:
-                    print(Color.BOLD + Color.YELLOW + 'Invalid angle. Retrying...' + Color.END)
-
-            rate.sleep()
-
-        if Debug:
-            print(Color.BOLD + Color.GREEN + '-- MOVEMENT COMPLETED --' + Color.END)
-
-        rospy.sleep(0.1)
+                rospy.logwarn("No valid plan found for the desired pose.")
+        except rospy.ROSInterruptException:
+            rospy.logerr('Keyboard interrupt detected from the user. Exiting before trajectory completion.')
+        except Exception as e:
+            rospy.logerr('An error occurred: %s', str(e))
 
     def increase_x(self, x_incr, time=0.00001, Debug=False):
-        ''' Method to increase/decrease the robot distance from desk. '''
+        # Method to increase/decrease the robot distance from desk.
+
+        current_pose = self.group.get_current_pose().pose
+        current_pose.position.x += x_incr
+
+        self.group.set_pose_target(current_pose)
+        self.group.go(wait=True)
 
         if Debug:
-            if x_incr > 0:
-                print(Color.BOLD + Color.CYAN + 'Increasing distance..' + Color.END)
-            else:
-                print(Color.BOLD + Color.CYAN + 'Decreasing distance..' + Color.END)
-
-        rate = rospy.Rate(1 / time)
-        current_pose = self.limb.endpoint_pose()
-        final_pose = Pose()
-        final_pose.position.x = current_pose['position'].x + x_incr
-        final_pose.position.y = current_pose['position'].y
-        final_pose.position.z = current_pose['position'].z
-
-        rpy = quaternion_from_euler(0, math.pi / 2, 0)  # end effector parallel to vertical master plane
-        final_pose.orientation.x = rpy[0]
-        final_pose.orientation.y = rpy[1]
-        final_pose.orientation.z = rpy[2]
-        final_pose.orientation.w = rpy[3]
-
-        if rospy.is_shutdown():
-            return
-
-        # inverse kinematic request
-        joint_angles = self.limb.ik_request(final_pose)
-        if joint_angles:
-            self.limb.set_joint_positions(joint_angles)
-        else:
-            if Debug:
-                print(Color.BOLD + Color.YELLOW + 'Unable to reach pose' + Color.END)
-
-        rate.sleep()
-
-        if Debug:
-            print(Color.BOLD + Color.GREEN + '-- MOVEMENT COMPLETED --' + Color.END)
+            rospy.loginfo('-- MOVEMENT COMPLETED --')
 
         rospy.sleep(0.1)
+
+    def move2cartesian(self, waypoints, linear_speed=0.1, linear_accel=0.1, simulate_only=False):
+        """
+        Moves the UR3 robot arm through a list of waypoints and visualizes the planned trajectory in RViz.
+
+        Args:
+            waypoints (list): List of waypoints where each waypoint is a dictionary with 'position' (tuple) 
+                            and 'orientation' (tuple) keys.
+            linear_speed (float): Sets the maximum linear speed for the trajectory planner (m/s).
+            linear_accel (float): Sets the maximum linear acceleration for the trajectory planner (m/s^2).
+            simulate_only (bool): If True, only simulates the trajectory in RViz without executing it.
+        """
+        try:
+            # Set the speed and acceleration
+            self.group.set_max_velocity_scaling_factor(linear_speed)
+            self.group.set_max_acceleration_scaling_factor(linear_accel)
+            self.group.set_goal_tolerance(0.01)  # Aumenta la tolleranza sugli obiettivi
+
+            # List to store waypoints
+            waypoints_list = []
+
+            for wp in waypoints:
+                pose_target = PoseStamped()
+                pose_target.header.frame_id = "base_link"
+
+                if 'position' in wp:
+                    pose_target.pose.position.x = wp['position'][0]
+                    pose_target.pose.position.y = wp['position'][1]
+                    pose_target.pose.position.z = wp['position'][2]
+
+                if 'orientation' in wp:
+                    pose_target.pose.orientation = Quaternion(*wp['orientation'])
+
+                waypoints_list.append(pose_target.pose)
+            
+            rospy.loginfo("Waypoints for Cartesian Path: %s", waypoints_list)
+
+            # Plan the Cartesian path connecting the waypoints
+            (plan, fraction) = self.group.compute_cartesian_path(
+                waypoints_list,   # waypoints to follow
+                0.05,            # eef_step (smaller value for finer resolution)
+                0.0,              # jump_threshold
+                #avoid_collisions=True
+                )
+
+            rospy.loginfo("Path planning fraction: %.2f%%", fraction * 100)
+
+            if fraction < 1.0:
+                rospy.logwarn("Only able to compute %.2f%% of the path", fraction * 100)
+
+            if simulate_only:
+                # Visualize the plan in RViz
+                display_trajectory = moveit_msgs.msg.DisplayTrajectory()
+                display_trajectory.trajectory_start = self.robot.get_current_state()
+                display_trajectory.trajectory.append(plan)
+                self.display_trajectory_publisher.publish(display_trajectory)
+
+                rospy.loginfo('Planned trajectory visualized in RViz. Execute manually from RViz.')
+            else:
+                # Execute the plan
+                self.group.execute(plan, wait=True)
+
+            self.group.stop()
+            self.group.clear_pose_targets()
+
+            rospy.loginfo('Motion controller successfully finished the trajectory!')
+
+        except rospy.ROSInterruptException:
+            rospy.logerr('Keyboard interrupt detected from the user. Exiting before trajectory completion.')
+        except Exception as e:
+            rospy.logerr('An error occurred: %s', str(e))
+
+
+def myhook():
+    moveit_commander.roscpp_shutdown()
 
 def yaml2dict(path):
     ''' Function needed to load a YAML file from folder
@@ -361,8 +431,15 @@ def yaml2dict(path):
             dictionary = yaml.load(file, Loader=yaml.FullLoader)
 
             return dictionary
-    except:
-        print(gu.Color.BOLD + gu.Color.RED + 'Wrong path to YAML file, please check. Path is: ' + str(path) + gu.Color.END)
+    #except:
+        #print(gu.Color.BOLD + gu.Color.RED + 'Wrong path to YAML file, please check. Path is: ' + str(path) + gu.Color.END)
+    except FileNotFoundError:
+        print(gu.Color.BOLD + gu.Color.RED + 'File not found. Please check the path: ' + str(path) + gu.Color.END)
+    except yaml.YAMLError as exc:
+        print(gu.Color.BOLD + gu.Color.RED + 'Error parsing YAML file: ' + str(exc) + gu.Color.END)
+    except Exception as e:
+        print(gu.Color.BOLD + gu.Color.RED + 'An unexpected error occurred: ' + str(e) + gu.Color.END)
+
 
 def dict2yaml(dictionary, path):
     ''' Function needed to write a given dictionary to a YAML file.
@@ -385,3 +462,5 @@ def myhook():
     ''' ROS hook called upon exiting using ctrl+C, used to exit cleanly '''
 
     rospy.loginfo(gu.Color.BOLD + gu.Color.RED + '\n -- KEYBOARD INTERRUPT, SHUTTING DOWN --' + gu.Color.END)
+
+

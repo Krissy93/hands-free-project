@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(hands_free)
+project(hands-free-project)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -15,9 +15,29 @@ find_package(catkin REQUIRED COMPONENTS
   trajectory_msgs
   cv_bridge
   dynamic_reconfigure
-  intera_core_msgs
-  intera_motion_msgs
-  intera_interface
+  roscpp
+  std_msgs
+  moveit_core
+  moveit_ros_planning_interface
+  controller_manager
+  controller_manager_msgs
+  geometry_msgs
+  hardware_interface
+  industrial_robot_status_interface
+  pluginlib
+  scaled_joint_trajectory_controller
+  speed_scaling_interface
+  speed_scaling_state_controller
+  std_srvs
+  tf
+  tf2_geometry_msgs
+  tf2_msgs
+  ur_dashboard_msgs
+  ur_msgs
+  pass_through_controllers
+  kdl_parser
+  gazebo_ros   # Aggiunto per Gazebo
+  gazebo_plugins   # Aggiunto per Gazebo
 )
 
 ## System dependencies are found with CMake's conventions
@@ -120,9 +140,12 @@ catkin_package(
     trajectory_msgs
     cv_bridge
     dynamic_reconfigure
-    intera_core_msgs
-    intera_motion_msgs
-    intera_interface
+    roscpp
+    std_msgs
+    moveit_core
+    moveit_ros_planning_interface
+    gazebo_ros   # Aggiunto per Gazebo
+    gazebo_plugins   # Aggiunto per Gazebo
 #  DEPENDS system_lib
 )
 

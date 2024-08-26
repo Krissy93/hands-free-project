@@ -1,12 +1,11 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>hands_free</name>
+  <name>hands-free-project</name>
   <version>0.0.0</version>
   <description>The hands_free package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
-  <maintainer email="l.foletti001@studenti.unibs.it">Luca Foletti</maintainer>
-  <maintainer email="d.grassi003@studenti.unibs.it">Daniele Grassi</maintainer>
+  <maintainer email="j.micheletti@studenti.unibs.it">Jacopo Micheletti</maintainer>
 
   <!-- One license tag required, multiple allowed, one license per tag -->
   <!-- Commonly used license strings: -->
@@ -55,9 +54,34 @@
   <build_depend>trajectory_msgs</build_depend>
   <build_depend>cv_bridge</build_depend>
   <build_depend>dynamic_reconfigure</build_depend>
-  <build_depend>intera_core_msgs</build_depend>
-  <build_depend>intera_motion_msgs</build_depend>
-  <build_depend>intera_interface</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>moveit_core</build_depend>
+  <build_depend>moveit_ros_planning</build_depend>
+  <build_depend>moveit_ros_planning_interface</build_depend>
+  <build_depend>tf</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>ur_msgs</build_depend>
+  <build_depend>industrial_robot_status_interface</build_depend>
+  <build_depend>controller_manager</build_depend>
+  <build_depend>controller_manager_msgs</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>hardware_interface</build_depend>
+  <build_depend>kdl_parser</build_depend>
+  <build_depend>pass_through_controllers</build_depend>
+  <build_depend>pluginlib</build_depend>
+  <build_depend>scaled_joint_trajectory_controller</build_depend>
+  <build_depend>speed_scaling_interface</build_depend>
+  <build_depend>speed_scaling_state_controller</build_depend>
+  <build_depend>std_srvs</build_depend>
+  <build_depend>tf2_geometry_msgs</build_depend>
+  <build_depend>tf2_msgs</build_depend>
+  <build_depend>ur_client_library</build_depend>
+  <build_depend>ur_dashboard_msgs</build_depend>
+  <build_depend>ur_gazebo</build_depend> 
+  <build_depend>gazebo_ros</build_depend>
+  <build_depend>gazebo_plugins</build_depend> 
 
   <exec_depend>rospy</exec_depend>
   <exec_depend>actionlib</exec_depend>
@@ -66,10 +90,29 @@
   <exec_depend>trajectory_msgs</exec_depend>
   <exec_depend>cv_bridge</exec_depend>
   <exec_depend>dynamic_reconfigure</exec_depend>
-  <exec_depend>intera_core_msgs</exec_depend>
-  <exec_depend>intera_motion_msgs</exec_depend>
-  <exec_depend>intera_interface</exec_depend>
   <exec_depend>joystick_drivers</exec_depend>
+  <exec_depend>roscpp</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>moveit_core</exec_depend>
+  <exec_depend>moveit_ros_planning</exec_depend>
+  <exec_depend>moveit_ros_planning_interface</exec_depend>
+  <exec_depend>tf</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>ur_msgs</exec_depend>
+  <exec_depend>cartesian_trajectory_controller</exec_depend>
+  <exec_depend>force_torque_sensor_controller</exec_depend>
+  <exec_depend>industrial_robot_status_controller</exec_depend>
+  <exec_depend>joint_state_controller</exec_depend>
+  <exec_depend>joint_trajectory_controller</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>socat</exec_depend>
+  <exec_depend>twist_controller</exec_depend>
+  <exec_depend>ur_description</exec_depend>
+  <exec_depend>velocity_controllers</exec_depend>
+  <exec_depend>ur_gazebo</exec_depend> 
+  <exec_depend>gazebo_ros</exec_depend> 
+  <exec_depend>gazebo_plugins</exec_depend> 
+  <test_depend>rostest</test_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

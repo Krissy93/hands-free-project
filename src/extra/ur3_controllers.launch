@@ -1,0 +1,8 @@
+<launch>
+  <rosparam file="$(find ur3_moveit_config)/config/controllers.yaml" command="load"/>
+  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" ns="/" args="
+    joint_state_controller
+    scaled_pos_joint_traj_controller
+    joint_group_vel_controller
+  "/>
+</launch>

@@ -1,4 +1,5 @@
 import cv2
+import numpy as np
 
 class Color:
     ''' Class used to print colored info on terminal.
@@ -107,12 +108,13 @@ def draw_reference(img, corners, imgpts):
     '''
 
     # gets the tuple version of the corner coordinates acting as point (0,0,0)
-    corner = tuple(corners[0].ravel())
+    corner = tuple(corners[0].ravel().astype(int))
+    
     # draw lines of each axis starting from point 0 to the axis ending point
     # each ending point is contained in imgpts but they must be converted to tuple
-    cv2.line(img, corner, tuple(imgpts[0].ravel()), (0,0,255), 3) # x red
-    cv2.line(img, corner, tuple(imgpts[1].ravel()), (0,255,0), 3) # y green
-    cv2.line(img, corner, tuple(imgpts[2].ravel()), (255,0,0), 3) # z blue
+    cv2.line(img, corner, tuple(imgpts[0].ravel().astype(int)), (0,0,255), 3) # x red
+    cv2.line(img, corner, tuple(imgpts[1].ravel().astype(int)), (0,255,0), 3) # y green
+    cv2.line(img, corner, tuple(imgpts[2].ravel().astype(int)), (255,0,0), 3) # z blue
 
 def draw_trajectory(frame, to_move):
     ''' Function to draw the actual trajectory points after filtering.

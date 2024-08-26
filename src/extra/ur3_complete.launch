@@ -1,0 +1,24 @@
+<launch>
+  <!-- Argomenti per la simulazione e debug -->
+  <arg name="sim" default="false" />
+  <arg name="debug" default="false" />
+
+  <!-- Caricamento della descrizione del robot -->
+  <include file="$(find ur_description)/launch/ur3_upload.launch" />
+
+  <!-- Caricamento dei controller -->
+  <include file="$(find ur3_moveit_config)/launch/ur3_controllers.launch" />
+
+  <!-- Remap follow_joint_trajectory in modalità simulazione -->
+  <remap if="$(arg sim)" from="/scaled_pos_joint_traj_controller/follow_joint_trajectory" to="/eff_joint_traj_controller/follow_joint_trajectory"/>
+
+  <!-- Lancio di MoveIt -->
+  <include file="$(find ur3_moveit_config)/launch/move_group.launch">
+    <arg name="debug" value="$(arg debug)" />
+  </include>
+
+  <!-- Lancio di RViz con MoveIt -->
+  <include file="$(find ur3_moveit_config)/launch/moveit_rviz.launch">
+    <arg name="config" value="true"/>
+  </include>
+</launch>

@@ -115,6 +115,6 @@ def px2R(points_list, K, R, t, R_H2W, R_W2R, depth, ref_pt, debug=False):
 
         # calculates robot coordinates from starting point in reference system H
         # if workspace H and W differ, you need to calibrate them too
-        robot_points.append(H2R(new, R_H2W, R_W2R, depth, debug))
+        robot_points.append(H2R(point, R_H2W, R_W2R, depth, debug))
 
     return robot_points

@@ -17,13 +17,12 @@ import cv2
 ###
 import utils
 import graphical_utils as gu
-import cartesian
-import conversion_utils as conv
+import hand_gesture_utils as hgu
+#import cartesian
+import conversion_utils as cu
 ###
 import matplotlib.pyplot as plt
 from scipy.interpolate import UnivariateSpline
-# sawyer interface
-import intera_interface
 
 
 def interpolate(px_points, debug=False):
@@ -118,7 +117,7 @@ def interpolate(px_points, debug=False):
 
     return interpolated_points
 
-def hand_open_action(hand, robot_home, robot_orientation, linear_speed):
+def hand_open_action(hand, robot, robot_home, robot_orientation, linear_speed):
     rospy.loginfo(gu.Color.BOLD + gu.Color.GREEN + 'HAND OPEN: RESETTING TRAJECTORY' + gu.Color.END)
     # HAND OPEN ACTION: resets points lists and sets acquire to true
     hand.acquire = True
@@ -126,10 +125,11 @@ def hand_open_action(hand, robot_home, robot_orientation, linear_speed):
     hand.index_positions = []
 
     # also resets robot position to home
-    cartesian.move2cartesian(position=robot_home, orientation=robot_orientation, in_tip_frame=True, linear_speed=linear_speed)
+    #cartesian.move2cartesian(position=robot_home, orientation=robot_orientation, in_tip_frame=True, linear_speed=linear_speed)
+    robot.set_neutral()
     print(gu.Color.BOLD + gu.Color.GREEN + ' -- ROBOT HOME POSE REACHED -- ' + gu.Color.END)
 
-def move_action(hand, depth, robot_points, orientation, linear_speed):
+def move_action(hand, robot, depth, robot_points, orientation, linear_speed):
     rospy.loginfo(gu.Color.BOLD + gu.Color.PURPLE + 'READY TO MOVE' + gu.Color.END)
     # resets acquire flag and move chain
     hand.acquire = False
@@ -147,7 +147,9 @@ def move_action(hand, depth, robot_points, orientation, linear_speed):
         # depth[0] may be 0, 1 or 2 corresponding to x, y or z coordinates
         p[depth[0]] = depth[1]
         # move to each point in a loop until end of trajectory
-        cartesian.move2cartesian(position=tuple(p), orientation=orientation, in_tip_frame=True, linear_speed=linear_speed)
+        #cartesian.move2cartesian(position=tuple(p), orientation=orientation, in_tip_frame=True, linear_speed=linear_speed)
+        robot.move2cartesian(position=tuple(p), orientation=orientation, in_tip_frame=True, linear_speed=linear_speed)
+
 
     rospy.loginfo(gu.Color.BOLD + gu.Color.GREEN + '-- MOVEMENT COMPLETED --' + gu.Color.END)
 
@@ -165,13 +167,19 @@ def get_ref_point(K, D, R, t):
     - ref_pt: reference point corresponding to (0,0) of workspace H in meters
     '''
 
+    # Converti K, D, R e t in array NumPy se non lo sono già
+    K = np.array(K, dtype=np.float64)
+    D = np.array(D, dtype=np.float64)
+    R = np.array(R, dtype=np.float64)
+    t = np.array(t, dtype=np.float64)
+
     # project point (0,0) to camera coordinates
     reference, _ = cv2.projectPoints(np.array([[0.0, 0.0, 0.0]]), R, t, K, D)
     reference = reference.flatten()
     # gets homogeneous coordinates of point
     reference = np.array([[reference[0], reference[1], 1.0]])
     # convert reference point to meters
-    ref_pt = conv.px2meters(reference, K, R, t)
+    ref_pt = cu.px2meters(reference, K, R, t)
 
     return ref_pt
 
@@ -214,14 +222,14 @@ def main():
     # Caffe network threshold: if higher, less keypoints would be accepted
     if rospy.has_param('~threshold'):
          threshold = rospy.get_param('~threshold')
-     else:
+    else:
          threshold = 0.2
 
     # chain value: if lower, less finger positions are acquired before accepting gesture,
     # meaning that the reaction time is faster but may be less accurate due to disturbances
     if rospy.has_param('~max_chain'):
          max_chain = rospy.get_param('~max_chain')
-     else:
+    else:
          max_chain = 3
 
     # x value: this is the value that we set as fixed because we control the robot positioning
@@ -229,51 +237,39 @@ def main():
     # distance from the robot (to avoid accidental collisions)
     if rospy.has_param('~depth_coord'):
          depth_coord = rospy.get_param('~depth_coord')
-     else:
+    else:
          depth_coord = 'x'
     if rospy.has_param('~depth_val'):
          depth_val = rospy.get_param('~depth_val')
-     else:
+    else:
          depth_val = 0.7
     depth = [depth_coord, depth_val]
-
-    # path_openpose value: complete path of the openpose/model folder from root
-    if rospy.has_param('~path_openpose'):
-         path_openpose = rospy.get_param('~path_openpose')
-     else:
-         path_opH2Renpose = '/home/optolab/openpose/models'
-
-    # path_openpose value: complete path of the openpose/model folder from root
-    if rospy.has_param('~undistort'):
-         undistort = rospy.get_param('~undistort')
-     else:
-         undistort = False
 
     # robot parameters such as home coordinates, tip orientation and speed
     if rospy.has_param('~robot_home'):
          robot_home = tuple(rospy.get_param('~robot_home'))
-     else:
+    else:
          robot_home = (depth_val, 0.04, 0.27)
 
     if rospy.has_param('~robot_orientation'):
          robot_orientation = tuple(rospy.get_param('~robot_orientation'))
-     else:
+    else:
          robot_orientation = (0.5, 0.5, 0.5, 0.5)
 
     if rospy.has_param('~robot_speed'):
          robot_speed = rospy.get_param('~robot_speed')
-     else:
+    else:
          robot_speed = 0.3
 
     if rospy.has_param('~camera'):
          cam_name = rospy.get_param('~camera')
-     else:
+    else:
          cam_name = 'Kinect'
 
     # debug value: set True for debug logs, False otherwise
     if rospy.has_param('~debug'):
          debug = rospy.get_param('~debug')
-     else:
+    else:
          debug = False
 
     path = os.path.realpath(os.getcwd())
@@ -281,22 +277,32 @@ def main():
     ###### STEP 1: INITIALIZATION
 
     # Hand object initialization
-    hand = hgu.Hand()
+    hand = hgu.Hand(net_params=[2],threshold=threshold,debug=False)
 
     # loading of the calibration parameters of both camera and robot
-    camera_calibration = utils.yaml2dict(path+'/yaml/camera_calibration.yaml')
+    #camera_calibration = utils.yaml2dict(path+'/yaml/camera_calibration.yaml')
+    camera_calibration = utils.yaml2dict('/home/jacopo/URProject/src/hands-free-project/src/yaml/camera_calibration.yaml')
     K = camera_calibration['K']
     D = camera_calibration['D']
     R = camera_calibration['R']
     t = camera_calibration['t']
 
-    workspace_calibrations = utils.yaml2dict(path+'/yaml/robot_workspace_calibration.yaml')
-    R_H2W = workspace_calibrations['H2WCalibration']
-    R_W2R = workspace_calibrations['W2RCalibration']
+    rospy.loginfo(gu.Color.BOLD + gu.Color.YELLOW + '-- WAITING ROBOT --' + gu.Color.END)
+    rospy.sleep(30)
+    rospy.loginfo(gu.Color.BOLD + gu.Color.GREEN + '-- INITIALIZING ROBOT --' + gu.Color.END)
+    workspace_calibrations = utils.yaml2dict('/home/jacopo/URProject/src/hands-free-project/src/yaml/robot_workspace_calibration.yaml')
+    R_H2W = workspace_calibrations['H2W']
+    R_W2R = workspace_calibrations['W2H']
+    
     # moves robot to home position
-    rospy.loginfo(gu.Color.BOLD + gu.Color.GREEN + '-- INITIALIZING ROBOT, MOVING TO HOME --' + gu.Color.END)
-    cartesian.move2cartesian(position=robot_home, orientation=robot_orientation, in_tip_frame=True, linear_speed=robot_speed)
+    # Inizializzazione del robot UR3 utilizzando la classe Robot personalizzata
+    robot = utils.Robot()
+    rospy.loginfo(gu.Color.BOLD + gu.Color.GREEN + '-- ROBOT READY --' + gu.Color.END)
 
+    rospy.loginfo(gu.Color.BOLD + gu.Color.GREEN + '-- MOVING TO HOME --' + gu.Color.END)
+    #cartesian.move2cartesian(position=robot_home, orientation=robot_orientation, in_tip_frame=True, linear_speed=robot_speed)
+    robot.set_neutral()
+    rospy.loginfo(gu.Color.BOLD + gu.Color.GREEN + '-- ROBOT IN HOME POSITION --' + gu.Color.END)
     # computes reference point
     ref_pt = get_ref_point(K, D, R, t)
 
@@ -304,9 +310,6 @@ def main():
         camera = utils.Kinect(enable_rgb=True, enable_depth=False, need_bigdepth=False, need_color_depth_map=False, K=K, D=D)
     else:
         camera = utils.Camera(enable_rgb=True)
-
-    # Robot object creation
-    #robot = utils.Robot()
 
     while not rospy.is_shutdown():
         ###### STEP 2: FRAME ACQUISITION
@@ -319,14 +322,15 @@ def main():
         #frame, b3, a1, a3 = utils.correzione_prospettica(B3, A1, A3, reference, R, t, K, D, frame.copy())
 
         # detects the hand keypoints
-        hand.inference(frame)
+        hand.mediapipe_inference(frame)
+        #hand.inference(frame)
         if debug:
             rospy.loginfo(gu.Color.BOLD + gu.Color.GREEN + 'points: ' + str(hand.points) + gu.Color.END)
 
         ###### STEP 3: GESTURE RECOGNITION
         # if all points are None or the reference keypoint is None, there is no gesture
         # so it skips the detection functions and assigns a no gesture handle to current_gesture
-        if all(x == None for x in self.points[1:]) or self.points[0] == None:
+        if all(x == None for x in hand.points[1:]) or hand.points[0] == None:
             hand.current_gesture = 'NO GESTURE'
             if debug:
                 rospy.loginfo(gu.Color.BOLD + gu.Color.RED + 'NO GESTURE FOUND IN IMAGE' + gu.Color.END)
@@ -339,20 +343,21 @@ def main():
             # according to gesture type identified, performs a robot action
             # please note that the update of positions_saved happens inside get_gesture()
             if hand.current_gesture == 'HAND OPEN':
-                hand_open_action(hand, robot_home, robot_orientation, linear_speed)
+
+                hand_open_action(hand, robot, robot_home, robot_orientation, robot_speed)
                 hand.current_gesture = 'NO GESTURE'
 
-            elif hand.current_gesture = 'MOVE':
+            elif hand.current_gesture == 'MOVE':
                 # points_list, K, R, t, R_H2W, R_W2R, depth, ref_pt, debug=False
                 robot_points = cu.px2R(hand.positions_saved, K, R, t, R_H2W, R_W2R, depth, ref_pt, debug)
-                move_action(hand, depth, robot_points, robot_orientation, linear_speed)
+
+                move_action(hand, robot, depth, robot_points, robot_orientation, robot_speed)
                 hand.current_gesture = 'NO GESTURE'
 
         ###### STEP 5: VISUALIZATION
-        gu.draw_openpose_skeleton(frame, hand.points)
-        #gu.draw_workspace(frame, markers=workspace_calibrations['Master_H'])
         gu.draw_gesture_info(frame, hand.inference_time, hand.current_gesture, hand.handmap)
-        gu.draw_trajectory(frame, to_move)
+
+        gu.draw_trajectory(frame, hand.positions_saved)
         cv2.imshow('Gesture and trajectory detection', frame)
 
         # when 'q' is pressed, closes program

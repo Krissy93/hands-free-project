@@ -4,6 +4,7 @@ import copy
 import cv2
 import utils
 import numpy as np
+import graphical_utils as gu
 
 
 def main():
@@ -58,11 +59,11 @@ def main():
 
         k = cv2.waitKey(1)
         if k == 27:  # wait for ESC key to exit
-            print(utils.Color.BOLD + utils.Color.YELLOW + '\n-- EXIT --\n' + utils.Color.END)
+            print(gu.Color.BOLD + utils.Color.YELLOW + '\n-- EXIT --\n' + gu.Color.END)
             break
         elif k == ord('s'):  # wait for 's' key to save an image
             cv2.imwrite('./calib_img/master' + str(i) + '.png', frame)
-            print(utils.Color.CYAN + '-- IMAGE master' + str(i) + ' ACQUIRED --' + utils.Color.END)
+            print(gu.Color.CYAN + '-- IMAGE master' + str(i) + ' ACQUIRED --' + gu.Color.END)
             i = i + 1
 
     camera.stop()

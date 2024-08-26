@@ -5,6 +5,8 @@ import cv2
 import numpy as np
 # custom library
 import graphical_utils as gu
+import argparse
+import utils
 
 ''' WARNING: change camera to Camera if a normal camera is used,
 otherwise set it to Kinect if a Kinect v2 device is used.
@@ -16,12 +18,12 @@ BE SURE TO USE THE CORRECT VALUES ACCORDING TO THE CHESSBOARD USED DURING ACQUIS
 
 HOW TO LAUNCH:
 python3 calibrate_camera.py \
-camera Camera \
+camera Kinect \
 x_size 10 \
 y_size 7 \
-chess_size 22.5 \
+chess_size 23.1 \
 calib_folder './calib_img' \
-mode 'full' \
+mode 'acquisition' \
 --workspace '266,139,1074,663' \
 --debug
 '''
@@ -44,13 +46,10 @@ def calibrate_pic(image, sq_x, sq_y, chess_size):
     '''
 
     # converts image to black and white
+    # Converti l'immagine in scala di grigi in un'immagine a colori
     gray = cv2.cvtColor(image.copy(), cv2.COLOR_BGR2GRAY)
 
-    # for example, if we use a chessboard of 10 squares along x and 7 squares along y
-    # the actual squares used for the grid are the internal ones counting from
-    # black square to white square, hence we remove 1 from both (and not 2)
-    sq_x -= 1
-    sq_y -= 1
+    print(f'Chessboard: ({sq_x}, {sq_y})')
 
     # find the chessboard corners
     ret, corners = cv2.findChessboardCorners(gray, (sq_x, sq_y), None)
@@ -134,8 +133,8 @@ def findRT(img, mtx, dist, sq_x, sq_y, chess_size):
     - R: rotation vector equal to rvecs2 but in classic 3x3 format
     '''
 
-    image = image.copy()
-    corners2, ret, objp = calibrate_pic(image, sq_x, sq_y, chess_size)
+    img = img.copy()
+    corners2, ret, objp = calibrate_pic(img, sq_x, sq_y, chess_size)
 
     # if the chessboard has been found, calculates R and t
     if ret:
@@ -147,6 +146,46 @@ def findRT(img, mtx, dist, sq_x, sq_y, chess_size):
         return rvecs2, tvecs2, corners2, R
     else:
         return None, None, None, None
+
+def maskImg(img):
+    # qui la maschero
+    '''1) creo con mask = np.zeros() una matrice di dimensioni uguali a quelle della mia img
+        2) ho preso i due punti del workspace top-left (1), bottom-right (2)
+        3) tratto la maschera come una matrice di binari, quindi mask[x1:x2, y1:y2] = 1
+        4) frame = img.copy()
+        5) masked_image1 = mask * frame[:,:,0], 
+        6) riconcatenare l'immagine come masked_image1,2,3 (guarda su google)
+    '''
+
+    # 1) Creo una maschera di dimensioni uguali all'immagine
+    mask = np.zeros_like(img[:,:,0])
+
+    #2) Definisco i punti del workspace: top-left (x1, y1) e bottom-right (x2, y2)
+    x1, y1 = 92, 657
+    x2, y2 = 953, 56
+    
+    # Inverti l'asse y
+    HEIGHT = img.shape[0]
+    y1 = HEIGHT - y1
+    y2 = HEIGHT - y2
+
+    # 3) Imposto la maschera come una matrice binaria
+    mask[y1:y2, x1:x2] = 1
+
+    # 4) Copio l'immagine originale per mantenere l'originale inalterata
+    frame = img.copy()
+
+    # 5) Applico la maschera all'immagine per ottenere una versione mascherata dell'immagine
+    masked_image1 = cv2.bitwise_and(frame[:,:,0], frame[:,:,0], mask=mask)  # Canale R
+    masked_image2 = cv2.bitwise_and(frame[:,:,1], frame[:,:,1], mask=mask)  # Canale G
+    masked_image3 = cv2.bitwise_and(frame[:,:,2], frame[:,:,2], mask=mask)  # Canale B
+
+    # 6) Riconcateno le immagini mascherate
+    # Concatenazione lungo l'asse delle colonne (orizzontale)
+    masked_image = np.dstack((masked_image1, masked_image2, masked_image3))
+    
+    return masked_image
+
 
 def initial_calibration(path, sq_x, sq_y, chess_size, debug):
     ''' Function to calculate the intrinsic parameters of the camera
@@ -167,16 +206,22 @@ def initial_calibration(path, sq_x, sq_y, chess_size, debug):
     print(gu.Color.BOLD + gu.Color.CYAN + '-- STARTING INITIAL CALIBRATION. LOADING IMAGES... --' + gu.Color.END)
 
     # load all calibration images from folder
-    images = glob.glob(path + '*.png')
+    images = glob.glob(path + '/*.png')
 
     # Arrays to store object points and image points from all the images
     objpoints = []  # 3d point in real world space
     imgpoints = []  # 2d points in image plane
 
+    print(f'Ho caricato {len(images)} immagini')
+    print(f'Chessboard: ({sq_x}, {sq_y})')
+
     for fname in images:
+
         img = cv2.imread(fname)
 
-        corners2, ret, objp = calibrate_pic(image, sq_x, sq_y, chess_size)
+        masked_img = maskImg(img)
+
+        corners2, ret, objp = calibrate_pic(masked_img, sq_x, sq_y, chess_size)
 
         # if the chessboard is found, add object points and image points (after refining them)
         if ret:
@@ -184,21 +229,21 @@ def initial_calibration(path, sq_x, sq_y, chess_size, debug):
             imgpoints.append(corners2)
 
             # draw and display the corners on the corresponding image
-            img = cv2.drawChessboardCorners(img, (sq_x, sq_y), corners2, ret)
+            masked_img = cv2.drawChessboardCorners(masked_img, (sq_x, sq_y), corners2, ret)
 
             if debug:
                 # show pattern on image only if debug is active
-                cv2.imshow('Chessboard pattern', img)
+                cv2.imshow('Chessboard pattern', masked_img)
                 cv2.waitKey(0)
 
     cv2.destroyAllWindows()
 
     # perform the camera calibration using the object points and the image points
-    ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, img.shape[::-1], None, None)
+    ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, (masked_img.shape[1], masked_img.shape[0]), None, None)
 
     # calculates the total error of the performed calibration
     mean_error = 0
-    for i in xrange(len(objpoints)):
+    for i in range(len(objpoints)):
         imgpoints2, _ = cv2.projectPoints(objpoints[i], rvecs[i], tvecs[i], mtx, dist)
         error = cv2.norm(imgpoints[i], imgpoints2, cv2.NORM_L2)/len(imgpoints2)
         mean_error += error
@@ -206,6 +251,7 @@ def initial_calibration(path, sq_x, sq_y, chess_size, debug):
     print(gu.Color.BOLD + gu.Color.YELLOW + "MEAN REPROJECTION ERROR OF CALIBRATION: " + str(mean_error/len(objpoints)) + gu.Color.END)
 
     return mtx, dist
+
 
 def calibrate_camera(camera, x_size, y_size, chess_size, calib_folder, debug):
     ''' Program that performs the following steps:
@@ -232,13 +278,19 @@ def calibrate_camera(camera, x_size, y_size, chess_size, calib_folder, debug):
     '''
 
     print(gu.Color.BOLD + gu.Color.PURPLE + '-- STARTING A CALIBRATION SESSION WITH PARAMETERS: --' + gu.Color.END)
-    print(gu.Color.BOLD + gu.Color.PURPLE + 'SQUARES ALONG X: ' + str(sq_x) + gu.Color.END)
-    print(gu.Color.BOLD + gu.Color.PURPLE + 'SQUARES ALONG Y: ' + str(sq_y) + gu.Color.END)
+    print(gu.Color.BOLD + gu.Color.PURPLE + 'SQUARES ALONG X: ' + str(x_size) + gu.Color.END)
+    print(gu.Color.BOLD + gu.Color.PURPLE + 'SQUARES ALONG Y: ' + str(y_size) + gu.Color.END)
     print(gu.Color.BOLD + gu.Color.PURPLE + 'SQUARES SIZE: ' + str(chess_size) + gu.Color.END)
     print(gu.Color.BOLD + gu.Color.CYAN + 'DEBUG DIRECTORY IS ./debug, YAML SAVED IN ./yaml' + gu.Color.END)
 
+    # for example, if we use a chessboard of 10 squares along x and 7 squares along y
+    # the actual squares used for the grid are the internal ones counting from
+    # black square to white square, hence we remove 1 from both (and not 2)
+    x_size -= 1
+    y_size -= 1
+
     ######### STEP 1: CALIBRATE INTRINSIC PARAMETERS OF CAMERA
-    K, D = initial_calibration(calib_folder, debug, x_size, y_size, chess_size)
+    K, D = initial_calibration(calib_folder, x_size, y_size, chess_size, debug)
 
     ######### STEP 2: SNAP A PHOTO OF THE ACTUAL WORKSPACE AND FIND UNDISTORTED IMAGE
     camera.acquire(False)
@@ -294,13 +346,13 @@ def calibrate_camera(camera, x_size, y_size, chess_size, calib_folder, debug):
 
     print(gu.Color.BOLD + gu.Color.GREEN + '-- CALIBRATION COMPLETE! --' + gu.Color.END)
     print(gu.Color.BOLD + gu.Color.GREEN + '-- CAMERA PARAMETERS --' + gu.Color.END)
-    print(gu.Color.BOLD + gu.Color.GREEN + 'K: ' + str(dictionary[0]['K']) + gu.Color.END)
-    print(gu.Color.BOLD + gu.Color.GREEN + 'D: ' + str(dictionary[1]['D']) + gu.Color.END)
+    print(gu.Color.BOLD + gu.Color.GREEN + 'K: ' + str(dictionary['K']) + gu.Color.END)
+    print(gu.Color.BOLD + gu.Color.GREEN + 'D: ' + str(dictionary['D']) + gu.Color.END)
     print(gu.Color.BOLD + gu.Color.GREEN + '-- ORIGINAL IMAGE CALIBRATION MATRIX --' + gu.Color.END)
-    print(gu.Color.BOLD + gu.Color.GREEN + 'R: ' + str(dictionary[2]['R']) + gu.Color.END)
-    print(gu.Color.BOLD + gu.Color.GREEN + 't: ' + str(dictionary[3]['t']) + gu.Color.END)
+    print(gu.Color.BOLD + gu.Color.GREEN + 'R: ' + str(dictionary['R']) + gu.Color.END)
+    print(gu.Color.BOLD + gu.Color.GREEN + 't: ' + str(dictionary['t']) + gu.Color.END)
 
-def frames_acquisition(camera, x_size, y_size, chess_size, workspace, calib_folder):
+def frames_acquisition(camera, x_size, y_size, chess_size, workspace, saving_dir):
     ''' Program used to take photo of the workspace to use it for calibration. It shows in real-time the corners found
     on the master in order to know if the setup is good. Pressing 's' it automatically takes a photo and store it in the
     ./calib_img directory.
@@ -319,18 +371,18 @@ def frames_acquisition(camera, x_size, y_size, chess_size, workspace, calib_fold
     '''
 
     print(gu.Color.BOLD + gu.Color.PURPLE + '-- ACQUIRING CALIBRATION IMAGES WITH PARAMETERS: --' + gu.Color.END)
-    print(gu.Color.BOLD + gu.Color.PURPLE + 'SQUARES ALONG X: ' + str(sq_x) + gu.Color.END)
-    print(gu.Color.BOLD + gu.Color.PURPLE + 'SQUARES ALONG Y: ' + str(sq_y) + gu.Color.END)
-    print(gu.Color.BOLD + gu.Color.PURPLE + 'SQUARESutils SIZE: ' + str(chess_size) + gu.Color.END)
-    print(gu.Color.BOLD + gu.Color.PURPLE + 'TOP-LEFT POINT OF WORKSPACE: ' + str(pt1) + gu.Color.END)
-    print(gu.Color.BOLD + gu.Color.PURPLE + 'BOTTOM-RIGHT POINT OF WORKSPACE: ' + str(pt2) + gu.Color.END)
+    print(gu.Color.BOLD + gu.Color.PURPLE + 'SQUARES ALONG X: ' + str(x_size) + gu.Color.END)
+    print(gu.Color.BOLD + gu.Color.PURPLE + 'SQUARES ALONG Y: ' + str(y_size) + gu.Color.END)
+    print(gu.Color.BOLD + gu.Color.PURPLE + 'SQUARES SIZE: ' + str(chess_size) + gu.Color.END)
+    print(gu.Color.BOLD + gu.Color.PURPLE + 'TOP-LEFT POINT OF WORKSPACE: ' + str((workspace[0], workspace[1])) + gu.Color.END)
+    print(gu.Color.BOLD + gu.Color.PURPLE + 'BOTTOM-RIGHT POINT OF WORKSPACE: ' + str((workspace[2], workspace[3])) + gu.Color.END)
 
-    print(gu.Color.CYAN + '-- PRESS ENTER WHEN FRAME IS OK, THEN PRESS S TO SAVE IMAGE, EXIT TO QUIT --' + gu.Color.END)
+    print(gu.Color.CYAN + '-- PRESS ENTER WHEN FRAME IS OK, THEN PRESS S TO SAVE IMAGE, Q TO QUIT --' + gu.Color.END)
 
     # image counter
     i = 0
 
-    while not rospy.is_shutdown():
+    while(1):
 
         while(1):
             # capture a frame
@@ -339,6 +391,7 @@ def frames_acquisition(camera, x_size, y_size, chess_size, workspace, calib_fold
 
             # creates a copy of the frame
             frame_copy = frame.copy()
+            frame_copy= cv2.flip(frame_copy, 1)
 
             # shows chessboard pattern on image to help users set the chessboard
             # correctly inside the workspace area during the calibration procedure.
@@ -353,8 +406,15 @@ def frames_acquisition(camera, x_size, y_size, chess_size, workspace, calib_fold
         cv2.destroyAllWindows()
         cv2.waitKey(1)
 
+        # creates a copy of the frame
+
+        #frame_copy = frame.copy()
+        #frame_copy= cv2.flip(frame_copy, 1)
+        #cv2.imshow('Image acquisition', frame_copy)
+
         # show original image
         cv2.imshow('Image acquisition', frame)
+        
         # waits for the user to press a key, that must be exit or s
         k = cv2.waitKey(0)
         if k == 113:
@@ -366,13 +426,17 @@ def frames_acquisition(camera, x_size, y_size, chess_size, workspace, calib_fold
             # wait for 's' key to save an image
             # it saves the original frame, not the modified one with pattern on it!
             cv2.imwrite(saving_dir + '/master' + str(i) + '.png', frame)
+
+            #cv2.imwrite(saving_dir + '/master' + str(i) + '.png', frame_copy)
+
             print(gu.Color.GREEN + '-- IMAGE ' + str(i) + ' SAVED --' + gu.Color.END)
             cv2.destroyAllWindows()
             # updates image number
             i = i + 1
         else:
+            print(gu.Color.BOLD + gu.Color.RED + '\n-- INVALID COMMAND --\n' + gu.Color.END)
             cv2.destroyAllWindows()
-
+    
     camera.stop()
 
 def args_preprocess():
@@ -397,7 +461,7 @@ def args_preprocess():
     parser.add_argument(
         '--workspace', type=str, default=[], help='List of workspace points, top-left xy and bottom-right xy, delimited by a comma.')
     parser.add_argument(
-        '--debug', action=store_true, help='Optional debug flag, set to true if present.')
+        '--debug', action='store_true', help='Optional debug flag, set to true if present.')
 
     args = parser.parse_args()
 
