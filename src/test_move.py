@@ -24,9 +24,11 @@ def main():
     print(gu.Color.BOLD + gu.Color.CYAN + 'Initializing node... ' + gu.Color.END)
 
     robot = utils.Robot()
+    robot.add_table_to_scene()
 
     # Muovi alla posizione neutra
-    robot.set_neutral()
+    robot.set_home()
+    #robot .set_neutral()
     print(gu.Color.BOLD + gu.Color.CYAN + 'Moved to neutral position.' + gu.Color.END)
 
     print(gu.Color.BOLD + gu.Color.CYAN + 'Enter O1, O2, or O3 to move to the corresponding point.' + gu.Color.END)

@@ -271,7 +271,58 @@ class Robot:
         # Set the planner
         self.group.set_planner_id("RRTConnectkConfigDefault")
         self.group.set_planning_time(10)
+
+    def add_table_to_scene(self):
+        """
+        Add a table to the planning scene.
+        """
+        # Define table dimensions and pose
+        table_pose = PoseStamped()
+        table_pose.header.frame_id = "base_link"  # Ensure this is the correct frame
+        table_pose.pose.position.x = 0.0
+        table_pose.pose.position.y = -0.12
+        table_pose.pose.position.z = -0.44  # Place the table below the robot
+        table_pose.pose.orientation.w = 1.0
         
+        # Table dimensions
+        table_size = (0.70, 0.60, 0.86)  # (x, y, z)
+
+        # Add table to the planning scene
+        self.scene.add_box("table", table_pose, table_size)
+        
+        # Allow some time for the scene to update
+        rospy.sleep(2)
+
+    def set_home(self):
+        """
+        Moves the UR3 robot arm to the home position with the specified joint angles:
+        Base: 180°
+        Shoulder: -90°
+        Wrist1: -180°
+        Wrist2: -90°
+        Wrist3: 0°
+        """
+        try:
+            # Definisci i valori degli angoli dei giunti in radianti
+            joint_goal = self.group.get_current_joint_values()
+            joint_goal[0] = math.radians(180)   # Base
+            joint_goal[1] = math.radians(-90)   # Shoulder
+            joint_goal[2] = math.radians(90)     # Elbow (rimane a 0)
+            joint_goal[3] = math.radians(-180)  # Wrist 1
+            joint_goal[4] = math.radians(-90)   # Wrist 2
+            joint_goal[5] = math.radians(0)     # Wrist 3
+
+            # Imposta la posizione target e muovi il robot
+            self.group.go(joint_goal, wait=True)
+            self.group.stop()  # Ferma il movimento
+            self.group.clear_pose_targets()  # Svuota i target di posa
+
+            rospy.loginfo('Moved to home position.')
+        except rospy.ROSInterruptException:
+            rospy.logerr('Keyboard interrupt detected from the user. Exiting before trajectory completion.')
+        except Exception as e:
+            rospy.logerr('An error occurred: %s', str(e))
+
 
     def set_neutral(self):
         """

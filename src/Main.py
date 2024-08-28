@@ -300,8 +300,11 @@ def main():
     rospy.loginfo(gu.Color.BOLD + gu.Color.GREEN + '-- ROBOT READY --' + gu.Color.END)
 
     rospy.loginfo(gu.Color.BOLD + gu.Color.GREEN + '-- MOVING TO HOME --' + gu.Color.END)
-    #cartesian.move2cartesian(position=robot_home, orientation=robot_orientation, in_tip_frame=True, linear_speed=robot_speed)
-    robot.set_neutral()
+    #Put into the scene the box under the robot
+    robot.add_table_to_scene()
+
+    #set the robot in the home position
+    robot.set_home()
     rospy.loginfo(gu.Color.BOLD + gu.Color.GREEN + '-- ROBOT IN HOME POSITION --' + gu.Color.END)
     # computes reference point
     ref_pt = get_ref_point(K, D, R, t)
