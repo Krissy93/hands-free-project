@@ -43,11 +43,12 @@ def main():
     rospy.init_node('robot_movement_node')
     robot = utils.Robot()
 
-    robot.set_home()
     robot.add_table_to_scene()
+    robot.add_a2_sheet_to_scene
+    robot.set_home()
 
     # Center of the circle in the XZ plane
-    center = (-0.4, 0, 0.375)
+    center = (-0.3, 0, 0.45)
     radius = 0.1  # Radius of the circle
     num_points = 20  # Number of points along the circle
 
@@ -78,11 +79,13 @@ def main():
     waypoints = generate_circle_waypoints(center, radius, num_points, orientation)
     robot.move2cartesian(waypoints=waypoints, linear_speed=linear_speed, simulate_only=True)
 
+    robot.visualize_trajectory_as_line(waypoints)  # Visualize the trajectory as a line
     rospy.loginfo(gu.Color.BOLD + gu.Color.CYAN + '-- SIMULATION DONE. Press Enter to execute the movement --' + gu.Color.END)
     input()  # Wait for user to press Enter to execute the movement
 
     # Execute the trajectory
     move_action(robot, waypoints, linear_speed)
+    robot.delete_trajectory_marker()
     #robot.move2cartesian(waypoints=waypoints, linear_speed=linear_speed)
 
     robot.set_home()

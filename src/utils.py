@@ -28,8 +28,10 @@ from moveit_commander import RobotCommander, PlanningSceneInterface
 from moveit_commander import MoveGroupCommander
 from moveit_commander import roscpp_initialize, roscpp_shutdown
 import moveit_commander
-from geometry_msgs.msg import PoseStamped, Quaternion
+from geometry_msgs.msg import PoseStamped, Quaternion, Point
 import geometry_msgs.msg
+import visualization_msgs.msg as viz_msgs
+from visualization_msgs.msg import Marker
 import moveit_msgs.msg
 
 
@@ -272,6 +274,27 @@ class Robot:
         self.group.set_planner_id("RRTConnectkConfigDefault")
         self.group.set_planning_time(10)
 
+    def add_a2_sheet_to_scene(self):
+        """
+        Add an A2 sheet to the planning scene.
+        """
+        # Define A2 sheet pose
+        sheet_pose = PoseStamped()
+        sheet_pose.header.frame_id = "base_link"  # Ensure this is the correct frame
+        sheet_pose.pose.position.x = 0.0
+        sheet_pose.pose.position.y = 0.0
+        sheet_pose.pose.position.z = 1.1  # Adjust the Z position to place the sheet at desired height
+        sheet_pose.pose.orientation.w = 0.0
+        
+        # A2 sheet dimensions
+        sheet_size = (0.594, 0.42, 0.01)  # (x, y, z) dimensions
+
+        # Add A2 sheet to the planning scene
+        self.scene.add_box("a2_sheet", sheet_pose, sheet_size)
+        
+        # Allow some time for the scene to update
+        rospy.sleep(2)
+
     def add_table_to_scene(self):
         """
         Add a table to the planning scene.
@@ -459,6 +482,64 @@ class Robot:
             rospy.logerr('Keyboard interrupt detected from the user. Exiting before trajectory completion.')
         except Exception as e:
             rospy.logerr('An error occurred: %s', str(e))
+    
+    def visualize_trajectory_as_line(self, waypoints):
+        """
+        Visualizes a trajectory as a line in RViz.
+        
+        Args:
+            waypoints (list): A list of dictionaries representing waypoints.
+                            Each dictionary must have 'position' and 'orientation' keys.
+        """
+        # Create a marker to visualize the trajectory
+        marker = viz_msgs.Marker()
+        marker.header.frame_id = "base_link"
+        marker.header.stamp = rospy.Time.now()
+        marker.ns = "trajectory"
+        marker.id = 0
+        marker.type = viz_msgs.Marker.LINE_STRIP
+        marker.action = viz_msgs.Marker.ADD
+        marker.pose.orientation.w = 1.0
+        marker.scale.x = 0.02  # Line width
+        marker.color.r = 1.0
+        marker.color.g = 0.0
+        marker.color.b = 0.0
+        marker.color.a = 1.0
+
+        # Add points to the marker
+        for wp in waypoints:
+            # Create a Point for each waypoint position
+            p = Point()
+            p.x = wp['position'][0]
+            p.y = wp['position'][1]
+            p.z = wp['position'][2]
+            marker.points.append(p)
+
+        # Publish the marker
+        marker_pub = rospy.Publisher('/visualization_marker', viz_msgs.Marker, queue_size=10)
+        rospy.sleep(1)  # Allow time for RViz to initialize
+        marker_pub.publish(marker)
+        rospy.loginfo('Trajectory line published to /visualization_marker')
+
+    def delete_trajectory_marker(self):
+        """
+        Deletes the trajectory marker from RViz.
+        """
+        # Create a marker to delete the previous trajectory
+        marker = viz_msgs.Marker()
+        marker.header.frame_id = "base_link"
+        marker.header.stamp = rospy.Time.now()
+        marker.ns = "trajectory"
+        marker.id = 0
+        marker.type = viz_msgs.Marker.LINE_STRIP
+        marker.action = viz_msgs.Marker.DELETE  # Set action to DELETE
+
+        # Publish the delete marker
+        marker_pub = rospy.Publisher('/visualization_marker', viz_msgs.Marker, queue_size=10)
+        rospy.sleep(1)  # Allow time for RViz to process
+        marker_pub.publish(marker)
+        rospy.loginfo('Trajectory line deleted from /visualization_marker')
+
 
 
 def myhook():
