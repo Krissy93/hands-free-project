@@ -24,6 +24,8 @@ import conversion_utils as cu
 import matplotlib.pyplot as plt
 from scipy.interpolate import UnivariateSpline
 
+from tf.transformations import quaternion_from_euler
+
 
 def interpolate(px_points, debug=False):
     ''' Function that interpolates the list of acquired points in order to create
@@ -254,7 +256,9 @@ def main():
     if rospy.has_param('~robot_orientation'):
          robot_orientation = tuple(rospy.get_param('~robot_orientation'))
     else:
-         robot_orientation = (0.5, 0.5, 0.5, 0.5)
+         #robot_orientation = (0.5, 0.5, 0.5, 0.5)
+         q = quaternion_from_euler(0, -math.pi / 2, 0)
+         robot_orientation = [q[0], q[1], q[2], q[3]]
 
     if rospy.has_param('~robot_speed'):
          robot_speed = rospy.get_param('~robot_speed')

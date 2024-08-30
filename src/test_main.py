@@ -26,10 +26,10 @@ def generate_circle_waypoints(center, radius, num_points, orientation):
     waypoints = []
     for i in range(num_points):
         angle = 2 * math.pi * i / num_points
-        x = center[0] + radius * math.cos(angle)
+        y = center[1] + radius * math.cos(angle)
         z = center[2] + radius * math.sin(angle)
         waypoints.append({
-            'position': (x, center[1], z),
+            'position': (center[0],y, z),
             'orientation': orientation
         })
     return waypoints
@@ -43,10 +43,11 @@ def main():
     rospy.init_node('robot_movement_node')
     robot = utils.Robot()
 
-    robot.set_neutral()
+    robot.set_home()
+    robot.add_table_to_scene()
 
     # Center of the circle in the XZ plane
-    center = (0.0, 0.4, 0.2)
+    center = (-0.4, 0, 0.375)
     radius = 0.1  # Radius of the circle
     num_points = 20  # Number of points along the circle
 
@@ -62,7 +63,7 @@ def main():
     ]
 
     # Calcola il quaternione per mantenere il robot parallelo all'asse y
-    q = quaternion_from_euler(-math.pi / 2, 0, 0)
+    q = quaternion_from_euler(0, -math.pi / 2, 0)
     orientation = [q[0], q[1], q[2], q[3]]
     linear_speed = 0.1  # Velocità lineare del robot
 
@@ -84,7 +85,7 @@ def main():
     move_action(robot, waypoints, linear_speed)
     #robot.move2cartesian(waypoints=waypoints, linear_speed=linear_speed)
 
-    robot.set_neutral()
+    robot.set_home()
 
 if __name__ == '__main__':
     main()

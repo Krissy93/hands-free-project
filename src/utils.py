@@ -351,8 +351,9 @@ class Robot:
             target_pose.position.z = z
 
             # Set a fixed orientation (you can adjust this if needed)
-            #q = quaternion_from_euler(0, math.pi / 2, 0)
-            q = quaternion_from_euler(-math.pi / 2, 0, 0)
+            q = quaternion_from_euler(0, -math.pi / 2, 0)
+            #q = quaternion_from_euler(-math.pi / 2, 0, 0)
+            #q = quaternion_from_euler(0, -math.pi / 2, math.pi)
             target_pose.orientation.x = q[0]
             target_pose.orientation.y = q[1]
             target_pose.orientation.z = q[2]

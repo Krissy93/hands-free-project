@@ -6,17 +6,19 @@ import utils
 
 # Posizioni predefinite
 
-y = 0.4
+x = -0.4
+x_off = 0.1  # Offset per l'end effector lungo l'asse X
+
 positions = {
-    '1': [0.2, y, 0.15],  # Primo punto da testare
-    '2': [0.0, y, 0.15],  # Secondo punto da testare
-    '3': [-0.2, y, 0.15],  # Terzo punto da testare
-    '4': [0.2, y, 0.325],
-    '5': [0.0, y, 0.325],
-    '6': [-0.2, y, 0.325],
-    '7': [0.2, y, 0.5],
-    '8': [0.0, y, 0.5],
-    '9': [-0.2, y, 0.5]
+    '1': [x + x_off, 0.197, 0.24],  
+    '2': [x + x_off, 0.0, 0.24],  
+    '3': [x + x_off, -0.197, 0.24],  
+    '4': [x + x_off, 0.197, 0.45],
+    '5': [x + x_off, 0.0, 0.45],
+    '6': [x + x_off, -0.197, 0.45],
+    '7': [x + x_off, 0.197, 0.55],
+    '8': [x + x_off, 0.0, 0.55],
+    '9': [x + x_off, -0.197, 0.55]
 }
 
 def main():
