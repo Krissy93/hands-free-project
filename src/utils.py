@@ -281,10 +281,19 @@ class Robot:
         # Define A2 sheet pose
         sheet_pose = PoseStamped()
         sheet_pose.header.frame_id = "base_link"  # Ensure this is the correct frame
-        sheet_pose.pose.position.x = 0.0
+        sheet_pose.pose.position.x = -0.5
         sheet_pose.pose.position.y = 0.0
-        sheet_pose.pose.position.z = 1.1  # Adjust the Z position to place the sheet at desired height
+        sheet_pose.pose.position.z = 0.4  # Adjust the Z position to place the sheet at desired height
         sheet_pose.pose.orientation.w = 0.0
+
+            # Rotate the sheet so that it is flat, with the longer side (59.4 cm) parallel to the floor
+        q = quaternion_from_euler(-math.pi/2, 0, math.pi/2)  # No rotation if it is already aligned correctly
+        # If it needs to be aligned vertically or rotated, adjust the euler angles accordingly:
+        # For example, if you need it to stand vertically, you might use quaternion_from_euler(-math.pi / 2, 0, 0)
+        sheet_pose.pose.orientation.x = q[0]
+        sheet_pose.pose.orientation.y = q[1]
+        sheet_pose.pose.orientation.z = q[2]
+        sheet_pose.pose.orientation.w = q[3]
         
         # A2 sheet dimensions
         sheet_size = (0.594, 0.42, 0.01)  # (x, y, z) dimensions
@@ -555,23 +564,18 @@ def yaml2dict(path):
     OUTPUTS:
     - dictionary: dictionary of the file contents
     '''
-
     try:
         with open(path, 'r') as file:
             print(gu.Color.BOLD + gu.Color.CYAN + 'Reading YAML file...' + gu.Color.END)
-            # The FullLoader parameter handles the conversion from YAML
-            # scalar values to Python the dictionary format
             dictionary = yaml.load(file, Loader=yaml.FullLoader)
-
             return dictionary
-    #except:
-        #print(gu.Color.BOLD + gu.Color.RED + 'Wrong path to YAML file, please check. Path is: ' + str(path) + gu.Color.END)
     except FileNotFoundError:
         print(gu.Color.BOLD + gu.Color.RED + 'File not found. Please check the path: ' + str(path) + gu.Color.END)
     except yaml.YAMLError as exc:
         print(gu.Color.BOLD + gu.Color.RED + 'Error parsing YAML file: ' + str(exc) + gu.Color.END)
     except Exception as e:
         print(gu.Color.BOLD + gu.Color.RED + 'An unexpected error occurred: ' + str(e) + gu.Color.END)
+
 
 
 def dict2yaml(dictionary, path):

@@ -3,11 +3,10 @@ import argparse
 import graphical_utils as gu
 import numpy as np
 import utils
+import tf2_ros
 
 from geometry_msgs.msg import PoseStamped
-
-#python3.8 calibrate_robot.py './yaml/master_workspace.yaml' './yaml/robot_workspace_calibration.yaml' './yaml/calibration.yaml'
-
+from tf2_ros import Buffer, TransformListener
 
 def calibrate(ws1, ws2):
     ''' Function to calibrate two workspaces using the same number of points
@@ -27,104 +26,45 @@ def calibrate(ws1, ws2):
          plus a row of zeros and a 1 in the bottom-right corner
     '''
 
-    # convert points from ws1 to numpy array
     A = np.asarray(ws1)
-    # each point should be expressed as homogeneous coordinates, aka adding a 1 at the end
     A = np.append(A, np.ones((A.shape[0],1)), axis=1)
 
-    # define how to swap coordinates according to reference
-    # basically we create a rule to swap coordinates by making the second tuple of
-    # ref equal to the first
-
-    # b is the vector containing the ws2 coordinates
-    # in this case coordinates do not need to be converted to homogeneous
     b = np.asarray(ws2)
-    # ws2_ = np.asarray(ws2)
-    # b = ws2_.copy()
-    # for i in range(0, len(ref[0])):
-    #     try:
-    #         # the coordinate is found with the same sign
-    #         idx = ref[1].index(ref[0][i])
-    #         b[:,i] = ws2_[:,idx]
-    #     except:
-    #         # in this case the coordinate swaps sign
-    #         idx = ref[1].index(-ref[0][i])
-    #         b[:,i] = -ws2_[:,idx]
 
-    # solve linear system x = A\b
-    # the result is a vector x of values that must be placed in the correct spots
-    # of the rototranslation matrix by hand, namely r11 r12 r13 r21 r22 r23 r13 r23 r33 t1 t2 t3
-    x = np.linalg.lstsq(A,b,rcond=None)
-    # x is now an array of shape (4,1) where only the first element contains the actual
-    # parameters of Rt! So we need to convert the result (only first element) to a list
-    x = x[0].flatten()
-    x = x.tolist()
+    x = np.linalg.lstsq(A, b, rcond=None)[0]
+    x = x.flatten().tolist()
 
-    # define rototranslation matrix using the values of x
-    # it may be different according to the length of points (aka if the third coordinate
-    # is not present the matrix only has r11 r12 r21 r22 t1 t2)
-    # | r11 r12 r13 tx |
-    # | r21 r22 r23 ty |
-    # | r31 r32 r33 tz |
-    # |  0   0   0   1 |
-    #R = [[-x[1], x[0], -x[2]], [x[0], x[1], x[3]], [0.0, 0.0, 1.0]]
-
-    # note that solving a linear system means that resulting coefficients are found first,
-    # this is why all translation parameters (which are only scalars and not multiplied
-    # for variables) are last in the resulting vector
-    if len(x) > 6:
-        R = [[x[0], x[1], x[2], x[9]], [x[3], x[4], x[5], x[10]], [x[6], x[7], x[8], x[11]], [0.0, 0.0, 0.0, 1.0]]
+    if len(x) >= 12:
+        R = [[x[0], x[1], x[2], x[9]], 
+             [x[3], x[4], x[5], x[10]], 
+             [x[6], x[7], x[8], x[11]], 
+             [0.0, 0.0, 0.0, 1.0]]
+    elif len(x) >= 9:
+        R = [[x[0], x[1], x[4]], 
+             [x[2], x[3], x[5]], 
+             [0.0, 0.0, 1.0]]
     else:
-        R = [[x[0], x[1], x[4]], [x[2], x[3], x[5]], [0.0, 0.0, 1.0]]
-    # convert R from list to numpy array
+        raise ValueError("Insufficient data to construct the transformation matrix")
+
     R = np.asarray(R)
 
     return R
 
-def getXYZpoint(msg):
-    """
-    Function that is called after a new message has been received
-    from the selected robot's end-effector state topic. It's needed to
-    interpret the robot ros message and return only the arm's xyz position
-    (specified in the robot's reference system).
-
-    INPUTS:
-    - msg: full message coming from robot ros topic
-
-    OUTPUT:
-    - x,y,z: cartesian position of the robot's arm specified in the robot's reference system
-    """
-
-    print(gu.Color.BOLD + gu.Color.GREEN + '-- ACQUIRED POINT IS: --' + gu.Color.END)
-    print(gu.Color.BOLD + gu.Color.GREEN + f'(X: {msg.pose.position.x}, Y: {msg.pose.position.y}, Z: {msg.pose.position.z})' + gu.Color.END)
-    return msg.pose.position.x, msg.pose.position.y, msg.pose.position.z
+def get_transform(listener, target_frame, source_frame):
+    try:
+        transform = listener.lookup_transform(target_frame, source_frame, rospy.Time(0))
+        position = transform.transform.translation
+        return position.x, position.y, position.z
+    except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException) as e:
+        rospy.logerr(f"Error looking up transform: {e}")
+        return None, None, None
 
 def main(H_master_yaml, W_master_yaml, calibration_yaml):
-    """
-    Program needed to perform a calibration procedure between the robot's reference system and
-    the user reference system. The program writes in a YAML file the acquired positions,
-    guiding the user in the process, and performs the workspace calibration afterwards,
-    saving the result in the same YAML file.
-
-    Please note that if the two have different orientation (i.e. robot's is vertical, user's is horizontal)
-    this means that the corresponding frames and coordinates may be different!
-
-    INPUTS:
-    - H_master_yaml: path to yaml file containing the number of robot positions and coordinates
-                     with respect to reference system H (user workspace)
-    - W_master_yaml: path to yaml file containing the number of robot positions and coordinates
-                     with respect to reference system  W (in which the robot operates)
-    - calibration_yaml: path to yaml file in which the calibration result will be saved
-                        containing the user-defined markers, the corresponding robot coordinates
-                        and the calibration matrix R used to convert between the two ref. systems
-
-    OUTPUTS:
-    - saves the calibration file (at path defined by calibration_yaml) containing the
-      markers positions, the corresponding robot coordinates and the calibration matrix R
-    """
-
     rospy.init_node('robot_workspace_calibration_node')
-    posenode = '/ur_hardware_interface/tool_pose'
+
+    # Crea un listener per le trasformazioni tf
+    tf_buffer = Buffer()
+    tf_listener = TransformListener(tf_buffer)
 
     # Load YAML files
     dict_H = utils.yaml2dict(H_master_yaml)
@@ -134,25 +74,45 @@ def main(H_master_yaml, W_master_yaml, calibration_yaml):
     pose_H = dict_H['Pose']
     markers_H = dict_H['Markers']
 
-    # Access the 'Master', 'Robot', and 'Calibration' from dict_W
-    pose_W = dict_W['Pose']
-    markers_W = dict_W['Markers']
+    # Dict_W è una lista di dizionari, quindi estrai i dizionari
+    dict_W_content = dict_W[0]
+    robot_dict = dict_W[1]
+
+    if 'Master' in dict_W_content:
+        markers_W = dict_W_content['Master']
+    else:
+        raise KeyError("Key 'Master' not found in dict_W_content.")
     
-    # only acquires a position when ENTER is pressed, allowing to move the robot in manual guidance
+    if 'Robot' in robot_dict:
+        points = robot_dict['Robot']
+    else:
+        raise KeyError("Key 'Robot' not found in robot_dict.")
+    
     points = []
 
     i = 0
     print(gu.Color.BOLD + gu.Color.CYAN + f'-- MOVE THE ROBOT TO POSITION {pose_H[i]} --' + gu.Color.END)
     input(gu.Color.BOLD + gu.Color.YELLOW + '-- PRESS ENTER TO START ACQUISITION AFTER YOU ARE DONE --' + gu.Color.END)
     while not rospy.is_shutdown() and i < len(pose_H):
-        msg = rospy.wait_for_message(posenode, PoseStamped)
-        x, y, z = getXYZpoint(msg)
-        points.append([x, y, z])
-        i += 1
-        if i < len(pose_H):
-            print(gu.Color.BOLD + gu.Color.CYAN + f'-- MOVE THE ROBOT TO POSITION {pose_H[i]} --' + gu.Color.END)
-            input(gu.Color.BOLD + gu.Color.YELLOW + '-- PRESS ENTER TO START ACQUISITION AFTER YOU ARE DONE --' + gu.Color.END)
-        else:
+        try:
+            rospy.sleep(1.0)  # Attendi un momento per permettere al listener di aggiornarsi
+            x, y, z = get_transform(tf_buffer, 'base_link', 'tool0')
+            if x is not None and y is not None and z is not None:
+                points.append([x, y, z])
+                print(f"Acquired point: ({x}, {y}, {z})")
+            else:
+                print("Failed to acquire point.")
+            i += 1
+            if i < len(pose_H):
+                print(gu.Color.BOLD + gu.Color.CYAN + f'-- MOVE THE ROBOT TO POSITION {pose_H[i]} --' + gu.Color.END)
+                input(gu.Color.BOLD + gu.Color.YELLOW + '-- PRESS ENTER TO START ACQUISITION AFTER YOU ARE DONE --' + gu.Color.END)
+            else:
+                break
+        except rospy.ROSException as e:
+            print(f"Error waiting for message: {e}")
+            break
+        except Exception as e:
+            print(f"An unexpected error occurred: {e}")
             break
 
     R_H2W = calibrate(markers_H, markers_W)

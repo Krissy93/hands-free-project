@@ -3,7 +3,7 @@
 	<arg name="threshold" default="0.3"/>
 	<arg name="max_chain" default="3"/>
 	<arg name="x" default="0.7"/>
-	<arg name="path_ur" default="/home/jacopo/ros_ws"/>
+	<arg name="path_ur" default="/home/jacopo/URProject"/>
 	<arg name="undistort" default="True"/>
 	<arg name="debug" default="False"/>
 
