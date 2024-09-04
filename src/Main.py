@@ -128,7 +128,7 @@ def hand_open_action(hand, robot, robot_home, robot_orientation, linear_speed):
 
     # also resets robot position to home
     #cartesian.move2cartesian(position=robot_home, orientation=robot_orientation, in_tip_frame=True, linear_speed=linear_speed)
-    robot.set_neutral()
+    robot.set_home()
     print(gu.Color.BOLD + gu.Color.GREEN + ' -- ROBOT HOME POSE REACHED -- ' + gu.Color.END)
 
 def move_action(hand, robot, depth, robot_points, orientation, linear_speed):
@@ -148,9 +148,13 @@ def move_action(hand, robot, depth, robot_points, orientation, linear_speed):
     for p in interpolated_points:
         # depth[0] may be 0, 1 or 2 corresponding to x, y or z coordinates
         p[depth[0]] = depth[1]
+
         # move to each point in a loop until end of trajectory
-        #cartesian.move2cartesian(position=tuple(p), orientation=orientation, in_tip_frame=True, linear_speed=linear_speed)
-        robot.move2cartesian(position=tuple(p), orientation=orientation, in_tip_frame=True, linear_speed=linear_speed)
+        robot.move2cartesian(position=tuple(p), orientation=orientation, in_tip_frame=True, linear_speed=linear_speed, simulate_only=True)
+        robot.visualize_trajectory_as_line(position=tuple(p))  # Visualize the trajectory as a line
+        rospy.loginfo(gu.Color.BOLD + gu.Color.CYAN + '-- SIMULATION DONE. Press Enter to execute the movement --' + gu.Color.END)
+        input()  # Wait for user to press Enter to execute the movement
+        robot.move2cartesian(position=tuple(p), linear_speed=linear_speed)
 
 
     rospy.loginfo(gu.Color.BOLD + gu.Color.GREEN + '-- MOVEMENT COMPLETED --' + gu.Color.END)
@@ -295,18 +299,19 @@ def main():
     rospy.sleep(30)
     rospy.loginfo(gu.Color.BOLD + gu.Color.GREEN + '-- INITIALIZING ROBOT --' + gu.Color.END)
     workspace_calibrations = utils.yaml2dict('/home/jacopo/URProject/src/hands-free-project/src/yaml/robot_workspace_calibration.yaml')
-    R_H2W = workspace_calibrations['H2W']
-    R_W2R = workspace_calibrations['W2H']
+    R_H2W = workspace_calibrations['H2WCalibration']
+    R_W2R = workspace_calibrations['W2HCalibration']
     
     # moves robot to home position
-    # Inizializzazione del robot UR3 utilizzando la classe Robot personalizzata
+    # Inizializzazione del robot UR3
     robot = utils.Robot()
     rospy.loginfo(gu.Color.BOLD + gu.Color.GREEN + '-- ROBOT READY --' + gu.Color.END)
 
-    rospy.loginfo(gu.Color.BOLD + gu.Color.GREEN + '-- MOVING TO HOME --' + gu.Color.END)
-    #Put into the scene the box under the robot
+    #Put into the scene the box under the robot and the A2 sheet
     robot.add_table_to_scene()
+    robot.add_a2_sheet_to_scene()
 
+    rospy.loginfo(gu.Color.BOLD + gu.Color.GREEN + '-- MOVING TO HOME --' + gu.Color.END)
     #set the robot in the home position
     robot.set_home()
     rospy.loginfo(gu.Color.BOLD + gu.Color.GREEN + '-- ROBOT IN HOME POSITION --' + gu.Color.END)
