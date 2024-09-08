@@ -145,16 +145,21 @@ def move_action(hand, robot, depth, robot_points, orientation, linear_speed):
 
     rospy.loginfo(gu.Color.BOLD + gu.Color.CYAN + '-- MOVING... --' + gu.Color.END)
 
+    waypoints = []
     for p in interpolated_points:
         # depth[0] may be 0, 1 or 2 corresponding to x, y or z coordinates
         p[depth[0]] = depth[1]
+        waypoints.append({
+            'position': tuple(p), 
+            'orientation': orientation
+        })
 
-        # move to each point in a loop until end of trajectory
-        robot.move2cartesian(position=tuple(p), orientation=orientation, in_tip_frame=True, linear_speed=linear_speed, simulate_only=True)
-        robot.visualize_trajectory_as_line(position=tuple(p))  # Visualize the trajectory as a line
-        rospy.loginfo(gu.Color.BOLD + gu.Color.CYAN + '-- SIMULATION DONE. Press Enter to execute the movement --' + gu.Color.END)
-        input()  # Wait for user to press Enter to execute the movement
-        robot.move2cartesian(position=tuple(p), linear_speed=linear_speed)
+    #move the robot along the trajectory
+    robot.move2cartesian(waypoints=waypoints, linear_speed=linear_speed, simulate_only=True)
+    robot.visualize_trajectory_as_line(position=tuple(p))  # Visualize the trajectory as a line
+    rospy.loginfo(gu.Color.BOLD + gu.Color.CYAN + '-- SIMULATION DONE. Press Enter to execute the movement --' + gu.Color.END)
+    input()  # Wait for user to press Enter to execute the movement
+    robot.move2cartesian(position=tuple(p), linear_speed=linear_speed)
 
 
     rospy.loginfo(gu.Color.BOLD + gu.Color.GREEN + '-- MOVEMENT COMPLETED --' + gu.Color.END)
@@ -298,9 +303,9 @@ def main():
     rospy.loginfo(gu.Color.BOLD + gu.Color.YELLOW + '-- WAITING ROBOT --' + gu.Color.END)
     rospy.sleep(30)
     rospy.loginfo(gu.Color.BOLD + gu.Color.GREEN + '-- INITIALIZING ROBOT --' + gu.Color.END)
-    workspace_calibrations = utils.yaml2dict('/home/jacopo/URProject/src/hands-free-project/src/yaml/robot_workspace_calibration.yaml')
+    workspace_calibrations = utils.yaml2dict('/home/jacopo/URProject/src/hands-free-project/src/yaml/calibration.yaml')
     R_H2W = workspace_calibrations['H2WCalibration']
-    R_W2R = workspace_calibrations['W2HCalibration']
+    R_W2R = workspace_calibrations['W2RCalibration']
     
     # moves robot to home position
     # Inizializzazione del robot UR3

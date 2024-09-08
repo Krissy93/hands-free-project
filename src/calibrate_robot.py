@@ -78,19 +78,15 @@ def calibrate(ws1, ws2):
             [x[6], x[7], x[8], x[11]],
             [0.0, 0.0, 0.0, 1.0]
         ]
-    elif len(x) == 9:  # Caso 3x3 con traslazione
-        R = [
-            [x[0], x[1], x[2], 0.0],  # Prima riga della matrice di rotazione
-            [x[3], x[4], x[5], 0.0],  # Seconda riga della matrice di rotazione
-            [x[6], x[7], x[8], 0.0],  # Terza riga della matrice di rotazione
-            [0.0, 0.0, 0.0, 1.0]      # Riga omogenea per completare la matrice 4x4
-        ]
-    elif len(x) == 6:  # Caso 2D senza traslazione
-        R = [
-            [x[0], x[1], 0.0],
-            [x[2], x[3], 0.0],
-            [0.0, 0.0, 1.0]
-        ]
+    #elif len(x) == 9:  # Caso 3x3 con traslazione
+    #    R = [
+    #        [x[0], x[1], x[2], 0.0],  # Prima riga della matrice di rotazione
+    #        [x[3], x[4], x[5], 0.0],  # Seconda riga della matrice di rotazione
+    #        [x[6], x[7], x[8], 0.0],  # Terza riga della matrice di rotazione
+    #        [0.0, 0.0, 0.0, 1.0]      # Riga omogenea per completare la matrice 4x4
+    #    ]
+    elif len(x) < 12:  # Caso 2D senza traslazione
+        R = [[x[0], x[1], x[4]], [x[2], x[3], x[5]], [0.0, 0.0, 1.0]]
     else:
         raise ValueError("Dimensione dei dati non valida per costruire la matrice di rototraslazione")
     
