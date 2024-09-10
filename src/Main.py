@@ -148,6 +148,8 @@ def move_action(hand, robot, depth, robot_points, orientation, linear_speed):
     waypoints = []
     for p in interpolated_points:
         # depth[0] may be 0, 1 or 2 corresponding to x, y or z coordinates
+        p[2] = p[1]
+        p[1] = p[0]
         p[depth[0]] = depth[1]
         waypoints.append({
             'position': tuple(p), 
@@ -156,13 +158,20 @@ def move_action(hand, robot, depth, robot_points, orientation, linear_speed):
 
     #move the robot along the trajectory
     robot.move2cartesian(waypoints=waypoints, linear_speed=linear_speed, simulate_only=True)
-    robot.visualize_trajectory_as_line(position=tuple(p))  # Visualize the trajectory as a line
-    rospy.loginfo(gu.Color.BOLD + gu.Color.CYAN + '-- SIMULATION DONE. Press Enter to execute the movement --' + gu.Color.END)
-    input()  # Wait for user to press Enter to execute the movement
-    robot.move2cartesian(position=tuple(p), linear_speed=linear_speed)
+    robot.visualize_trajectory_as_line(waypoints)  # Visualize the trajectory as a line
+    rospy.loginfo(gu.Color.BOLD + gu.Color.CYAN + '-- SIMULATION DONE. Press Enter to execute the movement or q to quit --' + gu.Color.END)
 
-
-    rospy.loginfo(gu.Color.BOLD + gu.Color.GREEN + '-- MOVEMENT COMPLETED --' + gu.Color.END)
+    while True:
+        user_input = input()  # Wait for user to press a key
+        if user_input == '':  # If Enter is pressed
+            robot.move2cartesian(position=tuple(p), linear_speed=linear_speed)
+            rospy.loginfo(gu.Color.BOLD + gu.Color.GREEN + '-- MOVEMENT COMPLETED --' + gu.Color.END)
+            break
+        elif user_input.lower() == 'q':  # If 'q' is pressed
+            rospy.loginfo(gu.Color.BOLD + gu.Color.RED + '-- OPERATION CANCELLED --' + gu.Color.END)
+            break
+        else:
+            rospy.loginfo(gu.Color.BOLD + gu.Color.YELLOW + '-- Invalid input. Press Enter to execute the movement or q to quit --' + gu.Color.END)
 
 def get_ref_point(K, D, R, t):
     ''' Finds the coordinates of the reference point 0 in workspace H, used
@@ -253,7 +262,7 @@ def main():
     if rospy.has_param('~depth_val'):
          depth_val = rospy.get_param('~depth_val')
     else:
-         depth_val = 0.7
+         depth_val = -0.25
     depth = [depth_coord, depth_val]
 
     # robot parameters such as home coordinates, tip orientation and speed
@@ -265,7 +274,6 @@ def main():
     if rospy.has_param('~robot_orientation'):
          robot_orientation = tuple(rospy.get_param('~robot_orientation'))
     else:
-         #robot_orientation = (0.5, 0.5, 0.5, 0.5)
          q = quaternion_from_euler(0, -math.pi / 2, 0)
          robot_orientation = [q[0], q[1], q[2], q[3]]
 
@@ -338,8 +346,10 @@ def main():
 
         #frame, b3, a1, a3 = utils.correzione_prospettica(B3, A1, A3, reference, R, t, K, D, frame.copy())
 
+        rospy.loginfo(gu.Color.BOLD + gu.Color.GREEN + '-- DONE --' + gu.Color.END)
         # detects the hand keypoints
         hand.mediapipe_inference(frame)
+        rospy.loginfo(gu.Color.BOLD + gu.Color.GREEN + '-- DONE --' + gu.Color.END)
         #hand.inference(frame)
         if debug:
             rospy.loginfo(gu.Color.BOLD + gu.Color.GREEN + 'points: ' + str(hand.points) + gu.Color.END)
