@@ -43,12 +43,12 @@ class Hand:
         # image is not writable to improve performance during inference
         frame.flags.writeable = False
         # converts to rgb from bgr (standard opencv format)
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
         # performs inference
         # model_complexity, min_detection_confidence, min_tracking_confidence
         with self.mp_hands.Hands(model_complexity=self.model_complexity, min_detection_confidence=self.threshold, min_tracking_confidence=self.threshold) as hands:
-            self.output = hands.process(frame)
+            self.output = hands.process(frame_rgb)
             
             # gets inference time required by network to perform the detection
             self.inference_time = round(time.time() - before, 3)
@@ -61,8 +61,21 @@ class Hand:
                     # so we need to transform them back to image coordinates
                     # shape 1 is width, shape 0 is height
                     self.points.append((int(self.output.multi_hand_landmarks[0].landmark[i].x * frame.shape[1]), int(self.output.multi_hand_landmarks[0].landmark[i].y * frame.shape[0])))
+                
+                # Draw the landmarks and connections
+                for pair in self.pairs:
+                    x1, y1 = self.points[pair[0]]
+                    x2, y2 = self.points[pair[1]]
+                    cv2.line(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                
+                for point in self.points:
+                    cv2.circle(frame, point, 5, (255, 0, 0), -1)
+
             else:
                 self.points = [None] * n_keypoints
+
+        # Set image to writable again
+        frame.flags.writeable = True
 
     def get_handmap(self):
         ''' Function to check if the finger is closed or not, according to the position
@@ -259,4 +272,3 @@ class Hand:
             if self.debug:
                 rospy.loginfo(gu.Color.BOLD + gu.Color.RED + 'NO GESTURE DETECTED' + gu.Color.END)
             self.current_gesture = 'NO GESTURE'
-

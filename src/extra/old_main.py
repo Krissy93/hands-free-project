@@ -298,7 +298,8 @@ def main():
     ###### STEP 1: INITIALIZATION
 
     # Hand object initialization
-    hand = hgu.Hand(net_params=[1], threshold=threshold, debug=False)
+    hand = hgu.Hand(net_params=[2],threshold=threshold,debug=False)
+
 
     # loading of the calibration parameters of both camera and robot
     camera_calibration = utils.yaml2dict('/home/jacopo/URProject/src/hands-free-project/src/yaml/camera_calibration.yaml')
@@ -308,7 +309,7 @@ def main():
     t = camera_calibration['t']
 
     rospy.loginfo(gu.Color.BOLD + gu.Color.YELLOW + '-- WAITING ROBOT --' + gu.Color.END)
-    #rospy.sleep(30)
+    rospy.sleep(30)
     rospy.loginfo(gu.Color.BOLD + gu.Color.GREEN + '-- INITIALIZING ROBOT --' + gu.Color.END)
     workspace_calibrations = utils.yaml2dict('/home/jacopo/URProject/src/hands-free-project/src/yaml/calibration.yaml')
     R_H2W = workspace_calibrations['H2WCalibration']
@@ -330,13 +331,10 @@ def main():
     # computes reference point
     ref_pt = get_ref_point(K, D, R, t)
 
-    rospy.loginfo('Attempting to initialize Kinect...')
     if cam_name == 'Kinect':
         camera = utils.Kinect(enable_rgb=True, enable_depth=False, need_bigdepth=False, need_color_depth_map=False, K=K, D=D)
     else:
         camera = utils.Camera(enable_rgb=True)
-
-    rospy.loginfo(gu.Color.BOLD + gu.Color.GREEN + '-- CAMERA INITIALIZED --' + gu.Color.END)
 
     while not rospy.is_shutdown():
         ###### STEP 2: FRAME ACQUISITION
@@ -346,19 +344,15 @@ def main():
         # so the calibration matrixes that must be used are Rd and td!!
         frame = camera.RGBundistorted.copy()
 
-        '''
-        # Ensure camera acquisition starts correctly
-        if not camera.acquire(False):
-            rospy.logerr('Camera acquisition failed. Please check the camera connection.')
-            return
-        '''
+        #frame, b3, a1, a3 = utils.correzione_prospettica(B3, A1, A3, reference, R, t, K, D, frame.copy())
 
+        rospy.loginfo(gu.Color.BOLD + gu.Color.GREEN + '-- DONE --' + gu.Color.END)
         # detects the hand keypoints
+        
         hand.mediapipe_inference(frame)
-
-        # Trova la posizione della mano (o delle mani) nel frame
-        lmList = hand.findPosition(frame)
-
+        
+        rospy.loginfo(gu.Color.BOLD + gu.Color.GREEN + '-- DONE --' + gu.Color.END)
+        #hand.inference(frame)
         if debug:
             rospy.loginfo(gu.Color.BOLD + gu.Color.GREEN + 'points: ' + str(hand.points) + gu.Color.END)
 
@@ -367,16 +361,9 @@ def main():
         # so it skips the detection functions and assigns a no gesture handle to current_gesture
         if all(x == None for x in hand.points[1:]) or hand.points[0] == None:
             hand.current_gesture = 'NO GESTURE'
-            rospy.loginfo(gu.Color.BOLD + gu.Color.RED + 'NO HAND DETECTED' + gu.Color.END)
-            '''
-            # Show frame without keypoints but don't exit
-            gu.draw_gesture_info(frame, hand.inference_time, hand.current_gesture, hand.handmap)
-            
-            cv2.imshow('Gesture and trajectory detection', frame)
-            if cv2.waitKey(25) == ord('q'):
-                break
-            continue
-            '''
+            if debug:
+                rospy.loginfo(gu.Color.BOLD + gu.Color.RED + 'NO GESTURE FOUND IN IMAGE' + gu.Color.END)
+
         # else, it finds the correct gesture based on the keypoints detected
         else:
             hand.get_gesture()
@@ -390,6 +377,7 @@ def main():
                 hand.current_gesture = 'NO GESTURE'
 
             elif hand.current_gesture == 'MOVE':
+                # points_list, K, R, t, R_H2W, R_W2R, depth, ref_pt, debug=False
                 robot_points = cu.px2R(hand.positions_saved, K, R, t, R_H2W, R_W2R, depth, ref_pt, debug)
 
                 move_action(hand, robot, depth, robot_points, robot_orientation, robot_speed)
