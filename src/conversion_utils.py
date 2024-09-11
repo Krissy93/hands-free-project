@@ -55,6 +55,10 @@ def H2R(original_point, R_H2W, R_W2R, depth, debug=False):
                    These will be sent to the robot ROS node to form a waypoint and move it.
     '''
 
+    # Convert matrices to numpy arrays if they are not already
+    R_H2W = np.array(R_H2W)
+    R_W2R = np.array(R_W2R)
+
     # flatten the given point and transform it in homogeneous coordinates
     # original point is the point in meters expressed in H ref system coordinates
     original_point = original_point.flatten()

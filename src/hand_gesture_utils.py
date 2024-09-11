@@ -16,6 +16,8 @@ class Hand:
         self.max_chain = max_chain
 
         self.mp_hands = mp.solutions.hands
+
+        self.mpDraw = mp.solutions.drawing_utils
         self.init_mediapipe()
 
         # Values for gesture chains
@@ -34,6 +36,58 @@ class Hand:
         for i in self.mp_hands.HAND_CONNECTIONS:
             self.pairs.append(i)
 
+    
+    def mediapipe_inference(self, frame, n_keypoints=21):
+        # Assicurati che frame sia un array di tipo uint8
+        frame = np.asarray(frame, dtype=np.uint8)
+        
+        # Crea una copia profonda dell'immagine per le operazioni di disegno
+        writable_frame = np.copy(frame)
+        
+        # Verifica che writable_frame sia scrivibile
+        if not writable_frame.flags.writeable:
+            rospy.logwarn("Writable frame is not writable!")
+
+        # Calcola il tempo totale di inferenza come differenza tra l'inizio di questa funzione
+        # e il tempo corrispondente alla creazione dell'output
+        before = time.time()
+
+        # L'immagine non è scrivibile per migliorare le prestazioni durante l'inferenza
+        frame_rgb = cv2.cvtColor(writable_frame, cv2.COLOR_BGR2RGB)
+
+        self.hands = self.mp_hands.Hands(model_complexity=self.model_complexity, min_detection_confidence=self.threshold, min_tracking_confidence=self.threshold)
+
+        # Effettua l'inferenza
+        # model_complexity, min_detection_confidence, min_tracking_confidence
+        with self.mp_hands.Hands(model_complexity=self.model_complexity, min_detection_confidence=self.threshold, min_tracking_confidence=self.threshold) as hands:
+            self.output = hands.process(frame_rgb)
+
+            # Ottieni il tempo di inferenza richiesto dalla rete per eseguire il rilevamento
+            self.inference_time = round(time.time() - before, 3)
+
+            # Liste vuote per memorizzare i punti chiave rilevati e i punteggi di confidenza
+            self.points = []
+            if self.output.multi_hand_landmarks:
+                for i in range(n_keypoints):
+                    # Le coordinate sono normalizzate da 0 a 1
+                    # Quindi dobbiamo trasformarle di nuovo in coordinate dell'immagine
+                    self.points.append((int(self.output.multi_hand_landmarks[0].landmark[i].x * writable_frame.shape[1]), int(self.output.multi_hand_landmarks[0].landmark[i].y * writable_frame.shape[0])))
+
+                # Disegna i landmark e le connessioni
+                for pair in self.pairs:
+                    x1, y1 = self.points[pair[0]]
+                    x2, y2 = self.points[pair[1]]
+                    cv2.line(writable_frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+
+                for point in self.points:
+                    cv2.circle(writable_frame, point, 5, (255, 0, 0), -1)
+
+            else:
+                self.points = [None] * n_keypoints
+
+        return writable_frame
+    '''    
+
     def mediapipe_inference(self, frame, n_keypoints=21):
     
         # calculate the total inference time as a difference between the starting time
@@ -43,12 +97,14 @@ class Hand:
         # image is not writable to improve performance during inference
         frame.flags.writeable = False
         # converts to rgb from bgr (standard opencv format)
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+        self.hands = self.mp_hands.Hands(model_complexity=self.model_complexity, min_detection_confidence=self.threshold, min_tracking_confidence=self.threshold)
 
         # performs inference
         # model_complexity, min_detection_confidence, min_tracking_confidence
         with self.mp_hands.Hands(model_complexity=self.model_complexity, min_detection_confidence=self.threshold, min_tracking_confidence=self.threshold) as hands:
-            self.output = hands.process(frame_rgb)
+            self.output = hands.process(frame)
             
             # gets inference time required by network to perform the detection
             self.inference_time = round(time.time() - before, 3)
@@ -61,21 +117,9 @@ class Hand:
                     # so we need to transform them back to image coordinates
                     # shape 1 is width, shape 0 is height
                     self.points.append((int(self.output.multi_hand_landmarks[0].landmark[i].x * frame.shape[1]), int(self.output.multi_hand_landmarks[0].landmark[i].y * frame.shape[0])))
-                
-                # Draw the landmarks and connections
-                for pair in self.pairs:
-                    x1, y1 = self.points[pair[0]]
-                    x2, y2 = self.points[pair[1]]
-                    cv2.line(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
-                
-                for point in self.points:
-                    cv2.circle(frame, point, 5, (255, 0, 0), -1)
-
             else:
                 self.points = [None] * n_keypoints
-
-        # Set image to writable again
-        frame.flags.writeable = True
+    '''
 
     def get_handmap(self):
         ''' Function to check if the finger is closed or not, according to the position
@@ -155,15 +199,24 @@ class Hand:
                 self.handmap.append(0)
             # increment the keypoint values for the next finger
             j += 4
+
+        # Add debug logs
+        rospy.loginfo(f"Handmap before index adjustment: {self.handmap}")
+        rospy.loginfo(f"FOP: {fop}")
             
         # FOR ENDED! All fingers calculated by now!
         # check the fingertips distances: if the maximum distance in the list
         # corresponds to the index finger, then it means that the index was the only
         # finger open/detected as open, thus we impose the index value in the handmap as 2
-        if max(fop) == fop[1]:
-            self.handmap[1] = 2
-        elif max(fop) == fop[2]:
-            self.handmap[2] = 2
+        if all(val == 1 for val in self.handmap):
+            self.handmap = [1, 1, 1, 1, 1]
+            rospy.loginfo("Detected hand open gesture")
+        else:
+            # FOR ENDED! All fingers calculated by now!
+            if max(fop) == fop[1]:
+                self.handmap[1] = 2
+            elif max(fop) == fop[2]:
+                self.handmap[2] = 2
 
     def get_gesture(self):
         ''' Function to check which gesture is performed.
@@ -196,10 +249,11 @@ class Hand:
 
         # obtains the current handmap
         self.get_handmap()
+        rospy.loginfo(gu.Color.BOLD + gu.Color.CYAN + f'Handmap: {self.handmap}' + gu.Color.END)
 
         # if all values of handmap are equal to 1, then the gesture is HAND OPEN
         if self.handmap.count(1) == len(self.handmap):
-            rospy.loginfo(gu.Color.BOLD + gu.Color.GREEN + 'HAND OPEN' + gu.Color.END)
+            #rospy.loginfo(gu.Color.BOLD + gu.Color.GREEN + 'HAND OPEN' + gu.Color.END)
             # add one to chain hand open, resets chain move
             self.chain_open += 1
             self.chain_move = 0
@@ -208,11 +262,11 @@ class Hand:
             if self.chain_open == self.max_chain:
                 self.current_gesture = 'HAND OPEN'
                 # ACTION is performed in main script accordingly
-
+        
         # if the index and middle finger value are equal to 1, then the gesture is MOVE
         #== [0, 1, 1, 0, 0]
         elif self.handmap[1] >= 1 and self.handmap[2] >= 1:
-            rospy.loginfo(gu.Color.BOLD + gu.Color.PURPLE + 'MOVE' + gu.Color.END)
+            #rospy.loginfo(gu.Color.BOLD + gu.Color.PURPLE + 'MOVE' + gu.Color.END)
             # adds one to chain move, resets chain hand open
             self.chain_move += 1
             self.chain_open = 0
@@ -221,11 +275,11 @@ class Hand:
             if self.acquire and self.chain_move == self.max_chain:
                 self.current_gesture = 'MOVE'
                 # ACTION is performed in main script accordingly
-
+        
         # if only the index finger value is equal to 1, then the gesture is INDEX
         #elif handmap == [0, 1, 0, 0, 0]:      
         elif self.handmap[1] == 2 and self.handmap[2] < 1:
-            rospy.loginfo(gu.Color.BOLD + gu.Color.CYAN + 'INDEX' + gu.Color.END)
+            #rospy.loginfo(gu.Color.BOLD + gu.Color.CYAN + 'INDEX' + gu.Color.END)
             # resets counters for chain hand open and move
             self.chain_open = 0
             self.chain_move = 0
@@ -272,3 +326,39 @@ class Hand:
             if self.debug:
                 rospy.loginfo(gu.Color.BOLD + gu.Color.RED + 'NO GESTURE DETECTED' + gu.Color.END)
             self.current_gesture = 'NO GESTURE'
+
+
+    def findHands(self, img, draw=True):
+        imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        self.results = self.hands.process(imgRGB)
+
+        if self.results.multi_hand_landmarks:
+            for handLms in self.results.multi_hand_landmarks:
+                if draw:
+                    self.mpDraw.draw_landmarks(img, handLms, self.mp_hands.HAND_CONNECTIONS)
+        return img
+
+    def findPosition(self, img, handNo=0, draw=True):
+
+        lmList = []
+
+        if self.results.multi_hand_landmarks:
+            myHand = self.results.multi_hand_landmarks[handNo]
+            for id, lm in enumerate(myHand.landmark):
+                # print(id, lm)
+                h, w, c = img.shape
+                cx, cy = int(lm.x * w), int(lm.y * h)
+                # print(id, cx, cy)
+                lmList.append([id, cx, cy])
+                if id == 8:
+                    cv2.circle(img, (cx, cy), 10, (255, 0, 255), cv2.FILLED)
+                if id == 12:
+                    cv2.circle(img, (cx, cy), 10, (255, 0, 255), cv2.FILLED)
+                if id == 16:
+                    cv2.circle(img, (cx, cy), 10, (255, 0, 255), cv2.FILLED)
+                if id == 20:
+                    cv2.circle(img, (cx, cy), 10, (255, 0, 255), cv2.FILLED)
+                if id == 4:
+                    cv2.circle(img, (cx, cy), 10, (255, 0, 255), cv2.FILLED)
+
+        return lmList

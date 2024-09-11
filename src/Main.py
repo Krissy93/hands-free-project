@@ -243,7 +243,7 @@ def main():
     if rospy.has_param('~threshold'):
          threshold = rospy.get_param('~threshold')
     else:
-         threshold = 0.2
+         threshold = 0.5
 
     # chain value: if lower, less finger positions are acquired before accepting gesture,
     # meaning that the reaction time is faster but may be less accurate due to disturbances
@@ -298,7 +298,7 @@ def main():
     ###### STEP 1: INITIALIZATION
 
     # Hand object initialization
-    hand = hgu.Hand(net_params=[1], threshold=threshold, debug=False)
+    hand = hgu.Hand(net_params=[1], threshold=threshold,max_chain=max_chain, debug=False)
 
     # loading of the calibration parameters of both camera and robot
     camera_calibration = utils.yaml2dict('/home/jacopo/URProject/src/hands-free-project/src/yaml/camera_calibration.yaml')
@@ -346,15 +346,11 @@ def main():
         # so the calibration matrixes that must be used are Rd and td!!
         frame = camera.RGBundistorted.copy()
 
-        '''
-        # Ensure camera acquisition starts correctly
-        if not camera.acquire(False):
-            rospy.logerr('Camera acquisition failed. Please check the camera connection.')
-            return
-        '''
-
         # detects the hand keypoints
         hand.mediapipe_inference(frame)
+
+        # Rilevazione delle mani usando il detector
+        frame = hand.findHands(frame)
 
         # Trova la posizione della mano (o delle mani) nel frame
         lmList = hand.findPosition(frame)
@@ -368,18 +364,11 @@ def main():
         if all(x == None for x in hand.points[1:]) or hand.points[0] == None:
             hand.current_gesture = 'NO GESTURE'
             rospy.loginfo(gu.Color.BOLD + gu.Color.RED + 'NO HAND DETECTED' + gu.Color.END)
-            '''
-            # Show frame without keypoints but don't exit
-            gu.draw_gesture_info(frame, hand.inference_time, hand.current_gesture, hand.handmap)
-            
-            cv2.imshow('Gesture and trajectory detection', frame)
-            if cv2.waitKey(25) == ord('q'):
-                break
-            continue
-            '''
+
         # else, it finds the correct gesture based on the keypoints detected
         else:
             hand.get_gesture()
+            rospy.loginfo(gu.Color.BOLD + gu.Color.YELLOW + f'Current Gesture: {hand.current_gesture}' + gu.Color.END)
 
             ###### STEP 4: ROBOT MOVEMENT
             # according to gesture type identified, performs a robot action
