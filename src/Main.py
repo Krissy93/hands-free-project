@@ -127,7 +127,6 @@ def hand_open_action(hand, robot, robot_home, robot_orientation, linear_speed):
     hand.index_positions = []
 
     # also resets robot position to home
-    #cartesian.move2cartesian(position=robot_home, orientation=robot_orientation, in_tip_frame=True, linear_speed=linear_speed)
     robot.set_home()
     print(gu.Color.BOLD + gu.Color.GREEN + ' -- ROBOT HOME POSE REACHED -- ' + gu.Color.END)
 
@@ -143,6 +142,7 @@ def move_action(hand, robot, depth, robot_points, orientation, linear_speed):
     else:
         interpolated_points = robot_points
 
+    
     rospy.loginfo(gu.Color.BOLD + gu.Color.CYAN + '-- MOVING... --' + gu.Color.END)
 
     waypoints = []
@@ -159,15 +159,16 @@ def move_action(hand, robot, depth, robot_points, orientation, linear_speed):
     #move the robot along the trajectory
     robot.move2cartesian(waypoints=waypoints, linear_speed=linear_speed, simulate_only=True)
     robot.visualize_trajectory_as_line(waypoints)  # Visualize the trajectory as a line
-    rospy.loginfo(gu.Color.BOLD + gu.Color.CYAN + '-- SIMULATION DONE. Press Enter to execute the movement or q to quit --' + gu.Color.END)
+    rospy.loginfo(gu.Color.BOLD + gu.Color.CYAN + '-- SIMULATION DONE. Press Enter to execute the movement or z to quit --' + gu.Color.END)
 
     while True:
         user_input = input()  # Wait for user to press a key
+        robot.delete_trajectory_marker()
         if user_input == '':  # If Enter is pressed
-            robot.move2cartesian(position=tuple(p), linear_speed=linear_speed)
+            robot.move2cartesian(waypoints, linear_speed=linear_speed)
             rospy.loginfo(gu.Color.BOLD + gu.Color.GREEN + '-- MOVEMENT COMPLETED --' + gu.Color.END)
             break
-        elif user_input.lower() == 'q':  # If 'q' is pressed
+        elif user_input.lower() == 'z':  # If 'q' is pressed
             rospy.loginfo(gu.Color.BOLD + gu.Color.RED + '-- OPERATION CANCELLED --' + gu.Color.END)
             break
         else:
@@ -263,7 +264,15 @@ def main():
          depth_val = rospy.get_param('~depth_val')
     else:
          depth_val = -0.25
-    depth = [depth_coord, depth_val]
+    # Mappa le coordinate x, y, z a indici numerici
+    coord_mapping = {'x': 0, 'y': 1, 'z': 2}
+
+    # Assicurati che depth_coord sia uno degli assi e mappalo a un intero
+    if depth_coord in coord_mapping:
+        depth = [coord_mapping[depth_coord], depth_val]
+    else:
+        rospy.logwarn("Invalid depth_coord value: {}".format(depth_coord))
+        depth = [0, depth_val]  # Default to 'x' if the value is invalid
 
     # robot parameters such as home coordinates, tip orientation and speed
     if rospy.has_param('~robot_home'):
@@ -291,7 +300,7 @@ def main():
     if rospy.has_param('~debug'):
          debug = rospy.get_param('~debug')
     else:
-         debug = False
+         debug = True
 
     path = os.path.realpath(os.getcwd())
 
@@ -350,10 +359,10 @@ def main():
         hand.mediapipe_inference(frame)
 
         # Rilevazione delle mani usando il detector
-        frame = hand.findHands(frame)
+        #frame = hand.findHands(frame)
 
         # Trova la posizione della mano (o delle mani) nel frame
-        lmList = hand.findPosition(frame)
+        #lmList = hand.findPosition(frame)
 
         if debug:
             rospy.loginfo(gu.Color.BOLD + gu.Color.GREEN + 'points: ' + str(hand.points) + gu.Color.END)
@@ -379,7 +388,11 @@ def main():
                 hand.current_gesture = 'NO GESTURE'
 
             elif hand.current_gesture == 'MOVE':
+                #rospy.loginfo(gu.Color.BOLD + gu.Color.RED + f'Saved positions: {hand.positions_saved}'+ gu.Color.END)
+
                 robot_points = cu.px2R(hand.positions_saved, K, R, t, R_H2W, R_W2R, depth, ref_pt, debug)
+
+                #rospy.loginfo(gu.Color.BOLD + gu.Color.RED + f'Robot_points: {robot_points}'+ gu.Color.END)
 
                 move_action(hand, robot, depth, robot_points, robot_orientation, robot_speed)
                 hand.current_gesture = 'NO GESTURE'

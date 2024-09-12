@@ -1,6 +1,7 @@
 import numpy as np
 import rospy
 import utils
+import graphical_utils as gu
 
 def px2meters(pt, K, R, t):
     ''' Conversion function from pixels to meters used to obtain the match between
@@ -62,24 +63,32 @@ def H2R(original_point, R_H2W, R_W2R, depth, debug=False):
     # flatten the given point and transform it in homogeneous coordinates
     # original point is the point in meters expressed in H ref system coordinates
     original_point = original_point.flatten()
+
+    # Make sure original_point has dimension (3,) for transformation
+    if original_point.shape[0] == 4:
+        original_point = original_point[:3]  # Discard the homogeneous coordinate if present
+    
     if debug:
-        rospy.loginfo(utils.Color.BOLD + utils.Color.PURPLE + 'W point is: ' + str(original_point) + utils.Color.END)
-    original_point = np.append(original_point, np.array([1]), axis=0)
+        rospy.loginfo(gu.Color.BOLD + gu.Color.PURPLE + 'W point is: ' + str(original_point) + gu.Color.END)
+    #original_point = np.append(original_point, np.array([1]), axis=0)
     # converts the point to W coordinates using the convertion matrix H2W
     # please note that only two coordinates are meaningful
     # one is the unused one and the last one is the homogeneous one
+    
+    #original_point = np.append(original_point, 1)  # Add homogeneous coordinate
     point_H2W = R_H2W.dot(original_point.T)
     if debug:
-        rospy.loginfo(utils.Color.BOLD + utils.Color.PURPLE + 'H point is: ' + str(point_H2W[0:3]) + utils.Color.END)
+        rospy.loginfo(gu.Color.BOLD + gu.Color.PURPLE + 'H point is: ' + str(point_H2W[0:3]) + gu.Color.END)
 
     # transform the point using the robot rototranslation matrix: (3x3) * (3x1)
-    robot_point = R_W2R.dot(point_H2W.T)
+    robot_point = R_W2R.dot(point_H2W[:3])  # Use only the first 3 elements
+    #robot_point = R_W2R.dot(point_H2W.T)
 
     # depth[0] may be 0, 1 or 2 corresponding to x, y or z coordinates
     robot_point[depth[0]] = depth[1]
 
     if debug:
-        rospy.loginfo(utils.Color.BOLD + utils.Color.PURPLE + 'Robot point: ' + str(robot_point[0:3]) + utils.Color.END)
+        rospy.loginfo(gu.Color.BOLD + gu.Color.PURPLE + 'Robot point: ' + str(robot_point[0:3]) + gu.Color.END)
 
     return robot_point[0:3]
 
@@ -119,6 +128,7 @@ def px2R(points_list, K, R, t, R_H2W, R_W2R, depth, ref_pt, debug=False):
 
         # calculates robot coordinates from starting point in reference system H
         # if workspace H and W differ, you need to calibrate them too
+        rospy.loginfo(f"points: {point}")
         robot_points.append(H2R(point, R_H2W, R_W2R, depth, debug))
 
     return robot_points
