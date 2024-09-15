@@ -137,8 +137,12 @@ def move_action(hand, robot, depth, robot_points, orientation, linear_speed):
     hand.chain_move = 0
 
     # compute interpolated points if more than one is present
+    f'Current Gesture: {hand.current_gesture}'
+    rospy.loginfo(gu.Color.BOLD + gu.Color.PURPLE + f'ROBOT POINTS: {robot_points}' + gu.Color.END)
+    rospy.loginfo(gu.Color.BOLD + gu.Color.PURPLE + 'READY TO MOVE' + gu.Color.END)
     if len(robot_points) > 1:
         interpolated_points = interpolate(robot_points)
+        rospy.loginfo(gu.Color.BOLD + gu.Color.PURPLE + f'INTERPOLATED POINTS: {interpolated_points}' + gu.Color.END)
     else:
         interpolated_points = robot_points
 
@@ -155,6 +159,8 @@ def move_action(hand, robot, depth, robot_points, orientation, linear_speed):
             'position': tuple(p), 
             'orientation': orientation
         })
+
+    rospy.loginfo(gu.Color.BOLD + gu.Color.PURPLE + f'WAYPOINTS: {waypoints}' + gu.Color.END)
 
     #move the robot along the trajectory
     robot.move2cartesian(waypoints=waypoints, linear_speed=linear_speed, simulate_only=True)
@@ -339,7 +345,6 @@ def main():
     # computes reference point
     ref_pt = get_ref_point(K, D, R, t)
 
-    rospy.loginfo('Attempting to initialize Kinect...')
     if cam_name == 'Kinect':
         camera = utils.Kinect(enable_rgb=True, enable_depth=False, need_bigdepth=False, need_color_depth_map=False, K=K, D=D)
     else:
@@ -396,6 +401,11 @@ def main():
 
                 move_action(hand, robot, depth, robot_points, robot_orientation, robot_speed)
                 hand.current_gesture = 'NO GESTURE'
+            
+            elif hand.current_gesture == 'INDEX':
+                rospy.loginfo(gu.Color.BOLD + gu.Color.CYAN + ' --ACQUISITION-- '+ gu.Color.END)
+
+
 
         ###### STEP 5: VISUALIZATION
         gu.draw_gesture_info(frame, hand.inference_time, hand.current_gesture, hand.handmap)
