@@ -56,33 +56,28 @@ def H2R(original_point, R_H2W, R_W2R, depth, debug=False):
                    These will be sent to the robot ROS node to form a waypoint and move it.
     '''
 
-    # Convert matrices to numpy arrays if they are not already
+    # Convert R_H2W and R_W2R to numpy arrays if they are lists
     R_H2W = np.array(R_H2W)
     R_W2R = np.array(R_W2R)
 
     # flatten the given point and transform it in homogeneous coordinates
     # original point is the point in meters expressed in H ref system coordinates
     original_point = original_point.flatten()
-
-    # Make sure original_point has dimension (3,) for transformation
-    if original_point.shape[0] == 4:
-        original_point = original_point[:3]  # Discard the homogeneous coordinate if present
-    
     if debug:
         rospy.loginfo(gu.Color.BOLD + gu.Color.PURPLE + 'W point is: ' + str(original_point) + gu.Color.END)
+
     #original_point = np.append(original_point, np.array([1]), axis=0)
     # converts the point to W coordinates using the convertion matrix H2W
     # please note that only two coordinates are meaningful
-    # one is the unused one and the last one is the homogeneous one
-    
-    #original_point = np.append(original_point, 1)  # Add homogeneous coordinate
+    # one is the unused one and the last one is the homogeneous one    
+
     point_H2W = R_H2W.dot(original_point.T)
+
     if debug:
         rospy.loginfo(gu.Color.BOLD + gu.Color.PURPLE + 'H point is: ' + str(point_H2W[0:3]) + gu.Color.END)
 
     # transform the point using the robot rototranslation matrix: (3x3) * (3x1)
-    robot_point = R_W2R.dot(point_H2W[:3])  # Use only the first 3 elements
-    #robot_point = R_W2R.dot(point_H2W.T)
+    robot_point = R_W2R.dot(point_H2W.T)
 
     # depth[0] may be 0, 1 or 2 corresponding to x, y or z coordinates
     robot_point[depth[0]] = depth[1]

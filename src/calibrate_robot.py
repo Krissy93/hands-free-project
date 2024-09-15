@@ -8,6 +8,7 @@ import tf2_ros
 from geometry_msgs.msg import PoseStamped
 from tf2_ros import Buffer, TransformListener
 
+
 def calibrate(ws1, ws2):
     ''' Function to calibrate two workspaces using the same number of points
     which coordinates are expressed according to the first and second reference system.
@@ -28,8 +29,11 @@ def calibrate(ws1, ws2):
 
     # convert points from ws1 to numpy array
     A = np.asarray(ws1)
+    print(f"A shape: {A.shape}")  # Verifica le dimensioni di A
+
     # each point should be expressed as homogeneous coordinates, aka adding a 1 at the end
     A = np.append(A, np.ones((A.shape[0],1)), axis=1)
+    print(f"A shape after appending ones: {A.shape}")
 
     # define how to swap coordinates according to reference
     # basically we create a rule to swap coordinates by making the second tuple of
@@ -38,6 +42,8 @@ def calibrate(ws1, ws2):
     # b is the vector containing the ws2 coordinates
     # in this case coordinates do not need to be converted to homogeneous
     b = np.asarray(ws2)
+    print(f"b shape: {b.shape}")
+
     # ws2_ = np.asarray(ws2)
     # b = ws2_.copy()
     # for i in range(0, len(ref[0])):
@@ -71,25 +77,10 @@ def calibrate(ws1, ws2):
     # note that solving a linear system means that resulting coefficients are found first,
     # this is why all translation parameters (which are only scalars and not multiplied
     # for variables) are last in the resulting vector
-    if len(x) >= 12:
-        R = [
-            [x[0], x[1], x[2], x[9]],
-            [x[3], x[4], x[5], x[10]],
-            [x[6], x[7], x[8], x[11]],
-            [0.0, 0.0, 0.0, 1.0]
-        ]
-    #elif len(x) == 9:  # Caso 3x3 con traslazione
-    #    R = [
-    #        [x[0], x[1], x[2], 0.0],  # Prima riga della matrice di rotazione
-    #        [x[3], x[4], x[5], 0.0],  # Seconda riga della matrice di rotazione
-    #        [x[6], x[7], x[8], 0.0],  # Terza riga della matrice di rotazione
-    #        [0.0, 0.0, 0.0, 1.0]      # Riga omogenea per completare la matrice 4x4
-    #    ]
-    elif len(x) < 12:  # Caso 2D senza traslazione
-        R = [[x[0], x[1], x[4]], [x[2], x[3], x[5]], [0.0, 0.0, 1.0]]
+    if len(x) > 12:
+        R = [[x[0], x[1], x[2], x[9]], [x[3], x[4], x[5], x[10]], [x[6], x[7], x[8], x[11]], [0.0, 0.0, 0.0, 1.0]]
     else:
-        raise ValueError("Dimensione dei dati non valida per costruire la matrice di rototraslazione")
-    
+        R = [[x[0], x[1], x[4]], [x[2], x[3], x[5]], [0.0, 0.0, 1.0]]
     # convert R from list to numpy array
     R = np.asarray(R)
 
@@ -112,28 +103,20 @@ def main(H_master_yaml, W_master_yaml, calibration_yaml):
     tf_buffer = Buffer()
     tf_listener = TransformListener(tf_buffer)
 
+
     # Load YAML files
     dict_H = utils.yaml2dict(H_master_yaml)
     dict_W = utils.yaml2dict(W_master_yaml)
 
-    # Access the 'Pose' and 'Markers' from dict_H
+    # loads the two masters poses and markers
     pose_H = dict_H['Pose']
     markers_H = dict_H['Markers']
+    pose_W = dict_W['Pose']
+    markers_W = dict_W['Markers']
 
-    # Dict_W è una lista di dizionari, quindi estrai i dizionari
-    dict_W_content = dict_W[0]
-    robot_dict = dict_W[1]
+    print(f"markers_H: {markers_H}")
+    print(f"markers_W: {markers_W}") 
 
-    if 'Master' in dict_W_content:
-        markers_W = dict_W_content['Master']
-    else:
-        raise KeyError("Key 'Master' not found in dict_W_content.")
-    
-    if 'Robot' in robot_dict:
-        points = robot_dict['Robot']
-    else:
-        raise KeyError("Key 'Robot' not found in robot_dict.")
-    
     points = []
 
     i = 0
