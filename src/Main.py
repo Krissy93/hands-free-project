@@ -45,8 +45,10 @@ def interpolate(px_points, debug=False):
     x = []
     y = []
     for p in px_points:
+        p = p.flatten()
         x.append(p[0])
         y.append(p[1])
+
     ###### todo: check if px_points is a list of lists [[x,y],[x,y]] or list of tuples
     ###### to change these lines accordingly. Basically I want an array of N rows and 2 cols
 
@@ -115,7 +117,7 @@ def interpolate(px_points, debug=False):
             interpolated_points.append([points_fitted_list[0][i], points_fitted_list[1][i], 1.0])
 
     # finally, adds the final point in original pixel points list px_points
-    interpolated_points.append([px_points[-1][0], px_points[-1][1], 1.0])
+    #interpolated_points.append([px_points[-1][0], px_points[-1][1], 1.0])
 
     return interpolated_points
 
@@ -136,25 +138,16 @@ def move_action(hand, robot, depth, robot_points, orientation, linear_speed):
     hand.acquire = False
     hand.chain_move = 0
 
-    # compute interpolated points if more than one is present
-    f'Current Gesture: {hand.current_gesture}'
-    rospy.loginfo(gu.Color.BOLD + gu.Color.PURPLE + f'ROBOT POINTS: {robot_points}' + gu.Color.END)
+
+    #rospy.loginfo(gu.Color.BOLD + gu.Color.PURPLE + f'ROBOT POINTS: {robot_points}' + gu.Color.END)
     rospy.loginfo(gu.Color.BOLD + gu.Color.PURPLE + 'READY TO MOVE' + gu.Color.END)
-    if len(robot_points) > 1:
-        interpolated_points = interpolate(robot_points)
-        rospy.loginfo(gu.Color.BOLD + gu.Color.PURPLE + f'INTERPOLATED POINTS: {interpolated_points}' + gu.Color.END)
-    else:
-        interpolated_points = robot_points
 
     
     rospy.loginfo(gu.Color.BOLD + gu.Color.CYAN + '-- MOVING... --' + gu.Color.END)
 
     waypoints = []
-    for p in interpolated_points:
-        # depth[0] may be 0, 1 or 2 corresponding to x, y or z coordinates
-        p[2] = p[1]
-        p[1] = p[0]
-        p[depth[0]] = depth[1]
+    for p in robot_points:
+        #robot_points[depth[0]] = depth[1]
         waypoints.append({
             'position': tuple(p), 
             'orientation': orientation
@@ -313,7 +306,7 @@ def main():
     ###### STEP 1: INITIALIZATION
 
     # Hand object initialization
-    hand = hgu.Hand(net_params=[1], threshold=threshold,max_chain=max_chain, debug=False)
+    hand = hgu.Hand(complexity=1, threshold=threshold,max_chain=max_chain, debug=False)
 
     # loading of the calibration parameters of both camera and robot
     camera_calibration = utils.yaml2dict('/home/jacopo/URProject/src/hands-free-project/src/yaml/camera_calibration.yaml')
@@ -394,8 +387,14 @@ def main():
 
             elif hand.current_gesture == 'MOVE':
                 #rospy.loginfo(gu.Color.BOLD + gu.Color.RED + f'Saved positions: {hand.positions_saved}'+ gu.Color.END)
+                #print(type(hand.positions_saved))
+                print(hand.positions_saved)
+                if len(hand.positions_saved) > 1:
+                    interpolated_points = interpolate(hand.positions_saved,debug)
+                else:
+                    interpolated_points = hand.positions_saved
 
-                robot_points = cu.px2R(hand.positions_saved, K, R, t, R_H2W, R_W2R, depth, ref_pt, debug)
+                robot_points = cu.px2R(interpolated_points, K, R, t, R_H2W, R_W2R, depth, ref_pt, debug)
 
                 #rospy.loginfo(gu.Color.BOLD + gu.Color.RED + f'Robot_points: {robot_points}'+ gu.Color.END)
 

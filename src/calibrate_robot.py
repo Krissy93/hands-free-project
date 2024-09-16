@@ -149,6 +149,8 @@ def main(H_master_yaml, W_master_yaml, calibration_yaml):
 
     dictionary = {'Robot': points, 'Master_W': markers_W, 'Master_H': markers_H, 'H2WCalibration': R_H2W.tolist(), 'W2RCalibration': R_W2R.tolist()}
     utils.dict2yaml(dictionary, calibration_yaml)
+    dictW = {'Pose': pose_W, 'Markers': markers_W}
+    utils.dict2yaml(dictW, W_master_yaml)
 
     rospy.signal_shutdown(gu.Color.BOLD + gu.Color.GREEN + '-- DONE! EXITING PROGRAM --' + gu.Color.END)
     rospy.on_shutdown(utils.myhook)

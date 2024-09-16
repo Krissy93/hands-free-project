@@ -8,10 +8,11 @@ from scipy.spatial import distance
 import rospy
 
 class Hand:
-    def __init__(self, net_params, threshold, max_chain=0, debug=False):
+    def __init__(self, complexity, threshold, max_chain=0, debug=False):
         self.debug = debug
         self.threshold = threshold
-        self.model_complexity = net_params[0]
+        # net_params dovrebbe contenere i parametri di inizializzazione della rete, in origine era settato il programma per gestire anche i parametri di openpose quindi qui vanno inviati net_params = [1] per mediapipe
+        self.model_complexity = complexity
         self.inference_time = 0
         self.max_chain = max_chain
 

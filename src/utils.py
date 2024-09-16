@@ -455,7 +455,7 @@ class Robot:
 
                 waypoints_list.append(pose_target.pose)
             
-            rospy.loginfo("Waypoints for Cartesian Path: %s", waypoints_list)
+            #rospy.loginfo("Waypoints for Cartesian Path: %s", waypoints_list)
 
             # Plan the Cartesian path connecting the waypoints
             (plan, fraction) = self.group.compute_cartesian_path(
