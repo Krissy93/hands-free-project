@@ -18,7 +18,7 @@ def px2meters(pt, K, R, t):
     - XYZ: converted point in meters, it's an array
     '''
 
-    pt = np.array(pt)
+    #pt = np.array(pt)
 
     # find the inverse matrix K^-1
     K2 = np.linalg.inv(K)
@@ -35,7 +35,8 @@ def px2meters(pt, K, R, t):
 
     return XYZ
 
-def H2R(original_point, R_H2W, R_W2R, depth, debug=False):
+def H2R_old(original_point, R_H2W, R_W2R, depth, debug=False):
+
     ''' Function to properly convert a given point (in meters) from workspace
     H to workspace W. The obtained robot position is used to move the robot to that point.
     Please note that moving a robot in cartesian coordinates could lead to interpolation
@@ -65,6 +66,10 @@ def H2R(original_point, R_H2W, R_W2R, depth, debug=False):
     # flatten the given point and transform it in homogeneous coordinates
     # original point is the point in meters expressed in H ref system coordinates
     original_point = original_point.flatten()
+    rospy.loginfo(f"Original points: {original_point}")
+ 
+    # one is the unused one and the last one is the homogeneous one  
+    original_point = np.array([original_point[1], original_point[0], 1.0])
     if debug:
         rospy.loginfo(gu.Color.BOLD + gu.Color.PURPLE + 'W point is: ' + str(original_point) + gu.Color.END)
 
@@ -72,23 +77,47 @@ def H2R(original_point, R_H2W, R_W2R, depth, debug=False):
 
     # converts the point to W coordinates using the convertion matrix H2W
     # please note that only two coordinates are meaningful
-    # one is the unused one and the last one is the homogeneous one    
-    original_point = np.array([original_point[1], original_point[0], 1.0])
+  
     point_H2W = R_H2W.dot(original_point.T)
 
-    if debug:
-        rospy.loginfo(gu.Color.BOLD + gu.Color.PURPLE + 'H point is: ' + str(point_H2W) + gu.Color.END)
+    rospy.loginfo(gu.Color.BOLD + gu.Color.PURPLE + 'H point is: ' + str(point_H2W) + gu.Color.END)
 
     # transform the point using the robot rototranslation matrix: (3x3) * (3x1)
     robot_point = R_W2R.dot(point_H2W.T)
-
+    
     # depth[0] may be 0, 1 or 2 corresponding to x, y or z coordinates
-    robot_point[depth[0]] = depth[1]
+    #robot_point[depth[0]] = depth[1]
+
+    robot_point_finale = [depth[1], robot_point[0], robot_point[1]]
 
     if debug:
-        rospy.loginfo(gu.Color.BOLD + gu.Color.PURPLE + 'Robot point: ' + str(robot_point) + gu.Color.END)
+        rospy.loginfo(gu.Color.BOLD + gu.Color.PURPLE + 'Robot point_finale: ' + str(robot_point_finale) + gu.Color.END)
 
-    return robot_point
+    return robot_point_finale
+
+def H2R(original_point, R_H2W, depth):
+    ''' Function to properly convert a given point (in meters) from workspace
+    H to workspace W. The obtained robot position is used to move the robot in that point.
+    Please note that moving a robot in cartesian coordinates could lead to interpolation
+    errors depending on the point and on the robot itself. It is also a good practice to
+    move the robot in its neutral position/home position at the startup of the program. '''
+
+    R_H2W = np.array(R_H2W)
+
+    # flatten the given point and transform it in homogeneous coordinates
+    # since we use place ZY instead of XY we must give to the function the Y first and the X second!
+    original_point = original_point.flatten()
+    rospy.loginfo(f"Original points: {original_point}")
+    original_point = np.array([original_point[1], original_point[0], 1.0])
+    rospy.loginfo(f"Original points: {original_point}")
+    
+
+    robot_point = R_H2W.dot(original_point.T)
+    rospy.loginfo(gu.Color.BOLD + gu.Color.PURPLE + 'Robot point: ' + str(robot_point) + gu.Color.END)
+    robot_point_finale = [depth[1], robot_point[0], robot_point[1]]
+    rospy.loginfo(gu.Color.BOLD + gu.Color.PURPLE + 'Robot point_finale: ' + str(robot_point_finale) + gu.Color.END)
+
+    return robot_point_finale
 
 def px2R(points_list, K, R, t, R_H2W, R_W2R, depth, ref_pt, debug=False):
     ''' Function to convert a list of pixel points to the corresponding
@@ -119,8 +148,9 @@ def px2R(points_list, K, R, t, R_H2W, R_W2R, depth, ref_pt, debug=False):
 
     robot_points = []
     for p in points_list:
-        rospy.loginfo(p)
+        #rospy.loginfo(p)
         # converts the point from pixels to meters
+        p = np.array(p)
         point = px2meters(p, K, R, t)
         # finds the coordinates of the calculated point with respect to reference point
         point = point - ref_pt
@@ -128,6 +158,6 @@ def px2R(points_list, K, R, t, R_H2W, R_W2R, depth, ref_pt, debug=False):
         # calculates robot coordinates from starting point in reference system Hs
         # if workspace H and W differ, you need to calibrate them too
         rospy.loginfo(f"points: {point}")
-        robot_points.append(H2R(point, R_H2W, R_W2R, depth, debug))
+        robot_points.append(H2R(point, R_H2W, depth))
 
     return robot_points

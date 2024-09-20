@@ -8,6 +8,80 @@ import tf2_ros
 from geometry_msgs.msg import PoseStamped
 from tf2_ros import Buffer, TransformListener
 
+def calibrateW2R(M=None, R=None, path=None):
+    '''This function may:
+    1) load the robot calibration YAML file if it has been saved from
+    vertical_workspace_calibration.py as: dict = [{'Master' : [[x, y], [x, y]]}, {'Robot' : [[x, y], [x, y]]}]
+    2) load the point lists of both Master M and Robot points R
+
+    in both cases, the function uses the two point lists to obtain the rototranslation
+    matrix between the robot and workspace W, which is returned as [[r11 r12 t1],[r21 r22 t2],[0.0 0.0 1.0]]'''
+
+    if path is not None:
+        # in this case the user gave a path to the function,
+        # meaning that Master and Robot are saved in a YAML file
+        dictionary = utils.yaml2dict(path)
+
+        Master = dictionary['Pose']
+        Robot = dictionary['Markers']
+    elif M is not None and R is not None:
+        # in this case, Master and Robot have been passed as arguments,
+        # and are already lists!
+        Master = M
+        Robot = R
+    else:
+        print(gu.color.BOLD + gu.color.RED + 'ERROR, WRONG ARGUMENTS PASSED' + gu.color.END)
+        return
+
+    # To correctly calibrate the vertical plane ZY, we need to solve
+    # the linear system x = A\b where x contains the components of matrix
+    # Rt (rototranslation) to convert robot coordinates to ref system W
+
+    # from the original Master matrix containing the markers positions from
+    # reference system W 0, we build a new matrix A. For each row of the original
+    # Master matrix we build 2 rows of A like this: [[Mx -My 1 0], [My Mx 0 1]]
+    # We had 13 marker positions, thus Master is of shape (13,2) and A of shape (13*2,4)
+
+    A = []
+    # we divide the values to obtain meters because the Master coordinates have been
+    # saved as centimeters; robot coordinates have been read from the encorder so
+    # these are already expressed in meters. The minus sign is related to how we have
+    # defined our workspaces H and W with respect to the robot! Point B1 of workspace W
+    # is the reference point and, with respect to this point, the other markers are considered
+    # with positive coordinates
+    for i in range(0, len(Master)):
+        row1 = [-Master[i][0]/100.0, -Master[i][1]/100.0, 1.0, 0.0]
+        row2 = [Master[i][1]/100.0, Master[i][0]/100.0, 0.0, 1.0]
+        A.append(row1)
+        A.append(row2)
+
+    # convert A from list to numpy array
+    A = np.asarray(A)
+
+    # b is the vector containing the robot z-y coordinates, it has shape (13*2,1)
+    # and it is built appending first zi and then yi like so: [z1, y1, z2, y2, ...]
+
+    b = []
+    for i in range(0, len(Robot)):
+        b.append(Robot[i][1])
+        b.append(Robot[i][2])
+
+    # convert b from list to numpy array
+    b = np.asarray(b)
+
+    # solve linear system x = A\b
+    x = np.linalg.lstsq(A,b,rcond=None)
+    # x is now an array of shape (4,1)
+    # convert result to list
+    x = x[0].tolist()
+
+    # define rototranslation matrix using the values of x!
+    R = [[-x[0], x[1], x[2]], [x[1], x[0], x[3]], [0.0, 0.0, 1.0]]
+    # convert R from list to numpy array
+    R = np.asarray(R)
+
+    return R
+
 
 def calibrate(ws1, ws2):
     ''' Function to calibrate two workspaces using the same number of points
@@ -65,6 +139,8 @@ def calibrate(ws1, ws2):
     x = x[0].flatten()
     x = x.tolist()
 
+    rospy.loginfo(x)    
+
     # define rototranslation matrix using the values of x
     # it may be different according to the length of points (aka if the third coordinate
     # is not present the matrix only has r11 r12 r21 r22 t1 t2)
@@ -114,9 +190,6 @@ def main(H_master_yaml, W_master_yaml, calibration_yaml):
     pose_W = dict_W['Pose']
     markers_W = dict_W['Markers']
 
-    print(f"markers_H: {markers_H}")
-    print(f"markers_W: {markers_W}") 
-
     points = []
 
     i = 0
@@ -144,12 +217,13 @@ def main(H_master_yaml, W_master_yaml, calibration_yaml):
             print(f"An unexpected error occurred: {e}")
             break
 
-    R_H2W = calibrate(markers_H, markers_W)
+    #R_H2W = calibrate(markers_H, points)
+    R_H2W = calibrateW2R(pose_W,points)
     R_W2R = calibrate(markers_W, points)
 
     dictionary = {'Robot': points, 'Master_W': markers_W, 'Master_H': markers_H, 'H2WCalibration': R_H2W.tolist(), 'W2RCalibration': R_W2R.tolist()}
     utils.dict2yaml(dictionary, calibration_yaml)
-    dictW = {'Pose': pose_W, 'Markers': markers_W}
+    dictW = {'Pose': pose_W, 'Markers': points}
     utils.dict2yaml(dictW, W_master_yaml)
 
     rospy.signal_shutdown(gu.Color.BOLD + gu.Color.GREEN + '-- DONE! EXITING PROGRAM --' + gu.Color.END)

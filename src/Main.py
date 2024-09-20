@@ -1,3 +1,4 @@
+
 #! /usr/bin/env python
 
 from __future__ import division
@@ -27,25 +28,14 @@ from scipy.interpolate import UnivariateSpline
 from tf.transformations import quaternion_from_euler
 
 
-def interpolate(px_points, debug=False):
-    ''' Function that interpolates the list of acquired points in order to create
-    a smoothed curve. It then samples the curve to obtain the points that will be sent
-    to the robot controller.
-
-    INPUTS:
-    - px_points: list of pixel points corresponding to several index finger positions
-                 creating the trajectory curve
-    - debug: boolean flag to activate debugging functions
-
-    OUTPUTS:
-    - interpolated_points: list of lists containing pixel coordinates of trajectory points
-                           in homogeneous coordinates [[x1,y1,1],[x2,y2,1],...]
-    '''
+def interpolate(px_points, debug=True):
+    ''' Function that interpolates the list of acquired points in order to create a more gentle curve.
+    It then samples the curve to obtain the points for the move_to_cartesian function'''
 
     x = []
     y = []
     for p in px_points:
-        p = p.flatten()
+        p = np.array(p).flatten()
         x.append(p[0])
         y.append(p[1])
 
@@ -102,24 +92,26 @@ def interpolate(px_points, debug=False):
         plt.show()
 
     # converts to list the transpose of the resulting points_fitted array
-    points_fitted_list = points_fitted.T.tolist()
-    # creates a list of interpolated points initialized with one element, which is x, y of
-    # the first point in homogeneous coordinates
-    interpolated_points = [[points_fitted_list[0][0], points_fitted_list[1][0], 1.0]]
+    points_fitted_list = points_fitted.T
+    interpolated_points = [[np.array([points_fitted_list[0][0], points_fitted_list[1][0], 1.0])]]
+
     # iteratively fills the list with other points
-    for i in range(1, len(points_fitted)-1):
+    for i in range(1, len(points_fitted) - 1):
         # first checks distance between last point in list and current point in points_fitted
         # ((xN - x)^2) + (yN - y)^2)^0.5
-        dist = math.sqrt((interpolated_points[-1][0] - points_fitted_list[0][i]) ** 2 + (interpolated_points[-1][1] - points_fitted_list[1][i]) ** 2)
-
+        dist = math.sqrt((interpolated_points[-1][0][0] - points_fitted_list[0][i]) ** 2 +
+                         (interpolated_points[-1][0][1] - points_fitted_list[1][i]) ** 2)
+        
         # DO NOT save points that are too close according to threshold (values are in meters)
         if dist > 0.0175:
-            interpolated_points.append([points_fitted_list[0][i], points_fitted_list[1][i], 1.0])
+            interpolated_points.append(np.array([[points_fitted_list[0][i], points_fitted_list[1][i], 1.0]]))
 
     # finally, adds the final point in original pixel points list px_points
-    #interpolated_points.append([px_points[-1][0], px_points[-1][1], 1.0])
+    final_point = np.array(px_points[-1]).flatten()
+    interpolated_points.append([np.array([final_point[0], final_point[1], 1.0])])
 
     return interpolated_points
+
 
 def hand_open_action(hand, robot, robot_home, robot_orientation, linear_speed):
     rospy.loginfo(gu.Color.BOLD + gu.Color.GREEN + 'HAND OPEN: RESETTING TRAJECTORY' + gu.Color.END)
@@ -138,22 +130,21 @@ def move_action(hand, robot, depth, robot_points, orientation, linear_speed):
     hand.acquire = False
     hand.chain_move = 0
 
-
-    #rospy.loginfo(gu.Color.BOLD + gu.Color.PURPLE + f'ROBOT POINTS: {robot_points}' + gu.Color.END)
+    rospy.loginfo(gu.Color.BOLD + gu.Color.PURPLE + f'ROBOT POINTS: {robot_points}' + gu.Color.END)
     rospy.loginfo(gu.Color.BOLD + gu.Color.PURPLE + 'READY TO MOVE' + gu.Color.END)
-
     
     rospy.loginfo(gu.Color.BOLD + gu.Color.CYAN + '-- MOVING... --' + gu.Color.END)
 
+    #rospy.loginfo(gu.Color.BOLD + gu.Color.PURPLE + f'INTEWRPOLATED POINT: {interpolated_points}' + gu.Color.END)
     waypoints = []
     for p in robot_points:
-        #robot_points[depth[0]] = depth[1]
+        # depth[0] may be 0, 1 or 2 corresponding to x, y or z coordinate
         waypoints.append({
             'position': tuple(p), 
             'orientation': orientation
         })
 
-    rospy.loginfo(gu.Color.BOLD + gu.Color.PURPLE + f'WAYPOINTS: {waypoints}' + gu.Color.END)
+    #rospy.loginfo(gu.Color.BOLD + gu.Color.PURPLE + f'WAYPOINTS: {waypoints}' + gu.Color.END)
 
     #move the robot along the trajectory
     robot.move2cartesian(waypoints=waypoints, linear_speed=linear_speed, simulate_only=True)
@@ -198,10 +189,11 @@ def get_ref_point(K, D, R, t):
     reference = reference.flatten()
     # gets homogeneous coordinates of point
     reference = np.array([[reference[0], reference[1], 1.0]])
+    rospy.loginfo(reference)
     # convert reference point to meters
     ref_pt = cu.px2meters(reference, K, R, t)
 
-    return ref_pt
+    return ref_pt, reference
 
 def main():
     ''' Main program of Hands-Free project.
@@ -336,7 +328,8 @@ def main():
     robot.set_home()
     rospy.loginfo(gu.Color.BOLD + gu.Color.GREEN + '-- ROBOT IN HOME POSITION --' + gu.Color.END)
     # computes reference point
-    ref_pt = get_ref_point(K, D, R, t)
+    ref_pt, ref_px = get_ref_point(K, D, R, t)
+    
 
     if cam_name == 'Kinect':
         camera = utils.Kinect(enable_rgb=True, enable_depth=False, need_bigdepth=False, need_color_depth_map=False, K=K, D=D)
@@ -386,15 +379,14 @@ def main():
                 hand.current_gesture = 'NO GESTURE'
 
             elif hand.current_gesture == 'MOVE':
-                #rospy.loginfo(gu.Color.BOLD + gu.Color.RED + f'Saved positions: {hand.positions_saved}'+ gu.Color.END)
-                #print(type(hand.positions_saved))
-                print(hand.positions_saved)
-                if len(hand.positions_saved) > 1:
-                    interpolated_points = interpolate(hand.positions_saved,debug)
+                rospy.loginfo(gu.Color.BOLD + gu.Color.RED + f'Saved positions: {hand.positions_saved}'+ gu.Color.END)
+                
+                if len(hand.positions_saved)>1:
+                    interpolate_points = interpolate(hand.positions_saved)
                 else:
-                    interpolated_points = hand.positions_saved
+                    interpolate_points = hand.positions_saved
 
-                robot_points = cu.px2R(interpolated_points, K, R, t, R_H2W, R_W2R, depth, ref_pt, debug)
+                robot_points = cu.px2R(interpolate_points, K, R, t, R_H2W, R_W2R, depth, ref_pt, debug)
 
                 #rospy.loginfo(gu.Color.BOLD + gu.Color.RED + f'Robot_points: {robot_points}'+ gu.Color.END)
 
