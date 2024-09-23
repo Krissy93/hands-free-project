@@ -106,7 +106,7 @@ def H2R(original_point, R_H2W, depth):
     # since we use place ZY instead of XY we must give to the function the Y first and the X second!
     original_point = original_point.flatten()
     rospy.loginfo(f"Original points: {original_point}")
-    original_point = np.array([original_point[1], original_point[0], 1.0])
+    original_point = np.array([original_point[0], original_point[1], 1.0])
     rospy.loginfo(f"Original points: {original_point}")
     
 

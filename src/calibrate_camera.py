@@ -221,7 +221,7 @@ def initial_calibration(path, sq_x, sq_y, chess_size, debug):
 
         masked_img = maskImg(img)
 
-        corners2, ret, objp = calibrate_pic(masked_img, sq_x, sq_y, chess_size)
+        corners2, ret, objp = calibrate_pic(img, sq_x, sq_y, chess_size)
 
         # if the chessboard is found, add object points and image points (after refining them)
         if ret:
@@ -229,11 +229,11 @@ def initial_calibration(path, sq_x, sq_y, chess_size, debug):
             imgpoints.append(corners2)
 
             # draw and display the corners on the corresponding image
-            masked_img = cv2.drawChessboardCorners(masked_img, (sq_x, sq_y), corners2, ret)
+            img = cv2.drawChessboardCorners(img, (sq_x, sq_y), corners2, ret)
 
             if debug:
                 # show pattern on image only if debug is active
-                cv2.imshow('Chessboard pattern', masked_img)
+                cv2.imshow('Chessboard pattern', img)
                 cv2.waitKey(0)
 
     cv2.destroyAllWindows()

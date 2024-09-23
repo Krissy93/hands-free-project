@@ -50,8 +50,8 @@ def calibrateW2R(M=None, R=None, path=None):
     # is the reference point and, with respect to this point, the other markers are considered
     # with positive coordinates
     for i in range(0, len(Master)):
-        row1 = [-Master[i][0]/100.0, -Master[i][1]/100.0, 1.0, 0.0]
-        row2 = [Master[i][1]/100.0, Master[i][0]/100.0, 0.0, 1.0]
+        row1 = [Master[i][0]/100.0, Master[i][1]/100.0, 1.0, 0.0]
+        row2 = [-Master[i][1]/100.0, Master[i][0]/100.0, 0.0, 1.0]
         A.append(row1)
         A.append(row2)
 
@@ -76,7 +76,7 @@ def calibrateW2R(M=None, R=None, path=None):
     x = x[0].tolist()
 
     # define rototranslation matrix using the values of x!
-    R = [[-x[0], x[1], x[2]], [x[1], x[0], x[3]], [0.0, 0.0, 1.0]]
+    R = [[x[0], x[1], x[2]], [x[1], x[0], x[3]], [0.0, 0.0, 1.0]]
     # convert R from list to numpy array
     R = np.asarray(R)
 
