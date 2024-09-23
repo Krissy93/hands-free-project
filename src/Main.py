@@ -313,6 +313,10 @@ def main():
     workspace_calibrations = utils.yaml2dict('/home/jacopo/URProject/src/hands-free-project/src/yaml/calibration.yaml')
     R_H2W = workspace_calibrations['H2WCalibration']
     R_W2R = workspace_calibrations['W2RCalibration']
+
+    #Workspace corners
+    workspace_corners = [(153, 629), (985,631), (126,37), (1004,23)]
+    Markers_px = [(153,629),(328,629),(505,629),(147,507),(324,507),(503,507),(141,382),(321,382),(502,382),(650, 362)]
     
     # moves robot to home position
     # Inizializzazione del robot UR3
@@ -400,7 +404,7 @@ def main():
 
         ###### STEP 5: VISUALIZATION
         gu.draw_gesture_info(frame, hand.inference_time, hand.current_gesture, hand.handmap)
-
+        #gu.draw_workspace(frame,workspace_corners,Markers_px)
         gu.draw_trajectory(frame, hand.positions_saved)
         cv2.imshow('Gesture and trajectory detection', frame)
 

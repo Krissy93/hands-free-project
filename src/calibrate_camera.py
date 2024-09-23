@@ -22,7 +22,7 @@ camera Kinect \
 x_size 10 \
 y_size 7 \
 chess_size 23.1 \
-calib_folder './calib_img' \
+calib_folder './calib_img_old' \
 mode 'acquisition' \
 --workspace '266,139,1074,663' \
 --debug
@@ -391,7 +391,7 @@ def frames_acquisition(camera, x_size, y_size, chess_size, workspace, saving_dir
 
             # creates a copy of the frame
             frame_copy = frame.copy()
-            frame_copy= cv2.flip(frame_copy, 1)
+            #frame_copy= cv2.flip(frame_copy, 1)
 
             # shows chessboard pattern on image to help users set the chessboard
             # correctly inside the workspace area during the calibration procedure.

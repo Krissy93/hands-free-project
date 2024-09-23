@@ -18,8 +18,6 @@ def px2meters(pt, K, R, t):
     - XYZ: converted point in meters, it's an array
     '''
 
-    #pt = np.array(pt)
-
     # find the inverse matrix K^-1
     K2 = np.linalg.inv(K)
     # find the inverse matrix R^-1

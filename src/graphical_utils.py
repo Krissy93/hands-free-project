@@ -193,12 +193,9 @@ def draw_gesture_info(frame, inference_time, gesture, handmap):
     OUTPUTS:
     - frame: image with text drawn on it
     '''
-
-    frame = frame.copy()
-
     # draw info on frame if the draw flag has been set as True
-    frame = cv2.putText(frame, 'INFERENCE TIME: ' + str(inference_time) + ' SEC', (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.2,
-                    (80, 65, 242), 3, cv2.LINE_AA)
+    #frame = cv2.putText(frame, 'INFERENCE TIME: ' + str(inference_time) + ' SEC', (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.2,
+                    #(80, 65, 242), 3, cv2.LINE_AA)
     frame = cv2.putText(frame, 'LATEST GESTURE DETECTED: ' + str(gesture), (120, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.2,
                     (80, 65, 242), 3, cv2.LINE_AA)
     frame = cv2.putText(frame, ' CURRENT HANDMAP: ' + str(handmap), (20, frame.shape[0] - 30), cv2.FONT_HERSHEY_SIMPLEX, 1.2,

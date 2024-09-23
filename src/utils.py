@@ -189,7 +189,8 @@ class Kinect:
 
         if self.enable_rgb:
             self.color = frames["color"]
-            self.color_new = cv2.resize(self.color.asarray(), (int(1920 / 1.5), int(1080 / 1.5)))
+            #self.color_new = self.color.copy()
+            self.color_new = cv2.resize(self.color.asarray(), (int(1920 / 1), int(1080 / 1)))
             # The image obtained has a fourth dimension which is the alpha value
             # thus we have to remove it and take only the first three
             self.color_new = self.color_new[:,:,0:3]
