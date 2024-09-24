@@ -404,7 +404,7 @@ def main():
 
         ###### STEP 5: VISUALIZATION
         gu.draw_gesture_info(frame, hand.inference_time, hand.current_gesture, hand.handmap)
-        gu.draw_workspace(frame,workspace_corners,Markers_px)
+        #gu.draw_workspace(frame,workspace_corners,Markers_px)
         gu.draw_trajectory(frame, hand.positions_saved)
         cv2.imshow('Gesture and trajectory detection', frame)
 

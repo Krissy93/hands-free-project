@@ -8,79 +8,133 @@ import tf2_ros
 from geometry_msgs.msg import PoseStamped
 from tf2_ros import Buffer, TransformListener
 
+
+import numpy as np
+
+def calibrateW2R_test(pose, Robot_points):
+    """
+    Calcola la matrice di rototraslazione tra le pose del workspace W (in cm) e i punti del robot acquisiti (in metri).
+    
+    Parametri:
+    - pose: Lista di pose dei marker nel workspace W (coordinate xy in cm).
+    - Robot_points: Lista di punti acquisiti dal robot (coordinate xyz in metri).
+    
+    Restituisce:
+    - Matrice di rototraslazione R 3x3.
+    """
+    # Convertiamo i marker (pose) da cm a metri
+    pose_W_meters = np.array(pose) / 100.0  # Conversione da cm a metri
+    
+    # Estraiamo solo le coordinate y e z dai punti del robot
+    robot_coords = np.array(Robot_points)[:, 1:]  # Considera solo le coordinate yz
+
+    # Trasformiamo le pose W per adattarle al piano YZ
+    # X diventa Y e Y diventa -Z
+    transformed_pose_W = np.array([[pose[0], -pose[1]] for pose in pose_W_meters])  # Cambiamo il segno della coordinata Y
+
+    # Centroide delle coordinate
+    centroid_marker = np.mean(transformed_pose_W, axis=0)
+    centroid_robot = np.mean(robot_coords, axis=0)
+    
+    # Sottraggo il centroide per centrare i dati
+    centered_markers = transformed_pose_W - centroid_marker
+    centered_robots = robot_coords - centroid_robot
+    
+    # Calcolo la matrice di covarianza
+    H = np.dot(centered_markers.T, centered_robots)
+    
+    # Decomposizione SVD
+    U, S, Vt = np.linalg.svd(H)
+    
+    # Calcolo la matrice di rotazione
+    R_rot = np.dot(Vt.T, U.T)
+    
+    # Correzione nel caso in cui la matrice di rotazione abbia una riflessione (determinante = -1)
+    if np.linalg.det(R_rot) < 0:
+        Vt[1, :] *= -1  # Inverti l'asse y se necessario
+        R_rot = np.dot(Vt.T, U.T)
+
+    # Creiamo la matrice di rototraslazione 3x3
+    R = np.zeros((3, 3))
+    R[0, 0] = R_rot[0, 0]  # R[0,0] = r11
+    R[0, 1] = R_rot[0, 1]  # R[0,1] = r12
+    R[1, 0] = R_rot[1, 0]  # R[1,0] = r21
+    R[1, 1] = R_rot[1, 1]  # R[1,1] = r22
+    R[2, 0] = 0.0          # R[2,0] = 0
+    R[2, 1] = 0.0          # R[2,1] = 0
+    R[2, 2] = 1.0          # R[2,2] = 1
+
+    # Aggiungiamo la traslazione (centroide robot) per la matrice di rototraslazione
+    R[0, 2] = centroid_robot[0]  # Traslazione X
+    R[1, 2] = centroid_robot[1]  # Traslazione Y
+
+    return R
+
+
+
+
 def calibrateW2R(M=None, R=None, path=None):
     '''This function may:
     1) load the robot calibration YAML file if it has been saved from
     vertical_workspace_calibration.py as: dict = [{'Master' : [[x, y], [x, y]]}, {'Robot' : [[x, y], [x, y]]}]
     2) load the point lists of both Master M and Robot points R
 
-    in both cases, the function uses the two point lists to obtain the rototranslation
+    in both cases the function uses the two point lists to obtain the rototranslation
     matrix between the robot and workspace W, which is returned as [[r11 r12 t1],[r21 r22 t2],[0.0 0.0 1.0]]'''
 
     if path is not None:
-        # in this case the user gave a path to the function,
-        # meaning that Master and Robot are saved in a YAML file
+        # In this case, load from YAML file
         dictionary = utils.yaml2dict(path)
-
         Master = dictionary['Pose']
         Robot = dictionary['Markers']
     elif M is not None and R is not None:
-        # in this case, Master and Robot have been passed as arguments,
-        # and are already lists!
+        # If M and R are passed as arguments
         Master = M
         Robot = R
     else:
-        print(gu.color.BOLD + gu.color.RED + 'ERROR, WRONG ARGUMENTS PASSED' + gu.color.END)
+        print("ERROR, WRONG ARGUMENTS PASSED")
         return
 
-    # To correctly calibrate the vertical plane ZY, we need to solve
-    # the linear system x = A\b where x contains the components of matrix
-    # Rt (rototranslation) to convert robot coordinates to ref system W
-
-    # from the original Master matrix containing the markers positions from
-    # reference system W 0, we build a new matrix A. For each row of the original
-    # Master matrix we build 2 rows of A like this: [[Mx -My 1 0], [My Mx 0 1]]
-    # We had 13 marker positions, thus Master is of shape (13,2) and A of shape (13*2,4)
+    # Print the Master and Robot data
+    print("Master (M):", Master)
+    print("Robot (R):", Robot)
 
     A = []
-    # we divide the values to obtain meters because the Master coordinates have been
-    # saved as centimeters; robot coordinates have been read from the encorder so
-    # these are already expressed in meters. The minus sign is related to how we have
-    # defined our workspaces H and W with respect to the robot! Point B1 of workspace W
-    # is the reference point and, with respect to this point, the other markers are considered
-    # with positive coordinates
-    for i in range(0, len(Master)):
-        row1 = [Master[i][0]/100.0, Master[i][1]/100.0, 1.0, 0.0]
-        row2 = [-Master[i][1]/100.0, Master[i][0]/100.0, 0.0, 1.0]
+    for i in range(len(Master)):
+        # Trasformiamo le coordinate di Master per adattarle al piano YZ
+        row1 = [Master[i][0] / 100.0, -Master[i][1] / 100.0, 1.0, 0.0]  # X diventa Y, Y diventa -Z
+        row2 = [-Master[i][1] / 100.0, Master[i][0] / 100.0, 0.0, 1.0]  # Inversione delle coordinate
         A.append(row1)
         A.append(row2)
 
-    # convert A from list to numpy array
+    # Convert A from list to numpy array
     A = np.asarray(A)
 
-    # b is the vector containing the robot z-y coordinates, it has shape (13*2,1)
-    # and it is built appending first zi and then yi like so: [z1, y1, z2, y2, ...]
-
+    # Build the vector b
     b = []
-    for i in range(0, len(Robot)):
-        b.append(Robot[i][1])
-        b.append(Robot[i][2])
+    for i in range(len(Robot)):
+        # Modifica per il piano YZ (Z diventa Y, Y diventa -Z)
+        b.append(Robot[i][1])  # Y del robot
+        b.append(Robot[i][2])  # Z del robot
 
-    # convert b from list to numpy array
+    # Convert b from list to numpy array
     b = np.asarray(b)
 
-    # solve linear system x = A\b
-    x = np.linalg.lstsq(A,b,rcond=None)
-    # x is now an array of shape (4,1)
-    # convert result to list
-    x = x[0].tolist()
+    # Solve linear system x = A\b
+    x = np.linalg.lstsq(A, b, rcond=None)[0].tolist()
 
-    # define rototranslation matrix using the values of x!
-    R = [[x[0], x[1], x[2]], [x[1], x[0], x[3]], [0.0, 0.0, 1.0]]
-    # convert R from list to numpy array
+    rospy.loginfo(x)
+
+    # Define rototranslation matrix using the values of x
+    R = [[x[0], x[1], x[2]], 
+         [x[1], x[0], x[3]], 
+         [0.0, 0.0, 1.0]]  # Ultima riga
+
+    # Convert R from list to numpy array
     R = np.asarray(R)
 
     return R
+
 
 
 def calibrate(ws1, ws2):
@@ -139,7 +193,7 @@ def calibrate(ws1, ws2):
     x = x[0].flatten()
     x = x.tolist()
 
-    rospy.loginfo(x)    
+    
 
     # define rototranslation matrix using the values of x
     # it may be different according to the length of points (aka if the third coordinate
@@ -217,11 +271,18 @@ def main(H_master_yaml, W_master_yaml, calibration_yaml):
             print(f"An unexpected error occurred: {e}")
             break
 
+    print(pose_W)
+    print(points)
+
+
     #R_H2W = calibrate(markers_H, points)
     R_H2W = calibrateW2R(pose_W,points)
+    R_H2W_test = calibrateW2R_test(pose_W,points)
     R_W2R = calibrate(markers_W, points)
 
-    dictionary = {'Robot': points, 'Master_W': markers_W, 'Master_H': markers_H, 'H2WCalibration': R_H2W.tolist(), 'W2RCalibration': R_W2R.tolist()}
+    print(R_H2W_test)
+
+    dictionary = {'Robot': points, 'Master_W': markers_W, 'Master_H': markers_H, 'H2WCalibration': R_H2W.tolist(), 'W2RCalibration': R_W2R.tolist(), 'H2W': R_H2W_test.tolist()}
     utils.dict2yaml(dictionary, calibration_yaml)
     dictW = {'Pose': pose_W, 'Markers': points}
     utils.dict2yaml(dictW, W_master_yaml)
