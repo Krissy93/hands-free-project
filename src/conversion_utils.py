@@ -106,7 +106,7 @@ def H2R(original_point, R_H2W, depth):
     # since we use place ZY instead of XY we must give to the function the Y first and the X second!
     original_point = original_point.flatten()
     rospy.loginfo(f"Original points: {original_point}")
-    original_point = np.array([original_point[1], original_point[0], 1.0])
+    original_point = np.array([original_point[0], original_point[1], 1.0])
     rospy.loginfo(f"Original points: {original_point}")
     
 
@@ -117,7 +117,7 @@ def H2R(original_point, R_H2W, depth):
 
     return robot_point_finale
 
-def px2R(points_list, K, R, t, R_H2W, R_W2R, depth, ref_pt, debug=False):
+def px2R(points_list, K, R, t, R_H2W, depth, ref_pt, debug=False):
     ''' Function to convert a list of pixel points to the corresponding
     robot workspace's points (meters).
 
