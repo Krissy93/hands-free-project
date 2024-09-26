@@ -96,6 +96,7 @@ def main():
 
     workspace_calibrations = utils.yaml2dict('/home/jacopo/URProject/src/hands-free-project/src/yaml/calibration.yaml')
     R_H2W = workspace_calibrations['H2WCalibration']
+    #R_H2W = workspace_calibrations['H2W_2']
 
     # computes reference point
     debug = True
@@ -103,7 +104,7 @@ def main():
 
     print(ref_pt)
 
-    saved_points = [[1424,271,1],[1135,263,1],[854,253,1],[1408,472,1],[1124,461,1],[848,449,1],[1395,668,1],[1114,652,1],[842,640,1]]
+    saved_points = [[1424,271,1],[1135,263,1],[854,253,1],[1408,472,1],[1124,461,1],[848,449,1],[1395,668,1],[1114,652,1],[842,640,1],[1448,257,1]]
         
     rospy.loginfo(gu.Color.BOLD + gu.Color.RED + f'Saved positions: {saved_points}'+ gu.Color.END)
 
