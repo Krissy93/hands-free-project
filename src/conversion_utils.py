@@ -26,10 +26,13 @@ def px2meters(pt, K, R, t):
     pt = pt.T
     # STEP 1: K^-1 * point -> (3x3) * (3x1) = 3x1
     S = K2.dot(pt)
+    #rospy.loginfo(f"S: {S}")
     # STEP 2: (K^-1 * point) - t -> (3x1) - (3x1) = 3x1
     N = S - t
+    #rospy.loginfo(f"N: {N}")
     # STEP 3: R^-1 * ((K^-1 * point) - t) -> (3x3) * (3x1) = (3x1)
     XYZ = R2.dot(N)
+    #rospy.loginfo(f"XYZ: {XYZ}")
 
     return XYZ
 
@@ -105,15 +108,15 @@ def H2R(original_point, R_H2W, depth):
     # flatten the given point and transform it in homogeneous coordinates
     # since we use place ZY instead of XY we must give to the function the Y first and the X second!
     original_point = original_point.flatten()
-    rospy.loginfo(f"Original points: {original_point}")
+    #rospy.loginfo(f"Original points: {original_point}")
     original_point = np.array([original_point[0], original_point[1], 1.0])
-    rospy.loginfo(f"Original points: {original_point}")
+    #rospy.loginfo(f"Original points: {original_point}")
     
 
     robot_point = R_H2W.dot(original_point.T)
-    rospy.loginfo(gu.Color.BOLD + gu.Color.PURPLE + 'Robot point: ' + str(robot_point) + gu.Color.END)
+    #rospy.loginfo(gu.Color.BOLD + gu.Color.PURPLE + 'Robot point: ' + str(robot_point) + gu.Color.END)
     robot_point_finale = [depth[1], robot_point[0], robot_point[1]]
-    rospy.loginfo(gu.Color.BOLD + gu.Color.PURPLE + 'Robot point_finale: ' + str(robot_point_finale) + gu.Color.END)
+    #rospy.loginfo(gu.Color.BOLD + gu.Color.PURPLE + 'Robot point_finale: ' + str(robot_point_finale) + gu.Color.END)
 
     return robot_point_finale
 

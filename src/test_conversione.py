@@ -105,7 +105,7 @@ def main():
     print(ref_pt)
 
     saved_points = [[1424,271,1],[1135,263,1],[854,253,1],[1408,472,1],[1124,461,1],[848,449,1],[1395,668,1],[1114,652,1],[842,640,1],[1448,257,1]]
-        
+    #saved_points = [[1448,257,1]]
     rospy.loginfo(gu.Color.BOLD + gu.Color.RED + f'Saved positions: {saved_points}'+ gu.Color.END)
 
     robot_points = cu.px2R(saved_points, K, R, t, R_H2W, depth, ref_pt, debug)
