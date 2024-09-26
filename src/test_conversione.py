@@ -97,8 +97,8 @@ def main():
     t = camera_calibration['t']
 
     workspace_calibrations = utils.yaml2dict('/home/jacopo/URProject/src/hands-free-project/src/yaml/calibration.yaml')
-    R_H2W = workspace_calibrations['H2WCalibration']
-    #R_H2W = workspace_calibrations['H2W_2']
+    #R_H2W = workspace_calibrations['H2WCalibration']
+    R_H2W = workspace_calibrations['H2W_2']
 
     # computes reference point
     debug = True
@@ -118,7 +118,7 @@ def main():
     [np.array([1114.0, 652.0, 1.0])],
     [np.array([842.0, 640.0, 1.0])],
     [np.array([1448.0, 257.0, 1.0])]]
-    
+
     rospy.loginfo(gu.Color.BOLD + gu.Color.RED + f'Saved positions: {saved_points}'+ gu.Color.END)
 
     robot_points = cu.px2R(saved_points, K, R, t, R_H2W, depth, ref_pt, debug)

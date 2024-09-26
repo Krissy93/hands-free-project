@@ -311,7 +311,7 @@ def main():
     #rospy.sleep(30)
     rospy.loginfo(gu.Color.BOLD + gu.Color.GREEN + '-- INITIALIZING ROBOT --' + gu.Color.END)
     workspace_calibrations = utils.yaml2dict('/home/jacopo/URProject/src/hands-free-project/src/yaml/calibration.yaml')
-    R_H2W = workspace_calibrations['H2WCalibration']
+    R_H2W = workspace_calibrations['H2W_2']
 
     #Workspace corners
     workspace_corners = [(153, 629), (985,631), (126,37), (1004,23)]
@@ -388,6 +388,8 @@ def main():
                     interpolate_points = interpolate(hand.positions_saved)
                 else:
                     interpolate_points = hand.positions_saved
+
+                rospy.loginfo(gu.Color.BOLD + gu.Color.RED + f'Interpolated Points: {interpolate_points}'+ gu.Color.END)
 
                 robot_points = cu.px2R(interpolate_points, K, R, t, R_H2W, depth, ref_pt, debug)
 
