@@ -3,7 +3,7 @@ import rospy
 import utils
 import graphical_utils as gu
 
-def px2meters(pt, K, R, t):
+def px2meters(pt, K, R, t, scale_factor = 1.0):
     ''' Conversion function from pixels to meters used to obtain the match between
     a point in pixel coordinates in the image frame and its corresponding position in
     the real world in meters. The returned point XYZ is in meters!
@@ -32,9 +32,8 @@ def px2meters(pt, K, R, t):
     #rospy.loginfo(f"N: {N}")
     # STEP 3: R^-1 * ((K^-1 * point) - t) -> (3x3) * (3x1) = (3x1)
     XYZ = R2.dot(N)
-    #rospy.loginfo(f"XYZ: {XYZ}")
 
-    return XYZ
+    return XYZ*scale_factor
 
 def H2R_old(original_point, R_H2W, R_W2R, depth, debug=False):
 
@@ -104,11 +103,10 @@ def H2R(original_point, R_H2W, depth):
     move the robot in its neutral position/home position at the startup of the program. '''
 
     R_H2W = np.array(R_H2W)
-
     # flatten the given point and transform it in homogeneous coordinates
     # since we use place ZY instead of XY we must give to the function the Y first and the X second!
     original_point = original_point.flatten()
-    #rospy.loginfo(f"Original points: {original_point}")
+    rospy.loginfo(f"Original points: {original_point}")
     original_point = np.array([original_point[0], original_point[1], 1.0])
     #rospy.loginfo(f"Original points: {original_point}")
     
@@ -149,9 +147,14 @@ def px2R(points_list, K, R, t, R_H2W, depth, ref_pt, debug=False):
 
     robot_points = []
     for p in points_list:
-        #rospy.loginfo(p)
         # converts the point from pixels to meters
-        p = np.array(p)
+        
+        p = np.array(p, dtype=np.float64)
+        
+        # Usa np.reshape correttamente per convertire p in (1, 3)
+        #p = np.reshape(p, (1, 3))
+    
+        
         point = px2meters(p, K, R, t)
         # finds the coordinates of the calculated point with respect to reference point
         point = point - ref_pt

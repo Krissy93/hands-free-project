@@ -55,6 +55,8 @@ def get_ref_point(K, D, R, t):
     reference = np.array([[reference[0], reference[1], 1.0]])
     rospy.loginfo(reference)
     # convert reference point to meters
+    rospy.loginfo(f"Reference Shape: {reference.shape}")  # Dovrebbe essere (3,)
+
     ref_pt = cu.px2meters(reference, K, R, t)
 
     return ref_pt, reference
@@ -104,8 +106,19 @@ def main():
 
     print(ref_pt)
 
-    saved_points = [[1424,271,1],[1135,263,1],[854,253,1],[1408,472,1],[1124,461,1],[848,449,1],[1395,668,1],[1114,652,1],[842,640,1],[1448,257,1]]
-    #saved_points = [[1448,257,1]]
+    #saved_points = [[1424.0,271.0,1.0],[1135.0,263.0,1.0],[854.0,253.0,1.0],[1408.0,472.0,1.0],[1124.0,461.0,1.0],[848.0,449.0,1.0],[1395.0,668.0,1.0],[1114.0,652.0,1.0],[842.0,640.0,1.0],[1448.0,257.0,1.0]]
+    saved_points = [
+    [np.array([1424.0, 271.0, 1.0])],
+    [np.array([1135.0, 263.0, 1.0])],
+    [np.array([854.0, 253.0, 1.0])],
+    [np.array([1408.0, 472.0, 1.0])],
+    [np.array([1124.0, 461.0, 1.0])],
+    [np.array([848.0, 449.0, 1.0])],
+    [np.array([1395.0, 668.0, 1.0])],
+    [np.array([1114.0, 652.0, 1.0])],
+    [np.array([842.0, 640.0, 1.0])],
+    [np.array([1448.0, 257.0, 1.0])]]
+    
     rospy.loginfo(gu.Color.BOLD + gu.Color.RED + f'Saved positions: {saved_points}'+ gu.Color.END)
 
     robot_points = cu.px2R(saved_points, K, R, t, R_H2W, depth, ref_pt, debug)
