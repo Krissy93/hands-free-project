@@ -158,7 +158,7 @@ def move_action(hand, robot, depth, robot_points, orientation, linear_speed):
             robot.move2cartesian(waypoints, linear_speed=linear_speed)
             rospy.loginfo(gu.Color.BOLD + gu.Color.GREEN + '-- MOVEMENT COMPLETED --' + gu.Color.END)
             break
-        elif user_input.lower() == 'z':  # If 'q' is pressed
+        elif user_input.lower() == 'z':  # If 'z' is pressed
             rospy.loginfo(gu.Color.BOLD + gu.Color.RED + '-- OPERATION CANCELLED --' + gu.Color.END)
             break
         else:
@@ -314,8 +314,8 @@ def main():
     R_H2W = workspace_calibrations['H2W_2']
 
     #Workspace corners
-    workspace_corners = [(153, 629), (985,631), (126,37), (1004,23)]
-    Markers_px = [(974,574)]
+    #workspace_corners = [(1500, 200), (800,200), (1500,700), (800,200)]
+    Markers_px = [(1424,271),(1135,263),(854,253),(1408,472),(1124,461),(848,449),(1395,668),(1114,652),(842,640)]
     
     # moves robot to home position
     # Inizializzazione del robot UR3
@@ -405,7 +405,7 @@ def main():
 
         ###### STEP 5: VISUALIZATION
         gu.draw_gesture_info(frame, hand.inference_time, hand.current_gesture, hand.handmap)
-        #gu.draw_workspace(frame,workspace_corners,Markers_px)
+        gu.draw_workspace(frame,Markers_px)
         gu.draw_trajectory(frame, hand.positions_saved)
         cv2.imshow('Gesture and trajectory detection', frame)
 

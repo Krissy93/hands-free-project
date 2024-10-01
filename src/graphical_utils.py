@@ -72,13 +72,11 @@ def correzione_prospettica(B3, A1, A3, b1, R, t, K, D, image):
 
 
 
-def draw_workspace(frame, points=[], markers=[]):
+def draw_workspace(frame, markers=[]):
     ''' Function to draw the points corresponding to the markers in the workspace H.
 
     INPUTS:
     - frame: image on which workspace and markers should be drawn
-    - points: corner points of workspace, they will be used to draw a polyline.
-              This is a list of pixel points like: [(x1,y1),(x2,y2)]
     - markers: if it's not empty, the markers inside are expressed as pixel coordinates.
                This is a list of pixel points like: [(x1,y1),(x2,y2)]
 
@@ -90,9 +88,6 @@ def draw_workspace(frame, points=[], markers=[]):
         # frame, point, radius, color, thickness, linetype
         # warning: cv2 uses B-G-R format for color
         cv2.circle(frame, m, 6, (0, 0, 255), thickness=-1, lineType=cv2.FILLED)
-
-    if len(points) > 0:
-        cv2.polylines(frame, [np.array(points)], True, (0, 255, 0), thickness=2)
 
 def draw_reference(img, corners, imgpts):
     ''' Function to draw the axes of the reference system on the image frame.
@@ -196,8 +191,8 @@ def draw_gesture_info(frame, inference_time, gesture, handmap):
     # draw info on frame if the draw flag has been set as True
     #frame = cv2.putText(frame, 'INFERENCE TIME: ' + str(inference_time) + ' SEC', (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.2,
                     #(80, 65, 242), 3, cv2.LINE_AA)
-    frame = cv2.putText(frame, 'LATEST GESTURE DETECTED: ' + str(gesture), (120, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.2,
+    frame = cv2.putText(frame, 'CURRENT GESTURE DETECTED: ' + str(gesture), (120, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.2,
                     (80, 65, 242), 3, cv2.LINE_AA)
-    frame = cv2.putText(frame, ' CURRENT HANDMAP: ' + str(handmap), (20, frame.shape[0] - 30), cv2.FONT_HERSHEY_SIMPLEX, 1.2,
-                    (80, 65, 242), 3, cv2.LINE_AA)
+    #frame = cv2.putText(frame, ' CURRENT HANDMAP: ' + str(handmap), (20, frame.shape[0] - 30), cv2.FONT_HERSHEY_SIMPLEX, 1.2,
+                    #(80, 65, 242), 3, cv2.LINE_AA)
     return frame

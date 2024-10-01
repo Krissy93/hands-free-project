@@ -9,6 +9,73 @@ from geometry_msgs.msg import PoseStamped
 from tf2_ros import Buffer, TransformListener
 
 
+def calibrateW2R_2(M=None, R=None, path=None):
+    '''Calcola la rotazione e traslazione tra due set di punti M e R.'''
+
+    if path is not None:
+        dictionary = utils.yaml2dict(path)
+        Master = dictionary['Pose']
+        Robot = dictionary['Markers']
+    elif M is not None and R is not None:
+        Master = M
+        Robot = R
+    else:
+        print("ERROR, WRONG ARGUMENTS PASSED")
+        return
+
+    # Costruisci la matrice A con le coordinate del Master
+    A = []
+    for i in range(len(Master)):
+        row1 = [Master[i][0], -Master[i][1], 1.0, 0.0]  # XY del Master
+        row2 = [Master[i][1], Master[i][0], 0.0, 1.0]  # XY invertito del Master
+        A.append(row1)
+        A.append(row2)
+
+    A = np.asarray(A)
+
+    # Costruisci il vettore b con le coordinate del Robot
+    b = []
+    for i in range(len(Robot)):
+        b.append(Robot[i][1])  # Y del Robot
+        b.append(Robot[i][2])  # Z del Robot
+
+    b = np.asarray(b)
+
+    # Risolvi il sistema lineare
+    x = np.linalg.lstsq(A, b, rcond=None)[0].tolist()
+
+    # Matrice di rotazione 2x2 con i nuovi parametri calcolati
+    R = np.array([
+        [x[0], -x[1]], 
+        [x[1], x[0]]
+    ])
+
+    # Applicazione della rotazione ai punti master
+    transformed_points = []
+    for i in range(len(Master)):
+        transformed_x = R[0, 0] * Master[i][0] + R[0, 1] * Master[i][1]
+        transformed_y = R[1, 0] * Master[i][0] + R[1, 1] * Master[i][1]
+        transformed_points.append([transformed_x, transformed_y])
+
+    # Calcolo della traslazione come differenza media tra i punti del robot e i punti master trasformati
+    traslazione_x = np.mean([Robot[i][1] - transformed_points[i][0] for i in range(len(Master))])
+    traslazione_y = np.mean([Robot[i][2] - transformed_points[i][1] for i in range(len(Master))])
+
+    # Aggiornamento del calcolo della traslazione in funzione del segno e delle unità
+    traslazione_x = np.mean([Robot[i][1] - transformed_points[i][0] for i in range(len(Master))])
+    traslazione_y = np.mean([Robot[i][2] - transformed_points[i][1] for i in range(len(Master))])
+
+    # Matrice finale con la rotazione e la traslazione
+    rototranslation_matrix = [
+        [R[0, 0], R[0, 1], traslazione_x],
+        [R[1, 0], R[1, 1], traslazione_y],
+        [0.0, 0.0, 1.0]
+    ]
+
+    return np.asarray(rototranslation_matrix)
+
+
+
 def calibrateW2R(M=None, R=None, path=None):
     '''This function may:
     1) load the robot calibration YAML file if it has been saved from
@@ -123,8 +190,10 @@ def main(H_master_yaml, W_master_yaml, calibration_yaml):
 
 
     R_H2W = calibrateW2R(pose_W,points)
+    R_H2W_2 = calibrateW2R_2(pose_W,points)
 
-    dictionary = {'Robot': points, 'Master_W': markers_W, 'Master_H': markers_H, 'H2WCalibration': R_H2W.tolist()}
+
+    dictionary = {'Robot': points, 'Master_W': markers_W, 'Master_H': markers_H, 'H2WCalibration': R_H2W.tolist(), 'H2W_2': R_H2W_2.tolist()}
     utils.dict2yaml(dictionary, calibration_yaml)
     dictW = {'Pose': pose_W, 'Markers': points}
     utils.dict2yaml(dictW, W_master_yaml)

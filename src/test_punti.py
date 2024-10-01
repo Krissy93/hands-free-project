@@ -43,6 +43,54 @@ def detect_black_squares(image):
 
     return squares_centers
 
+def detect_a2_paper(image):
+    # Convertiamo l'immagine nello spazio colore HSV
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+    # Mostriamo l'immagine HSV per controllo
+    cv2.imshow("Immagine HSV", hsv)
+    cv2.waitKey(0)
+
+    # Definiamo l'intervallo per il colore verde (sfondo)
+    lower_green = np.array([35, 40, 40])  # Prova a cambiare questi valori
+    upper_green = np.array([85, 255, 255])
+
+    # Creiamo una maschera per rilevare il verde
+    mask_green = cv2.inRange(hsv, lower_green, upper_green)
+
+    # Mostriamo la maschera verde per controllare se è corretta
+    cv2.imshow("Maschera Verde", mask_green)
+    cv2.waitKey(0)
+
+    # Invertiamo la maschera per isolare il bianco (foglio A2)
+    mask_white = cv2.bitwise_not(mask_green)
+
+    # Troviamo i contorni del foglio bianco
+    contours, _ = cv2.findContours(mask_white, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    a2_corners = None
+
+    for contour in contours:
+        # Approssimiamo il contorno a un poligono
+        epsilon = 0.02 * cv2.arcLength(contour, True)
+        approx = cv2.approxPolyDP(contour, epsilon, True)
+
+        # Se il contorno ha 4 lati ed è abbastanza grande, è probabilmente il foglio A2
+        if len(approx) == 4 and cv2.isContourConvex(approx):
+            area = cv2.contourArea(approx)
+            if 10000 < area < 100000:  # Aggiusta i limiti per l'area del foglio A2
+                a2_corners = approx.reshape((4, 2))
+                # Disegniamo il contorno del foglio sull'immagine
+                cv2.drawContours(image, [approx], -1, (0, 0, 255), 3)
+
+                # Disegniamo i vertici del foglio
+                for corner in a2_corners:
+                    cv2.circle(image, tuple(corner), 5, (255, 0, 0), -1)
+                break
+
+    return a2_corners
+
+
 def main():
     # Inizializziamo la Kinect con il solo RGB abilitato
     kinect = utils.Kinect(enable_rgb=True, enable_depth=False, need_bigdepth=False, need_color_depth_map=False)
@@ -83,12 +131,22 @@ def main():
     else:
         print("Nessun quadrato nero rilevato.")
 
-    # Salviamo l'immagine con i quadrati numerati
-    cv2.imwrite("kinect_squares_detected.png", frame)
-    print("Immagine con quadrati numerati salvata!")
+    # Rileviamo il foglio A2 bianco e otteniamo gli estremi
+    a2_corners = detect_a2_paper(frame)
 
-    # Mostriamo l'immagine con i quadrati rilevati e il punto rosso
-    cv2.imshow("Quadrati Rilevati", frame)
+    if a2_corners is not None:
+        print("Foglio A2 rilevato con i seguenti estremi:")
+        for i, corner in enumerate(a2_corners):
+            print(f"Estremo {i+1}: {corner}")
+    else:
+        print("Foglio A2 non rilevato.")
+
+    # Salviamo l'immagine con i quadrati numerati e il foglio A2 riquadrato
+    cv2.imwrite("kinect_squares_and_a2_detected.png", frame)
+    print("Immagine con quadrati numerati e foglio A2 riquadrato salvata!")
+
+    # Mostriamo l'immagine con i quadrati rilevati, il foglio A2 e il punto rosso
+    cv2.imshow("Rilevamento Quadrati e Foglio A2", frame)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 

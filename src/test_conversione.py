@@ -116,8 +116,7 @@ def main():
     [np.array([848.0, 449.0, 1.0])],
     [np.array([1395.0, 668.0, 1.0])],
     [np.array([1114.0, 652.0, 1.0])],
-    [np.array([842.0, 640.0, 1.0])],
-    [np.array([1448.0, 257.0, 1.0])]]
+    [np.array([842.0, 640.0, 1.0])]]
 
     rospy.loginfo(gu.Color.BOLD + gu.Color.RED + f'Saved positions: {saved_points}'+ gu.Color.END)
 
