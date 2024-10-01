@@ -382,14 +382,14 @@ def main():
                 hand.current_gesture = 'NO GESTURE'
 
             elif hand.current_gesture == 'MOVE':
-                rospy.loginfo(gu.Color.BOLD + gu.Color.RED + f'Saved positions: {hand.positions_saved}'+ gu.Color.END)
+                #rospy.loginfo(gu.Color.BOLD + gu.Color.RED + f'Saved positions: {hand.positions_saved}'+ gu.Color.END)
                 
                 if len(hand.positions_saved)>1:
                     interpolate_points = interpolate(hand.positions_saved)
                 else:
                     interpolate_points = hand.positions_saved
 
-                rospy.loginfo(gu.Color.BOLD + gu.Color.RED + f'Interpolated Points: {interpolate_points}'+ gu.Color.END)
+                #rospy.loginfo(gu.Color.BOLD + gu.Color.RED + f'Interpolated Points: {interpolate_points}'+ gu.Color.END)
 
                 robot_points = cu.px2R(interpolate_points, K, R, t, R_H2W, depth, ref_pt, debug)
 
