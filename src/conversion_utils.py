@@ -106,7 +106,7 @@ def H2R(original_point, R_H2W, depth):
     # flatten the given point and transform it in homogeneous coordinates
     # since we use place ZY instead of XY we must give to the function the Y first and the X second!
     original_point = original_point.flatten()
-    rospy.loginfo(f"Original points: {original_point}")
+    #rospy.loginfo(f"Original points: {original_point}")
     original_point = np.array([original_point[0]*10, original_point[1]*10, 1.0])
     #rospy.loginfo(f"Original points: {original_point}")
     
@@ -161,7 +161,7 @@ def px2R(points_list, K, R, t, R_H2W, depth, ref_pt, debug=False):
 
         # calculates robot coordinates from starting point in reference system Hs
         # if workspace H and W differ, you need to calibrate them too
-        rospy.loginfo(f"points: {point}")
+        #rospy.loginfo(f"points: {point}")
         robot_points.append(H2R(point, R_H2W, depth))
 
     return robot_points

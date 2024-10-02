@@ -10,69 +10,61 @@ from tf2_ros import Buffer, TransformListener
 
 
 def calibrateW2R_2(M=None, R=None, path=None):
-    '''Calcola la rotazione e traslazione tra due set di punti M e R.'''
+    '''This function may:
+    1) load the robot calibration YAML file if it has been saved from
+    vertical_workspace_calibration.py as: dict = [{'Master' : [[x, y], [x, y]]}, {'Robot' : [[x, y], [x, y]]}]
+    2) load the point lists of both Master M and Robot points R
+
+    in both cases the function uses the two point lists to obtain the rototranslation
+    matrix between the robot and workspace W, which is returned as [[r11 r12 t1],[r21 r22 t2],[0.0 0.0 1.0]]'''
 
     if path is not None:
+        # In this case, load from YAML file
         dictionary = utils.yaml2dict(path)
         Master = dictionary['Pose']
         Robot = dictionary['Markers']
     elif M is not None and R is not None:
+        # If M and R are passed as arguments
         Master = M
         Robot = R
     else:
         print("ERROR, WRONG ARGUMENTS PASSED")
         return
 
-    # Costruisci la matrice A con le coordinate del Master
     A = []
     for i in range(len(Master)):
-        row1 = [Master[i][0], -Master[i][1], 1.0, 0.0]  # XY del Master
-        row2 = [Master[i][1], Master[i][0], 0.0, 1.0]  # XY invertito del Master
+        # Trasformiamo le coordinate di Master per adattarle al piano YZ
+        row1 = [Master[i][0] , -Master[i][1] , 1.0, 0.0]  
+        row2 = [Master[i][1] , -Master[i][0] , 0.0, 1.0]  # Inversione delle coordinate
         A.append(row1)
         A.append(row2)
 
+    # Convert A from list to numpy array
     A = np.asarray(A)
 
-    # Costruisci il vettore b con le coordinate del Robot
+    # Build the vector b
     b = []
     for i in range(len(Robot)):
-        b.append(Robot[i][1])  # Y del Robot
-        b.append(Robot[i][2])  # Z del Robot
+        # Modifica per il piano YZ (Z diventa Y, Y diventa -Z)
+        b.append(Robot[i][1])  # Y del robot
+        b.append(Robot[i][2])  # Z del robot
 
+    # Convert b from list to numpy array
     b = np.asarray(b)
 
-    # Risolvi il sistema lineare
+    # Solve linear system x = A\b
     x = np.linalg.lstsq(A, b, rcond=None)[0].tolist()
 
-    # Matrice di rotazione 2x2 con i nuovi parametri calcolati
-    R = np.array([
-        [x[0], -x[1]], 
-        [x[1], x[0]]
-    ])
 
-    # Applicazione della rotazione ai punti master
-    transformed_points = []
-    for i in range(len(Master)):
-        transformed_x = R[0, 0] * Master[i][0] + R[0, 1] * Master[i][1]
-        transformed_y = R[1, 0] * Master[i][0] + R[1, 1] * Master[i][1]
-        transformed_points.append([transformed_x, transformed_y])
+    # Define rototranslation matrix using the values of x
+    R = [[x[0], x[1], x[2]], 
+         [-x[1], x[0], x[3]], 
+         [0.0, 0.0, 1.0]]  # Ultima riga
 
-    # Calcolo della traslazione come differenza media tra i punti del robot e i punti master trasformati
-    traslazione_x = np.mean([Robot[i][1] - transformed_points[i][0] for i in range(len(Master))])
-    traslazione_y = np.mean([Robot[i][2] - transformed_points[i][1] for i in range(len(Master))])
+    # Convert R from list to numpy array
+    R = np.asarray(R)
 
-    # Aggiornamento del calcolo della traslazione in funzione del segno e delle unità
-    traslazione_x = np.mean([Robot[i][1] - transformed_points[i][0] for i in range(len(Master))])
-    traslazione_y = np.mean([Robot[i][2] - transformed_points[i][1] for i in range(len(Master))])
-
-    # Matrice finale con la rotazione e la traslazione
-    rototranslation_matrix = [
-        [R[0, 0], R[0, 1], traslazione_x],
-        [R[1, 0], R[1, 1], traslazione_y],
-        [0.0, 0.0, 1.0]
-    ]
-
-    return np.asarray(rototranslation_matrix)
+    return R
 
 
 
