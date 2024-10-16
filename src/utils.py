@@ -8,7 +8,7 @@ import graphical_utils as gu
 import rospy
 # import math
 # import time
-from geometry_msgs.msg import Pose
+from geometry_msgs.msg import Pose, Quaternion
 from tf.transformations import quaternion_from_euler
 from pylibfreenect2 import Freenect2, SyncMultiFrameListener
 from pylibfreenect2 import FrameType, Registration, Frame
@@ -27,6 +27,7 @@ import actionlib
 from moveit_commander import RobotCommander, PlanningSceneInterface
 from moveit_commander import MoveGroupCommander
 from moveit_commander import roscpp_initialize, roscpp_shutdown
+from moveit_msgs.msg import RobotTrajectory
 import moveit_commander
 from geometry_msgs.msg import PoseStamped, Quaternion, Point
 import geometry_msgs.msg
@@ -254,7 +255,7 @@ class Robot:
     def __init__(self):
         # Initialize move group commander for UR3 arm
         moveit_commander.roscpp_initialize(sys.argv)
-
+        self.marker_pub = rospy.Publisher('/visualization_marker', Marker, queue_size=10)
         self.robot = RobotCommander()
         self.group = MoveGroupCommander("manipulator")  # Name of the move group for UR3
         self.group.set_pose_reference_frame("base_link")
@@ -422,6 +423,7 @@ class Robot:
 
         rospy.sleep(0.1)
 
+
     def move2cartesian(self, waypoints, linear_speed=0.1, linear_accel=0.1, simulate_only=False):
         """
         Moves the UR3 robot arm through a list of waypoints and visualizes the planned trajectory in RViz.
@@ -461,9 +463,7 @@ class Robot:
             # Plan the Cartesian path connecting the waypoints
             (plan, fraction) = self.group.compute_cartesian_path(
                 waypoints_list,   # waypoints to follow
-                0.05,            # eef_step (smaller value for finer resolution)
-                0.0,              # jump_threshold
-                #avoid_collisions=True
+                0.05            # eef_step (smaller value for finer resolution)
                 )
 
             rospy.loginfo("Path planning fraction: %.2f%%", fraction * 100)
@@ -493,22 +493,15 @@ class Robot:
         except Exception as e:
             rospy.logerr('An error occurred: %s', str(e))
     
+    
     def visualize_trajectory_as_line(self, waypoints):
-        """
-        Visualizes a trajectory as a line in RViz.
-        
-        Args:
-            waypoints (list): A list of dictionaries representing waypoints.
-                            Each dictionary must have 'position' and 'orientation' keys.
-        """
-        # Create a marker to visualize the trajectory
-        marker = viz_msgs.Marker()
+        marker = Marker()
         marker.header.frame_id = "base_link"
         marker.header.stamp = rospy.Time.now()
         marker.ns = "trajectory"
         marker.id = 0
-        marker.type = viz_msgs.Marker.LINE_STRIP
-        marker.action = viz_msgs.Marker.ADD
+        marker.type = Marker.LINE_STRIP
+        marker.action = Marker.ADD
         marker.pose.orientation.w = 1.0
         marker.scale.x = 0.02  # Line width
         marker.color.r = 1.0
@@ -516,19 +509,15 @@ class Robot:
         marker.color.b = 0.0
         marker.color.a = 1.0
 
-        # Add points to the marker
         for wp in waypoints:
-            # Create a Point for each waypoint position
             p = Point()
             p.x = wp['position'][0]
             p.y = wp['position'][1]
             p.z = wp['position'][2]
             marker.points.append(p)
 
-        # Publish the marker
-        marker_pub = rospy.Publisher('/visualization_marker', viz_msgs.Marker, queue_size=10)
         rospy.sleep(1)  # Allow time for RViz to initialize
-        marker_pub.publish(marker)
+        self.marker_pub.publish(marker)
         rospy.loginfo('Trajectory line published to /visualization_marker')
 
     def delete_trajectory_marker(self):

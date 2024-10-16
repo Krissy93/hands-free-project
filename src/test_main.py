@@ -9,6 +9,8 @@ import math
 import utils
 import graphical_utils as gu
 from tf.transformations import quaternion_from_euler
+from visualization_msgs.msg import Marker
+
 
 def generate_circle_waypoints(center, radius, num_points, orientation):
     """
@@ -44,7 +46,7 @@ def main():
     robot = utils.Robot()
 
     robot.add_table_to_scene()
-    robot.add_a2_sheet_to_scene
+    robot.add_a2_sheet_to_scene()
     robot.set_home()
 
     # Center of the circle in the XZ plane
@@ -74,9 +76,12 @@ def main():
     # Simulate the trajectory in RViz
     rospy.loginfo(gu.Color.BOLD + gu.Color.CYAN + '-- SIMULATING TRAJECTORY... --' + gu.Color.END)
     #waypoints = []
+
+    
     #for p in robot_points:
     #    waypoints.append({'position': tuple(p), 'orientation': orientation})
     waypoints = generate_circle_waypoints(center, radius, num_points, orientation)
+    print(waypoints)
     robot.move2cartesian(waypoints=waypoints, linear_speed=linear_speed, simulate_only=True)
 
     robot.visualize_trajectory_as_line(waypoints)  # Visualize the trajectory as a line
