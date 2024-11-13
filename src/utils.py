@@ -288,7 +288,7 @@ class Robot:
         sheet_pose.pose.position.z = 0.4  # Adjust the Z position to place the sheet at desired height
         sheet_pose.pose.orientation.w = 0.0
 
-            # Rotate the sheet so that it is flat, with the longer side (59.4 cm) parallel to the floor
+        # Rotate the sheet so that it is flat, with the longer side (59.4 cm) parallel to the floor
         q = quaternion_from_euler(-math.pi/2, 0, math.pi/2)  # No rotation if it is already aligned correctly
         # If it needs to be aligned vertically or rotated, adjust the euler angles accordingly:
         # For example, if you need it to stand vertically, you might use quaternion_from_euler(-math.pi / 2, 0, 0)
@@ -386,8 +386,6 @@ class Robot:
 
             # Set a fixed orientation (you can adjust this if needed)
             q = quaternion_from_euler(0, -math.pi / 2, 0)
-            #q = quaternion_from_euler(-math.pi / 2, 0, 0)
-            #q = quaternion_from_euler(0, -math.pi / 2, math.pi)
             target_pose.orientation.x = q[0]
             target_pose.orientation.y = q[1]
             target_pose.orientation.z = q[2]
@@ -408,21 +406,6 @@ class Robot:
             rospy.logerr('Keyboard interrupt detected from the user. Exiting before trajectory completion.')
         except Exception as e:
             rospy.logerr('An error occurred: %s', str(e))
-
-    def increase_x(self, x_incr, time=0.00001, Debug=False):
-        # Method to increase/decrease the robot distance from desk.
-
-        current_pose = self.group.get_current_pose().pose
-        current_pose.position.x += x_incr
-
-        self.group.set_pose_target(current_pose)
-        self.group.go(wait=True)
-
-        if Debug:
-            rospy.loginfo('-- MOVEMENT COMPLETED --')
-
-        rospy.sleep(0.1)
-
 
     def move2cartesian(self, waypoints, linear_speed=0.1, linear_accel=0.1, simulate_only=False):
         """
@@ -540,7 +523,6 @@ class Robot:
         rospy.loginfo('Trajectory line deleted from /visualization_marker')
 
 
-
 def myhook():
     moveit_commander.roscpp_shutdown()
 
@@ -565,7 +547,6 @@ def yaml2dict(path):
         print(gu.Color.BOLD + gu.Color.RED + 'Error parsing YAML file: ' + str(exc) + gu.Color.END)
     except Exception as e:
         print(gu.Color.BOLD + gu.Color.RED + 'An unexpected error occurred: ' + str(e) + gu.Color.END)
-
 
 
 def dict2yaml(dictionary, path):

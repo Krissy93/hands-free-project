@@ -23,6 +23,11 @@ positions = {
 }
 
 def main():
+    '''
+    This code is used to get the coordinates of the end effector that are going to be used for the robot calibration.
+    This code is made that it can be used in simulation on Gazebo or with the real Robot.
+    '''
+
     rospy.init_node("move_to_predefined_pose")
     print(gu.Color.BOLD + gu.Color.CYAN + 'Initializing node... ' + gu.Color.END)
 
@@ -32,7 +37,6 @@ def main():
 
     # Muovi alla posizione neutra
     robot.set_home()
-    #robot .set_neutral()
     print(gu.Color.BOLD + gu.Color.CYAN + 'Moved to neutral position.' + gu.Color.END)
     
     while not rospy.is_shutdown():

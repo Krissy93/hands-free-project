@@ -8,66 +8,6 @@ import tf2_ros
 from geometry_msgs.msg import PoseStamped
 from tf2_ros import Buffer, TransformListener
 
-
-def calibrateW2R_2(M=None, R=None, path=None):
-    '''This function may:
-    1) load the robot calibration YAML file if it has been saved from
-    vertical_workspace_calibration.py as: dict = [{'Master' : [[x, y], [x, y]]}, {'Robot' : [[x, y], [x, y]]}]
-    2) load the point lists of both Master M and Robot points R
-
-    in both cases the function uses the two point lists to obtain the rototranslation
-    matrix between the robot and workspace W, which is returned as [[r11 r12 t1],[r21 r22 t2],[0.0 0.0 1.0]]'''
-
-    if path is not None:
-        # In this case, load from YAML file
-        dictionary = utils.yaml2dict(path)
-        Master = dictionary['Pose']
-        Robot = dictionary['Markers']
-    elif M is not None and R is not None:
-        # If M and R are passed as arguments
-        Master = M
-        Robot = R
-    else:
-        print("ERROR, WRONG ARGUMENTS PASSED")
-        return
-
-    A = []
-    for i in range(len(Master)):
-        # Trasformiamo le coordinate di Master per adattarle al piano YZ
-        row1 = [Master[i][0] , -Master[i][1] , 1.0, 0.0]  
-        row2 = [Master[i][1] , -Master[i][0] , 0.0, 1.0]  # Inversione delle coordinate
-        A.append(row1)
-        A.append(row2)
-
-    # Convert A from list to numpy array
-    A = np.asarray(A)
-
-    # Build the vector b
-    b = []
-    for i in range(len(Robot)):
-        # Modifica per il piano YZ (Z diventa Y, Y diventa -Z)
-        b.append(Robot[i][1])  # Y del robot
-        b.append(Robot[i][2])  # Z del robot
-
-    # Convert b from list to numpy array
-    b = np.asarray(b)
-
-    # Solve linear system x = A\b
-    x = np.linalg.lstsq(A, b, rcond=None)[0].tolist()
-
-
-    # Define rototranslation matrix using the values of x
-    R = [[x[0], x[1], x[2]], 
-         [-x[1], x[0], x[3]], 
-         [0.0, 0.0, 1.0]]  # Ultima riga
-
-    # Convert R from list to numpy array
-    R = np.asarray(R)
-
-    return R
-
-
-
 def calibrateW2R(M=None, R=None, path=None):
     '''This function may:
     1) load the robot calibration YAML file if it has been saved from
@@ -92,9 +32,9 @@ def calibrateW2R(M=None, R=None, path=None):
 
     A = []
     for i in range(len(Master)):
-        # Trasformiamo le coordinate di Master per adattarle al piano YZ
+        # Remeber to modify the signs based on ur actual application
         row1 = [Master[i][0] , -Master[i][1] , 1.0, 0.0]  
-        row2 = [Master[i][1] , Master[i][0] , 0.0, 1.0]  # Inversione delle coordinate
+        row2 = [Master[i][1] , Master[i][0] , 0.0, 1.0]  
         A.append(row1)
         A.append(row2)
 
@@ -182,10 +122,9 @@ def main(H_master_yaml, W_master_yaml, calibration_yaml):
 
 
     R_H2W = calibrateW2R(pose_W,points)
-    R_H2W_2 = calibrateW2R_2(pose_W,points)
 
 
-    dictionary = {'Robot': points, 'Master_W': markers_W, 'Master_H': markers_H, 'H2WCalibration': R_H2W.tolist(), 'H2W_2': R_H2W_2.tolist()}
+    dictionary = {'Robot': points, 'Master_W': markers_W, 'Master_H': markers_H, 'H2WCalibration': R_H2W.tolist()}
     utils.dict2yaml(dictionary, calibration_yaml)
     dictW = {'Pose': pose_W, 'Markers': points}
     utils.dict2yaml(dictW, W_master_yaml)

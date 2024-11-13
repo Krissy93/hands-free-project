@@ -11,7 +11,9 @@ class Hand:
     def __init__(self, complexity, threshold, max_chain=0, debug=False):
         self.debug = debug
         self.threshold = threshold
-        # net_params dovrebbe contenere i parametri di inizializzazione della rete, in origine era settato il programma per gestire anche i parametri di openpose quindi qui vanno inviati net_params = [1] per mediapipe
+        # net_params dovrebbe contenere i parametri di inizializzazione della rete, 
+        # in origine era settato il programma per gestire anche i parametri di openpose 
+        # quindi qui vanno inviati net_params = [1] per mediapipe
         self.model_complexity = complexity
         self.inference_time = 0
         self.max_chain = max_chain
@@ -39,42 +41,36 @@ class Hand:
 
     
     def mediapipe_inference(self, frame, n_keypoints=21):
-        # Assicurati che frame sia un array di tipo uint8
         frame = np.asarray(frame, dtype=np.uint8)
         
-        # Crea una copia profonda dell'immagine per le operazioni di disegno
+        # Create a copy of he frame so that it can be modified by drawing in it
         writable_frame = np.copy(frame)
         
-        # Verifica che writable_frame sia scrivibile
+        # Debug
         if not writable_frame.flags.writeable:
             rospy.logwarn("Writable frame is not writable!")
 
-        # Calcola il tempo totale di inferenza come differenza tra l'inizio di questa funzione
-        # e il tempo corrispondente alla creazione dell'output
+        # It calculate the total period of interference 
         before = time.time()
 
-        # L'immagine non è scrivibile per migliorare le prestazioni durante l'inferenza
         frame_rgb = cv2.cvtColor(writable_frame, cv2.COLOR_BGR2RGB)
 
         self.hands = self.mp_hands.Hands(model_complexity=self.model_complexity, min_detection_confidence=self.threshold, min_tracking_confidence=self.threshold)
 
-        # Effettua l'inferenza
+        # It does the interference time
         # model_complexity, min_detection_confidence, min_tracking_confidence
         with self.mp_hands.Hands(model_complexity=self.model_complexity, min_detection_confidence=self.threshold, min_tracking_confidence=self.threshold) as hands:
             self.output = hands.process(frame_rgb)
 
-            # Ottieni il tempo di inferenza richiesto dalla rete per eseguire il rilevamento
             self.inference_time = round(time.time() - before, 3)
 
-            # Liste vuote per memorizzare i punti chiave rilevati e i punteggi di confidenza
             self.points = []
             if self.output.multi_hand_landmarks:
                 for i in range(n_keypoints):
-                    # Le coordinate sono normalizzate da 0 a 1
-                    # Quindi dobbiamo trasformarle di nuovo in coordinate dell'immagine
+                    # The coordinated are normalizied to be 0 or 1
                     self.points.append((int(self.output.multi_hand_landmarks[0].landmark[i].x * writable_frame.shape[1]), int(self.output.multi_hand_landmarks[0].landmark[i].y * writable_frame.shape[0])))
 
-                # Disegna i landmark e le connessioni
+                # Draws the landmarks for the hand
                 for pair in self.pairs:
                     x1, y1 = self.points[pair[0]]
                     x2, y2 = self.points[pair[1]]
@@ -87,40 +83,6 @@ class Hand:
                 self.points = [None] * n_keypoints
 
         return writable_frame
-    '''    
-
-    def mediapipe_inference(self, frame, n_keypoints=21):
-    
-        # calculate the total inference time as a difference between the starting time
-        # of this function and the time corresponding to the output creation
-        before = time.time()
-
-        # image is not writable to improve performance during inference
-        frame.flags.writeable = False
-        # converts to rgb from bgr (standard opencv format)
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-
-        self.hands = self.mp_hands.Hands(model_complexity=self.model_complexity, min_detection_confidence=self.threshold, min_tracking_confidence=self.threshold)
-
-        # performs inference
-        # model_complexity, min_detection_confidence, min_tracking_confidence
-        with self.mp_hands.Hands(model_complexity=self.model_complexity, min_detection_confidence=self.threshold, min_tracking_confidence=self.threshold) as hands:
-            self.output = hands.process(frame)
-            
-            # gets inference time required by network to perform the detection
-            self.inference_time = round(time.time() - before, 3)
-
-            # empty lists to store the detected keypoints and confidence scores
-            self.points = []
-            if self.output.multi_hand_landmarks:
-                for i in range(n_keypoints):
-                    # coordinates are normalized 0-1
-                    # so we need to transform them back to image coordinates
-                    # shape 1 is width, shape 0 is height
-                    self.points.append((int(self.output.multi_hand_landmarks[0].landmark[i].x * frame.shape[1]), int(self.output.multi_hand_landmarks[0].landmark[i].y * frame.shape[0])))
-            else:
-                self.points = [None] * n_keypoints
-    '''
 
     def get_handmap(self):
         ''' Function to check if the finger is closed or not, according to the position

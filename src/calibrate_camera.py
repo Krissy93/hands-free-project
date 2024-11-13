@@ -276,6 +276,7 @@ def calibrate_camera(camera, x_size, y_size, chess_size, calib_folder, debug):
       the R matrix and t vector of reference system needed to convert from px (camera frame)
       to m (user frame centered on point 0 of chessboard)
     '''
+    
 
     print(gu.Color.BOLD + gu.Color.PURPLE + '-- STARTING A CALIBRATION SESSION WITH PARAMETERS: --' + gu.Color.END)
     print(gu.Color.BOLD + gu.Color.PURPLE + 'SQUARES ALONG X: ' + str(x_size) + gu.Color.END)

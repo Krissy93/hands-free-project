@@ -40,10 +40,6 @@ def correzione_prospettica(B3, A1, A3, b1, R, t, K, D, image):
     a1 = a1.flatten()
     a3 = a3.flatten()
     b1 = b1.flatten()
-    # print('b1: ' + str(b1[0]) + ' ' + str(b1[1]))
-    # print('b3: ' + str(b3[0]) + ' ' + str(b3[1]) + ' B3: ' + str(B3[0]) + ' ' + str(B3[1]))
-    # print('a1: ' + str(a1[0]) + ' ' + str(a1[1]) + ' A1: ' + str(A1[0]) + ' ' + str(A1[1]))
-    # print('a3: ' + str(a3[0]) + ' ' + str(a3[1]) + ' A3: ' + str(A3[0]) + ' ' + str(A3[1]))
 
     distX1 = np.sqrt((b1[0] - a1[0])**2 + (b1[1] - a1[1])**2)
     distX2 = np.sqrt((b3[0] - a3[0])**2 + (b3[1] - a3[1])**2)
@@ -126,55 +122,6 @@ def draw_trajectory(frame, to_move):
         P = (int(point[0][0]), int(point[0][1]))
         cv2.circle(frame, P, 5, (0, 255, 0), thickness=-1, lineType=cv2.FILLED)
 
-#### todo mediapipe version
-def draw_skeleton(frame, points, pairs):
-    ''' Function to draw openpose skeleton of the hand according to a pre-defined pose pair scheme to the frame.
-
-    INPUTS:
-    - frame: image in which the skeleton will be drawn
-    - points: keypoints of the hand to be drawn
-
-    OUTPUTS:
-    - updates frame with skeleton drawing
-    '''
-
-    for i in range(0, len(pairs)):
-        # pose pairs represent the lines connecting two keypoints, used to correclty draw the skeleton
-        partA = pairs[i][0]
-        partB = pairs[i][1]
-
-        # defines colors according to finger
-        if i <= 3:
-            # thumb
-            colorP = (0, 0, 255)
-            colorL = (21, 16, 164)
-        elif i > 3 and i <= 7:
-            # index
-            colorP = (0, 255, 0)
-            colorL = (50, 115, 12)
-        elif i > 7 and i <= 11:
-            # middle
-            colorP = (235, 177, 17)
-            colorL = (139, 103, 3)
-        elif i > 11 and i <= 15:
-            # annular
-            colorP = (12, 200, 220)
-            colorL = (10, 149, 165)
-        else:
-            # pinky
-            colorP = (155, 101, 226)
-            colorL = (78, 19, 155)
-
-        # if there is a point in both keypoints of the pair, draws the point and the connected line
-        if points[partA] and points[partB]:
-            cv2.line(frame, points[partA], points[partB], colorL, 3)
-            if partA == 0:
-                # for the reference point use black to draw the keypoint marker
-                cv2.circle(frame, points[partA], 4, (0, 0, 0), thickness=-1, lineType=cv2.FILLED)
-            else:
-                cv2.circle(frame, points[partA], 4, colorP, thickness=-1, lineType=cv2.FILLED)
-            cv2.circle(frame, points[partB], 4, colorP, thickness=-1, lineType=cv2.FILLED)
-
 def draw_gesture_info(frame, inference_time, gesture, handmap):
     ''' Function to draw the gesture infos including the gesture detected and the inference time.
 
@@ -189,10 +136,10 @@ def draw_gesture_info(frame, inference_time, gesture, handmap):
     - frame: image with text drawn on it
     '''
     # draw info on frame if the draw flag has been set as True
-    #frame = cv2.putText(frame, 'INFERENCE TIME: ' + str(inference_time) + ' SEC', (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.2,
-                    #(80, 65, 242), 3, cv2.LINE_AA)
+    frame = cv2.putText(frame, 'INFERENCE TIME: ' + str(inference_time) + ' SEC', (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.2,
+                    (80, 65, 242), 3, cv2.LINE_AA)
     frame = cv2.putText(frame, 'CURRENT GESTURE DETECTED: ' + str(gesture), (120, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.2,
                     (80, 65, 242), 3, cv2.LINE_AA)
-    #frame = cv2.putText(frame, ' CURRENT HANDMAP: ' + str(handmap), (20, frame.shape[0] - 30), cv2.FONT_HERSHEY_SIMPLEX, 1.2,
-                    #(80, 65, 242), 3, cv2.LINE_AA)
+    frame = cv2.putText(frame, ' CURRENT HANDMAP: ' + str(handmap), (20, frame.shape[0] - 30), cv2.FONT_HERSHEY_SIMPLEX, 1.2,
+                    (80, 65, 242), 3, cv2.LINE_AA)
     return frame

@@ -39,9 +39,6 @@ def interpolate(px_points, debug=True):
         x.append(p[0])
         y.append(p[1])
 
-    ###### todo: check if px_points is a list of lists [[x,y],[x,y]] or list of tuples
-    ###### to change these lines accordingly. Basically I want an array of N rows and 2 cols
-
     points = np.array([x, y]).T
 
     # creates the cumulative sum of points differences, basically doing:
@@ -113,7 +110,7 @@ def interpolate(px_points, debug=True):
     return interpolated_points
 
 
-def hand_open_action(hand, robot, robot_home, robot_orientation, linear_speed):
+def hand_open_action(hand, robot):
     rospy.loginfo(gu.Color.BOLD + gu.Color.GREEN + 'HAND OPEN: RESETTING TRAJECTORY' + gu.Color.END)
     # HAND OPEN ACTION: resets points lists and sets acquire to true
     hand.acquire = True
@@ -135,7 +132,6 @@ def move_action(hand, robot, depth, robot_points, orientation, linear_speed):
     
     rospy.loginfo(gu.Color.BOLD + gu.Color.CYAN + '-- MOVING... --' + gu.Color.END)
 
-    #rospy.loginfo(gu.Color.BOLD + gu.Color.PURPLE + f'INTEWRPOLATED POINT: {interpolated_points}' + gu.Color.END)
     waypoints = []
     for p in robot_points:
         # depth[0] may be 0, 1 or 2 corresponding to x, y or z coordinate
@@ -143,8 +139,6 @@ def move_action(hand, robot, depth, robot_points, orientation, linear_speed):
             'position': tuple(p), 
             'orientation': orientation
         })
-
-    #rospy.loginfo(gu.Color.BOLD + gu.Color.PURPLE + f'WAYPOINTS: {waypoints}' + gu.Color.END)
 
     #move the robot along the trajectory
     robot.move2cartesian(waypoints=waypoints, linear_speed=linear_speed, simulate_only=True)
@@ -224,14 +218,7 @@ def main():
     rospy.init_node('hands_free_node')
 
     ## PARAMETERS THAT MAY BE CHANGED BY THE USER (in code or from launch file)
-
-    # draw value: set True to show skeleton, info, points, ecc. on frame, False otherwise
-    if rospy.has_param('~draw'):
-        draw = rospy.get_param('~draw')
-    else:
-        draw = True
-
-    # Caffe network threshold: if higher, less keypoints would be accepted
+    # Mediapipe network threshold: if higher, less keypoints would be accepted
     if rospy.has_param('~threshold'):
          threshold = rospy.get_param('~threshold')
     else:
@@ -266,6 +253,7 @@ def main():
         depth = [0, depth_val]  # Default to 'x' if the value is invalid
 
     # robot parameters such as home coordinates, tip orientation and speed
+    # in this version the home position is fixed by the Robot class giving him the angles
     if rospy.has_param('~robot_home'):
          robot_home = tuple(rospy.get_param('~robot_home'))
     else:
@@ -308,13 +296,13 @@ def main():
     t = camera_calibration['t']
 
     rospy.loginfo(gu.Color.BOLD + gu.Color.YELLOW + '-- WAITING ROBOT --' + gu.Color.END)
-    #rospy.sleep(30)
+    #Break needed to allow the launch file to set all the pages to load, controllers and simulations
+    rospy.sleep(30)
     rospy.loginfo(gu.Color.BOLD + gu.Color.GREEN + '-- INITIALIZING ROBOT --' + gu.Color.END)
     workspace_calibrations = utils.yaml2dict('/home/jacopo/URProject/src/hands-free-project/src/yaml/calibration.yaml')
     R_H2W = workspace_calibrations['H2W_2']
 
-    #Workspace corners
-    #workspace_corners = [(1500, 200), (800,200), (1500,700), (800,200)]
+    #Workspace points, that allows the user to recognize the area of the sheet we used to control the robot
     Markers_px = [(1424,271),(1135,263),(854,253),(1408,472),(1124,461),(848,449),(1395,668),(1114,652),(842,640)]
     
     # moves robot to home position
@@ -329,6 +317,7 @@ def main():
     rospy.loginfo(gu.Color.BOLD + gu.Color.GREEN + '-- MOVING TO HOME --' + gu.Color.END)
     #set the robot in the home position
     robot.set_home()
+
     rospy.loginfo(gu.Color.BOLD + gu.Color.GREEN + '-- ROBOT IN HOME POSITION --' + gu.Color.END)
     # computes reference point
     ref_pt, ref_px = get_ref_point(K, D, R, t)
@@ -353,10 +342,7 @@ def main():
         hand.mediapipe_inference(frame)
 
         # Rilevazione delle mani usando il detector
-        #frame = hand.findHands(frame)
-
-        # Trova la posizione della mano (o delle mani) nel frame
-        #lmList = hand.findPosition(frame)
+        frame = hand.findHands(frame)
 
         if debug:
             rospy.loginfo(gu.Color.BOLD + gu.Color.GREEN + 'points: ' + str(hand.points) + gu.Color.END)
@@ -378,22 +364,17 @@ def main():
             # please note that the update of positions_saved happens inside get_gesture()
             if hand.current_gesture == 'HAND OPEN':
 
-                hand_open_action(hand, robot, robot_home, robot_orientation, robot_speed)
+                hand_open_action(hand, robot)
                 hand.current_gesture = 'NO GESTURE'
 
             elif hand.current_gesture == 'MOVE':
-                #rospy.loginfo(gu.Color.BOLD + gu.Color.RED + f'Saved positions: {hand.positions_saved}'+ gu.Color.END)
                 
                 if len(hand.positions_saved)>1:
                     interpolate_points = interpolate(hand.positions_saved)
                 else:
                     interpolate_points = hand.positions_saved
 
-                #rospy.loginfo(gu.Color.BOLD + gu.Color.RED + f'Interpolated Points: {interpolate_points}'+ gu.Color.END)
-
                 robot_points = cu.px2R(interpolate_points, K, R, t, R_H2W, depth, ref_pt, debug)
-
-                #rospy.loginfo(gu.Color.BOLD + gu.Color.RED + f'Robot_points: {robot_points}'+ gu.Color.END)
 
                 move_action(hand, robot, depth, robot_points, robot_orientation, robot_speed)
                 hand.current_gesture = 'NO GESTURE'
